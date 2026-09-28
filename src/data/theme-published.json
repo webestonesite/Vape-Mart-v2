@@ -1,0 +1,38 @@
+{
+  "storeName": "Vape Mart",
+  "hero": {
+    "title": "Elevate Your Experience",
+    "subtitle": "Discover premium vapes, exclusive e-liquids, and next-gen hardware. Designed for those who demand the best.",
+    "buttonText": "Shop Collection",
+    "image": "/images/hero.png"
+  },
+  "featured": {
+    "title": "New Arrivals",
+    "products": [
+      {
+        "id": "1",
+        "name": "Obsidian Elite Pen",
+        "price": 89.99,
+        "image": "/images/product-1.png",
+        "category": "Hardware"
+      },
+      {
+        "id": "2",
+        "name": "Midnight Berry E-Liquid",
+        "price": 24.99,
+        "image": "/images/product-2.png",
+        "category": "E-Liquid"
+      },
+      {
+        "id": "3",
+        "name": "Neon Genesis Mod",
+        "price": 149.99,
+        "image": "/images/product-3.png",
+        "category": "Hardware"
+      }
+    ]
+  },
+  "footer": {
+    "text": "© 2026 Vape Mart. All rights reserved. Must be 21+ to purchase."
+  }
+}
