@@ -2227,6 +2227,18 @@ body {
     height: 13px !important;
   }
 
+  /* Mobile GPU Performance Boost (60/120 FPS) */
+  .backdrop-blur-3xl,
+  .backdrop-blur-2xl,
+  .backdrop-blur-xl {
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+  }
+
+  .fb-product-card {
+    transform: translateZ(0);
+  }
+
   .whatsapp-fab {
     display: none !important; /* Managed cleanly via JSX with mobile-safe bottom offset */
   }

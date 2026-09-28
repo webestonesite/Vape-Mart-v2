@@ -69,43 +69,39 @@ function AnimatedCounter({ end, duration = 2500, suffix = "" }: { end: number, d
 }
 
 const fadeInUp = {
-  hidden: { opacity: 0, y: 35, filter: "blur(4px)" },
+  hidden: { opacity: 0, y: 25 },
   visible: { 
     opacity: 1, 
     y: 0, 
-    filter: "blur(0px)",
-    transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] as const } 
+    transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as const } 
   }
 };
 
 const fadeInScale = {
-  hidden: { opacity: 0, scale: 0.94, y: 24, filter: "blur(4px)" },
+  hidden: { opacity: 0, scale: 0.96, y: 15 },
   visible: { 
     opacity: 1, 
     scale: 1, 
     y: 0, 
-    filter: "blur(0px)",
-    transition: { duration: 0.65, ease: [0.16, 1, 0.3, 1] as const } 
+    transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] as const } 
   }
 };
 
 const slideInLeft = {
-  hidden: { opacity: 0, x: -40, filter: "blur(4px)" },
+  hidden: { opacity: 0, x: -30 },
   visible: { 
     opacity: 1, 
     x: 0, 
-    filter: "blur(0px)",
-    transition: { duration: 0.75, ease: [0.16, 1, 0.3, 1] as const } 
+    transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as const } 
   }
 };
 
 const slideInRight = {
-  hidden: { opacity: 0, x: 40, filter: "blur(4px)" },
+  hidden: { opacity: 0, x: 30 },
   visible: { 
     opacity: 1, 
     x: 0, 
-    filter: "blur(0px)",
-    transition: { duration: 0.75, ease: [0.16, 1, 0.3, 1] as const } 
+    transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as const } 
   }
 };
 
@@ -470,14 +466,31 @@ export default function Home() {
   const displayedFlavors = showAllFlavors ? flavorsData : flavorsData.slice(0, 4);
 
   useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY || document.documentElement.scrollTop;
+      setShowScrollTop(scrollY > 450);
+      setIsScrolled(scrollY > 80);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    // Enable Lenis smooth scrolling ONLY on desktop pointer devices
+    // Mobile/touch devices already have hardware-accelerated 60/120fps native touch momentum
+    const isTouchOrMobile = typeof window !== 'undefined' && (window.innerWidth < 1024 || window.matchMedia('(pointer: coarse)').matches);
+    if (isTouchOrMobile) {
+      return () => {
+        window.removeEventListener("scroll", handleScroll);
+      };
+    }
+
     const lenis = new Lenis({
-      duration: 1.25,
+      duration: 1.2,
       easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: "vertical",
       gestureOrientation: "vertical",
       smoothWheel: true,
       wheelMultiplier: 1,
-      touchMultiplier: 1.8,
+      touchMultiplier: 0,
     });
     lenisRef.current = lenis;
 
@@ -487,14 +500,6 @@ export default function Home() {
       animId = requestAnimationFrame(raf);
     }
     animId = requestAnimationFrame(raf);
-
-    const handleScroll = () => {
-      const scrollY = window.scrollY || document.documentElement.scrollTop;
-      setShowScrollTop(scrollY > 450);
-      setIsScrolled(scrollY > 80);
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
 
     return () => {
       cancelAnimationFrame(animId);
