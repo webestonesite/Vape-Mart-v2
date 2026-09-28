@@ -69,39 +69,43 @@ function AnimatedCounter({ end, duration = 2500, suffix = "" }: { end: number, d
 }
 
 const fadeInUp = {
-  hidden: { opacity: 0, y: 25 },
+  hidden: { opacity: 0, y: 30, filter: "blur(4px)" },
   visible: { 
     opacity: 1, 
     y: 0, 
-    transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as const } 
+    filter: "blur(0px)",
+    transition: { duration: 0.65, ease: [0.16, 1, 0.3, 1] as const } 
   }
 };
 
 const fadeInScale = {
-  hidden: { opacity: 0, scale: 0.96, y: 15 },
+  hidden: { opacity: 0, scale: 0.95, y: 20, filter: "blur(4px)" },
   visible: { 
     opacity: 1, 
     scale: 1, 
     y: 0, 
-    transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] as const } 
+    filter: "blur(0px)",
+    transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] as const } 
   }
 };
 
 const slideInLeft = {
-  hidden: { opacity: 0, x: -30 },
+  hidden: { opacity: 0, x: -35, filter: "blur(4px)" },
   visible: { 
     opacity: 1, 
     x: 0, 
-    transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as const } 
+    filter: "blur(0px)",
+    transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] as const } 
   }
 };
 
 const slideInRight = {
-  hidden: { opacity: 0, x: 30 },
+  hidden: { opacity: 0, x: 35, filter: "blur(4px)" },
   visible: { 
     opacity: 1, 
     x: 0, 
-    transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as const } 
+    filter: "blur(0px)",
+    transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] as const } 
   }
 };
 
