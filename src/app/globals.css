@@ -106,6 +106,10 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: clip;
+  position: relative;
 }
 
 /* =========================================
@@ -401,9 +405,9 @@ body {
 
 /* HERO SECTION */
 .hero-wrapper {
-  padding: 25px 40px;
-  max-width: 1800px;
-  margin: 0 auto;
+  padding: 0;
+  max-width: 100%;
+  margin: 0;
   width: 100%;
 }
 
@@ -2115,16 +2119,112 @@ body {
   }
 
   .fb-left h3 {
-    font-size: 22px !important;
-  }
-
-  .fb-product-card {
-    padding: 10px !important;
+    font-size: 20px !important;
+    margin-bottom: 14px !important;
   }
 
   .fb-container {
-    padding: 16px !important;
-    gap: 16px !important;
+    flex-direction: column !important;
+    padding: 12px !important;
+    gap: 12px !important;
+    border-radius: 18px !important;
+  }
+
+  .fb-left {
+    width: 100% !important;
+    padding: 24px 16px !important;
+    border-radius: 14px !important;
+  }
+
+  .fb-left .fb-badge {
+    margin-bottom: 12px !important;
+  }
+
+  .fb-left .fb-logo-wrapper {
+    width: 85px !important;
+    height: 85px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .fb-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-template-rows: auto !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .fb-product-card {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 10px 8px !important;
+    gap: 6px !important;
+    border-radius: 14px !important;
+    position: relative !important;
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .fb-img-wrapper {
+    width: 100% !important;
+    height: 80px !important;
+    flex-shrink: 0 !important;
+    margin: 0 auto !important;
+  }
+
+  .fb-info {
+    width: 100% !important;
+    min-width: 0 !important;
+    margin-top: 2px !important;
+  }
+
+  .fb-discount {
+    position: absolute !important;
+    top: 6px !important;
+    left: 6px !important;
+    font-size: 8px !important;
+    padding: 2px 6px !important;
+    margin-bottom: 0 !important;
+    z-index: 10 !important;
+  }
+
+  .fb-title {
+    font-size: 11px !important;
+    line-height: 1.3 !important;
+    margin-bottom: 4px !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+    height: 28px !important;
+    word-break: break-word !important;
+  }
+
+  .fb-price {
+    font-size: 11px !important;
+    display: flex !important;
+    align-items: baseline !important;
+    gap: 4px !important;
+    flex-wrap: wrap !important;
+    padding-right: 28px !important;
+  }
+
+  .fb-price .old {
+    margin-left: 0 !important;
+    font-size: 9px !important;
+  }
+
+  .fb-add-btn {
+    position: absolute !important;
+    bottom: 8px !important;
+    right: 8px !important;
+    width: 26px !important;
+    height: 26px !important;
+  }
+
+  .fb-add-btn svg {
+    width: 13px !important;
+    height: 13px !important;
   }
 
   .whatsapp-fab {
@@ -2136,14 +2236,6 @@ body {
   .section-header-bs h2,
   .section-header h2 {
     font-size: 24px !important;
-  }
-
-  .fb-title {
-    font-size: 12px !important;
-  }
-
-  .fb-price .current {
-    font-size: 13px !important;
   }
 }
 

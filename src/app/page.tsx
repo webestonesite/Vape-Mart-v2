@@ -13,6 +13,7 @@ interface Product {
   price: string;
   revs: number;
   badge?: string;
+  brand?: string;
   img: string;
 }
 
@@ -120,93 +121,85 @@ const staggerContainer = {
 };
 
 function ProductCard({ prod }: { prod: Product }) {
-  const flavorImages = ['/images/product-1.png', '/images/product-2.png', '/images/product-3.png', '/images/prod_disposable.png', '/images/prod_eliquid.png'];
-  const [currentImg, setCurrentImg] = useState(prod.img);
+  const [isWishlisted, setIsWishlisted] = useState(false);
 
   return (
-    <div
-      className="group flex flex-col bg-white rounded-[28px] border border-neutral-100 overflow-hidden hover:shadow-[0_20px_50px_-10px_rgba(6,78,59,0.12)] hover:-translate-y-1 transition-all duration-500 relative"
+    <motion.div
+      variants={fadeInScale}
+      whileHover={{ y: -4, transition: { duration: 0.25 } }}
+      className="group bg-white rounded-2xl border border-neutral-200/80 p-2.5 sm:p-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_30px_rgba(6,78,59,0.12)] transition-all duration-300 flex flex-col justify-between relative overflow-hidden h-full"
     >
-      {/* Image Area */}
-      <div className="relative aspect-[4/5] w-full bg-neutral-900 overflow-hidden">
-        {prod.badge && (
-          <div className="absolute top-4 left-4 z-10">
-            <span className="bg-black/60 backdrop-blur-md border border-white/20 text-white text-[10px] font-extrabold tracking-widest uppercase px-4 py-1.5 rounded-full shadow-lg">
-              {prod.badge}
-            </span>
-          </div>
-        )}
-
-        <SfButton
-          variant="tertiary"
-          className="!absolute top-4 right-4 z-10 !p-2.5 !rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white hover:text-red-400 hover:bg-black/80 shadow-lg transition-all duration-300"
+      {/* Top Bar: Wishlist & Badge */}
+      <div className="flex items-center justify-between w-full mb-1 z-10">
+        <button
+          type="button"
+          onClick={() => setIsWishlisted(!isWishlisted)}
+          className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-neutral-200/70 flex items-center justify-center transition-all cursor-pointer ${
+            isWishlisted ? "bg-red-50 text-red-500 border-red-200" : "bg-neutral-50/80 text-neutral-400 hover:text-red-500 hover:bg-white"
+          }`}
+          aria-label="Wishlist"
         >
-          <Heart size={18} strokeWidth={2} />
-        </SfButton>
+          <Heart size={14} className={isWishlisted ? "fill-red-500 text-red-500" : ""} strokeWidth={2} />
+        </button>
 
-        <div className="relative w-full h-full transform group-hover:scale-110 transition-transform duration-700 ease-out">
-          <Image src={currentImg} alt={prod.title} fill className="object-cover transition-opacity duration-300" />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-transparent pointer-events-none"></div>
+        {prod.badge && (
+          <span className="bg-red-600 text-white text-[8px] sm:text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full shadow-xs">
+            {prod.badge}
+          </span>
+        )}
+      </div>
+
+      {/* Product Image Area - Clean White Presentation */}
+      <div className="relative w-full aspect-square flex items-center justify-center p-2 my-1 overflow-hidden">
+        <div className="relative w-full h-full transform group-hover:scale-108 transition-transform duration-500 ease-out">
+          <Image
+            src={prod.img}
+            alt={prod.title}
+            fill
+            sizes="(max-width: 768px) 50vw, 25vw"
+            className="object-contain"
+          />
         </div>
       </div>
 
-      {/* Content Area */}
-      <div className="flex flex-col flex-1 p-6 z-30 bg-white">
-        <div className="flex items-center gap-2 mb-3">
-          <div className="flex gap-0.5">
-            {[1,2,3,4,5].map(i => <Star key={i} size={13} fill="#fbbf24" color="#fbbf24" />)}
-          </div>
-          <span className="text-[11px] font-bold text-neutral-800">4.9</span>
-          <span className="text-[11px] font-medium text-neutral-400">({prod.revs})</span>
-        </div>
-
-        <a href="#" className="font-extrabold text-neutral-900 text-[16px] leading-snug hover:text-[#064e3b] transition-colors mb-4 line-clamp-2 no-underline tracking-tight">
-          {prod.title}
-        </a>
-
-        {/* Flavors / Variants */}
-        <div className="mb-5 flex items-center gap-3">
-          <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest shrink-0">Flavors</span>
-          <div className="flex gap-1.5 overflow-hidden">
-            {flavorImages.map((imgSrc, i) => (
-              <div 
-                key={i} 
-                className={`w-6 h-8 rounded border p-0.5 cursor-pointer hover:border-[#064e3b] transition-colors shrink-0 relative overflow-hidden group/flavor ${currentImg === imgSrc ? 'border-[#064e3b]' : 'border-neutral-200'}`}
-                onMouseEnter={() => setCurrentImg(imgSrc)}
-              >
-                <Image src={imgSrc} alt="Flavor variant" fill className="object-cover rounded-sm group-hover/flavor:scale-110 transition-transform" />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Price & Actions */}
-        <div className="mt-auto flex flex-col gap-4">
-          <div className="flex items-baseline gap-1">
-            <span className="text-xs font-bold text-neutral-500">AED</span>
-            <span className="text-2xl font-black text-neutral-900 tracking-tighter">{prod.price}</span>
-          </div>
-          
-          <div className="flex gap-2">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.96 }}
-              className="flex-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-900 font-bold text-[13px] py-3 rounded-xl transition-colors tracking-wide border border-transparent cursor-pointer"
-            >
-              ADD CART
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.02, y: -1 }}
-              whileTap={{ scale: 0.96 }}
-              className="flex-1 bg-[#022c22] hover:bg-[#064e3b] text-white font-bold text-[13px] py-3 rounded-xl transition-all shadow-[0_4px_14px_rgba(2,44,34,0.3)] hover:shadow-[0_8px_20px_rgba(6,78,59,0.4)] tracking-wide cursor-pointer relative overflow-hidden group/btn"
-            >
-              <span className="relative z-10">BUY NOW</span>
-              <span className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none"></span>
-            </motion.button>
-          </div>
-        </div>
+      {/* Brand Series Tag (Like Reference Image) */}
+      <div className="w-full bg-neutral-900 text-white text-[8px] sm:text-[9px] font-black uppercase tracking-wider py-1 px-2 text-center rounded-sm my-1 truncate">
+        {prod.brand || prod.title.split(' ').slice(0, 3).join(' ')}
       </div>
-    </div>
+
+      {/* Product Title */}
+      <a
+        href="#"
+        className="font-bold text-neutral-900 text-[12px] sm:text-[13px] leading-snug line-clamp-2 text-center my-1 hover:text-[#064e3b] transition-colors min-h-[34px] flex items-center justify-center no-underline"
+      >
+        {prod.title}
+      </a>
+
+      {/* Star Rating */}
+      <div className="flex items-center justify-center gap-0.5 my-1 text-amber-400">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <Star key={i} size={11} fill="#fbbf24" color="#fbbf24" />
+        ))}
+        <span className="text-[10px] text-neutral-400 font-medium ml-1">({prod.revs})</span>
+      </div>
+
+      {/* Price */}
+      <div className="text-center my-1">
+        <span className="text-[13px] sm:text-[15px] font-black text-neutral-900 tracking-tight">
+          AED {prod.price}
+        </span>
+      </div>
+
+      {/* Single Add to Cart Button */}
+      <motion.button
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.97 }}
+        className="w-full py-2 sm:py-2.5 bg-[#064e3b] hover:bg-[#022c22] text-white text-[11px] sm:text-xs font-bold rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer mt-1"
+      >
+        <ShoppingBag size={13} className="shrink-0" />
+        <span>Add to cart</span>
+      </motion.button>
+    </motion.div>
   );
 }
 
@@ -221,92 +214,53 @@ function ProductCarousel({
   badgeText: string;
   products: Product[];
 }) {
-  const trackRef = useRef<HTMLDivElement>(null);
-
-  const scroll = (direction: 'left' | 'right') => {
-    if (trackRef.current) {
-      const firstChild = trackRef.current.firstElementChild as HTMLElement | null;
-      const cardWidth = firstChild ? firstChild.offsetWidth : 300;
-      const gap = 24;
-      const scrollAmount = direction === 'left' ? -(cardWidth + gap) : (cardWidth + gap);
-      trackRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-    }
-  };
+  const [showAll, setShowAll] = useState(false);
+  const displayedProducts = showAll ? products : products.slice(0, 4);
 
   return (
     <motion.section
-      className="best-selling-section relative"
+      className="best-selling-section relative max-w-[1400px] mx-auto px-3 sm:px-6 py-8 sm:py-12"
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, amount: 0.12 }}
+      viewport={{ once: true, amount: 0.1 }}
       variants={staggerContainer}
     >
       {/* Centered Section Header */}
-      <motion.div className="section-header-bs" variants={fadeInUp}>
-        <div className="top-picks">
-          <span className="line"></span>
-          <span className="text font-cinzel tracking-[0.25em]">{badgeText}</span>
-          <span className="line"></span>
+      <motion.div className="section-header-bs mb-6 sm:mb-10 text-center" variants={fadeInUp}>
+        <div className="top-picks flex items-center justify-center gap-2 mb-2">
+          <span className="line w-6 h-[2px] bg-[#064e3b] rounded-full"></span>
+          <span className="text font-cinzel text-xs font-bold tracking-[0.25em] text-[#064e3b] uppercase">{badgeText}</span>
+          <span className="line w-6 h-[2px] bg-[#064e3b] rounded-full"></span>
         </div>
-        <h2 className="font-luxury">{title}</h2>
-        <div className="dots-indicator">
-          <span className="dot"></span>
-          <span className="dot active"></span>
-          <span className="dot"></span>
+        <h2 className="font-luxury text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-neutral-900 tracking-tight">{title}</h2>
+        <div className="flex items-center justify-center gap-4 my-2 sm:my-3">
+          <div className="h-px w-12 sm:w-16 bg-gradient-to-r from-transparent to-[#064e3b]"></div>
+          <div className="w-2 h-2 rotate-45 bg-[#064e3b]"></div>
+          <div className="h-px w-12 sm:w-16 bg-gradient-to-l from-transparent to-[#064e3b]"></div>
         </div>
-        <p className="bs-subtitle">{subtitle}</p>
+        <p className="text-neutral-500 text-xs sm:text-sm max-w-xl mx-auto">{subtitle}</p>
       </motion.div>
 
-      {/* Horizontal Carousel Track with side floating navigation */}
-      <div className="relative group/carousel max-w-[1400px] mx-auto px-2 sm:px-4">
-        <motion.button
-          whileHover={{ scale: 1.1, backgroundColor: "#064e3b", color: "#ffffff" }}
-          whileTap={{ scale: 0.9 }}
-          onClick={() => scroll('left')}
-          className="absolute -left-1 sm:-left-3 md:-left-5 top-1/2 -translate-y-1/2 z-30 w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full border border-neutral-200/90 bg-white/95 text-[#064e3b] shadow-[0_4px_15px_rgba(0,0,0,0.12)] hover:shadow-2xl flex items-center justify-center transition-all cursor-pointer backdrop-blur-md"
-          aria-label={`Previous ${title}`}
-        >
-          <ChevronLeft size={18} className="sm:hidden" />
-          <ChevronLeft size={22} className="hidden sm:block" />
-        </motion.button>
-        <motion.button
-          whileHover={{ scale: 1.1, backgroundColor: "#064e3b", color: "#ffffff" }}
-          whileTap={{ scale: 0.9 }}
-          onClick={() => scroll('right')}
-          className="absolute -right-1 sm:-right-3 md:-right-5 top-1/2 -translate-y-1/2 z-30 w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full border border-neutral-200/90 bg-white/95 text-[#064e3b] shadow-[0_4px_15px_rgba(0,0,0,0.12)] hover:shadow-2xl flex items-center justify-center transition-all cursor-pointer backdrop-blur-md"
-          aria-label={`Next ${title}`}
-        >
-          <ChevronRight size={18} className="sm:hidden" />
-          <ChevronRight size={22} className="hidden sm:block" />
-        </motion.button>
+      {/* 2x2 on Mobile (2 ta 2 ta 4 ta), 4 across on Desktop */}
+      <motion.div 
+        className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5 md:gap-6"
+        variants={staggerContainer}
+      >
+        {displayedProducts.map((prod, idx) => (
+          <ProductCard key={idx} prod={prod} />
+        ))}
+      </motion.div>
 
-        <div
-          ref={trackRef}
-          className="flex gap-6 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory py-4"
-        >
-          {products.map((prod, idx) => (
-            <motion.div
-              key={idx}
-              variants={fadeInScale}
-              whileHover={{ y: -6, transition: { duration: 0.25 } }}
-              className="snap-start shrink-0 w-full sm:w-[calc((100%-24px)/2)] md:w-[calc((100%-48px)/3)] lg:w-[calc((100%-72px)/4)]"
-            >
-              <ProductCard prod={prod} />
-            </motion.div>
-          ))}
-        </div>
-      </div>
-
-      <motion.div className="view-all-container mt-6" variants={fadeInUp}>
+      {/* View All / Show Less Button */}
+      <motion.div className="mt-8 flex justify-center" variants={fadeInUp}>
         <motion.button
           whileHover={{ scale: 1.05, y: -2 }}
           whileTap={{ scale: 0.95 }}
-          className="view-all-btn group cursor-pointer relative overflow-hidden shadow-[0_4px_20px_rgba(6,78,59,0.25)] hover:shadow-[0_8px_30px_rgba(6,78,59,0.4)]"
+          onClick={() => setShowAll(!showAll)}
+          className="px-6 py-2.5 sm:px-8 sm:py-3 rounded-full bg-[#064e3b] text-white text-xs sm:text-sm font-bold shadow-md shadow-emerald-900/15 hover:bg-[#022c22] transition-all flex items-center gap-2 cursor-pointer group"
         >
-          <span className="relative z-10 flex items-center gap-2">
-            View All <ArrowRight size={16} className="group-hover:translate-x-1.5 transition-transform" />
-          </span>
-          <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none"></span>
+          <span>{showAll ? "Show Less" : `View All (${products.length})`}</span>
+          <ArrowRight size={15} className={`transition-transform duration-300 ${showAll ? "-rotate-90" : "group-hover:translate-x-1"}`} />
         </motion.button>
       </motion.div>
     </motion.section>
@@ -507,33 +461,13 @@ export default function Home() {
   }, [nextSlide]);
 
   const lenisRef = useRef<Lenis | null>(null);
-  const categoryScrollRef = useRef<HTMLDivElement>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
-  const scrollCategories = (dir: 'left' | 'right') => {
-    if (categoryScrollRef.current) {
-      const firstChild = categoryScrollRef.current.firstElementChild as HTMLElement | null;
-      const cardWidth = firstChild ? firstChild.offsetWidth : 380;
-      const gap = 24;
-      const scrollAmount = dir === 'left' ? -(cardWidth + gap) : (cardWidth + gap);
-      categoryScrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-    }
-  };
-
-  const flavorScrollRef = useRef<HTMLDivElement>(null);
-
-  const scrollFlavors = (dir: 'left' | 'right') => {
-    if (flavorScrollRef.current) {
-      const firstChild = flavorScrollRef.current.firstElementChild as HTMLElement | null;
-      const cardWidth = firstChild ? firstChild.offsetWidth : 300;
-      const gap = 24;
-      const scrollAmount = dir === 'left' ? -(cardWidth + gap) : (cardWidth + gap);
-      flavorScrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-    }
-  };
+  const [showAllFlavors, setShowAllFlavors] = useState(false);
+  const displayedFlavors = showAllFlavors ? flavorsData : flavorsData.slice(0, 4);
 
   useEffect(() => {
     const lenis = new Lenis({
@@ -835,8 +769,7 @@ export default function Home() {
       </AnimatePresence>
 
       {/* Hero Section */}
-      <div className="hero-wrapper">
-        <section className="relative w-full min-h-[580px] sm:min-h-[640px] md:h-[650px] lg:h-[700px] overflow-hidden bg-gradient-to-br from-[#064e3b] via-[#022c22] to-[#064e3b]">
+      <section className="relative w-full min-h-[580px] sm:min-h-[640px] md:h-[650px] lg:h-[700px] overflow-hidden bg-gradient-to-br from-[#064e3b] via-[#022c22] to-[#064e3b]">
           {/* Background Effects */}
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay"></div>
           <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[70%] rounded-full bg-emerald-500/20 blur-[120px]"></div>
@@ -1017,33 +950,11 @@ export default function Home() {
             </p>
           </motion.div>
 
-          {/* Carousel Track with Side Floating Arrows */}
-          <div className="relative group/cat-carousel px-1 sm:px-4">
-            <motion.button
-              whileHover={{ scale: 1.1, backgroundColor: "#064e3b", color: "#ffffff" }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => scrollCategories('left')}
-              className="absolute -left-1 sm:-left-3 md:-left-5 top-1/2 -translate-y-1/2 z-30 w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full border border-neutral-200/90 bg-white/95 text-[#064e3b] shadow-[0_4px_15px_rgba(0,0,0,0.12)] hover:shadow-2xl flex items-center justify-center transition-all cursor-pointer backdrop-blur-md"
-              aria-label="Previous categories"
-            >
-              <ChevronLeft size={18} className="sm:hidden" />
-              <ChevronLeft size={22} className="hidden sm:block" />
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.1, backgroundColor: "#064e3b", color: "#ffffff" }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => scrollCategories('right')}
-              className="absolute -right-1 sm:-right-3 md:-right-5 top-1/2 -translate-y-1/2 z-30 w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full border border-neutral-200/90 bg-white/95 text-[#064e3b] shadow-[0_4px_15px_rgba(0,0,0,0.12)] hover:shadow-2xl flex items-center justify-center transition-all cursor-pointer backdrop-blur-md"
-              aria-label="Next categories"
-            >
-              <ChevronRight size={18} className="sm:hidden" />
-              <ChevronRight size={22} className="hidden sm:block" />
-            </motion.button>
-
-            <div
-              ref={categoryScrollRef}
-              className="flex gap-4 sm:gap-6 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory py-4"
-            >
+          {/* Categories Grid (2-Column on Mobile, 3 on Tablet, 6 on Desktop) */}
+          <motion.div
+            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 md:gap-5 px-1 sm:px-0"
+            variants={staggerContainer}
+          >
             {[
               { title: "Vape Kits", subtitle: "BEST SELLERS", num: "01", img: "/images/cat_vape_kits.png", color: "from-blue-900/80 to-black/90", tag: "POPULAR" },
               { title: "Disposables", subtitle: "NEW ARRIVALS", num: "02", img: "/images/cat_disposables.png", color: "from-emerald-900/80 to-black/90", tag: "TRENDING" },
@@ -1055,35 +966,30 @@ export default function Home() {
               <motion.div
                 key={idx}
                 variants={fadeInScale}
-                whileHover={{ y: -8, scale: 1.02, transition: { duration: 0.3 } }}
-                className="snap-start shrink-0 w-full sm:w-[calc((100%-24px)/2)] md:w-[calc((100%-48px)/3)] group relative h-[380px] sm:h-[420px] md:h-[440px] rounded-[24px] sm:rounded-[32px] overflow-hidden bg-neutral-100 cursor-pointer shadow-[0_10px_30px_-10px_rgba(0,0,0,0.1)] hover:shadow-[0_25px_50px_-15px_rgba(0,0,0,0.25)] transition-all duration-500 border border-neutral-200/50"
+                whileHover={{ y: -6, scale: 1.02, transition: { duration: 0.3 } }}
+                className="group relative h-[210px] sm:h-[280px] md:h-[340px] rounded-2xl sm:rounded-3xl overflow-hidden bg-neutral-900 cursor-pointer shadow-[0_4px_15px_rgba(0,0,0,0.06)] hover:shadow-[0_15px_35px_rgba(6,78,59,0.25)] transition-all duration-500 border border-neutral-200/60 flex flex-col justify-between p-3 sm:p-5"
               >
-                {/* Fallback background if image fails */}
-                <div className="absolute inset-0 bg-neutral-200"></div>
-                <Image src={cat.img} alt={cat.title} fill className="object-cover transform group-hover:scale-110 transition-transform duration-700 ease-out opacity-90 group-hover:opacity-100" />
-                <div className={`absolute inset-0 bg-gradient-to-t ${cat.color} via-black/40 to-transparent transition-opacity duration-500`}></div>
-
-                <div className="absolute top-5 sm:top-6 left-5 sm:left-6 right-5 sm:right-6 flex justify-between items-start z-10">
-                  <span className="bg-white/20 backdrop-blur-md border border-white/30 text-white text-[10px] font-bold tracking-wider px-3 py-1.5 rounded-full uppercase">{cat.tag}</span>
-                  <span className="text-white/60 font-black text-3xl sm:text-4xl">{cat.num}</span>
+                <div className="absolute inset-0 bg-neutral-900">
+                  <Image src={cat.img} alt={cat.title} fill sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw" className="object-cover transform group-hover:scale-110 transition-transform duration-700 ease-out opacity-85 group-hover:opacity-95" />
+                  <div className={`absolute inset-0 bg-gradient-to-t ${cat.color} via-black/40 to-black/20 transition-opacity duration-500`}></div>
                 </div>
 
-                <div className="absolute bottom-6 sm:bottom-8 left-6 sm:left-8 right-6 sm:right-8 z-10 flex flex-col items-start transform transition-transform duration-500 group-hover:-translate-y-2">
-                  <span className="font-cinzel text-amber-400 font-bold text-xs tracking-[0.2em] mb-1.5 sm:mb-2 drop-shadow-md">{cat.subtitle}</span>
-                  <h3 className="font-luxury text-white text-2xl sm:text-3xl font-bold mb-3 sm:mb-4 drop-shadow-md">{cat.title}</h3>
-                  <motion.button
-                    whileHover={{ scale: 1.05, x: 2 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="bg-white/10 backdrop-blur-md border border-white/20 text-white px-5 py-2.5 rounded-full font-semibold text-xs sm:text-sm hover:bg-white hover:text-black transition-all flex items-center gap-2 shadow-lg cursor-pointer group/cat"
-                  >
-                    <span>Shop Now</span>
-                    <ArrowRight size={15} className="group-hover/cat:translate-x-1 transition-transform" />
-                  </motion.button>
+                <div className="relative z-10 flex justify-between items-start w-full">
+                  <span className="bg-white/20 backdrop-blur-md border border-white/30 text-white text-[8px] sm:text-[9px] font-bold tracking-wider px-2 py-0.5 rounded-full uppercase">{cat.tag}</span>
+                  <span className="text-white/60 font-black text-lg sm:text-2xl">{cat.num}</span>
+                </div>
+
+                <div className="relative z-10 flex flex-col items-start transform transition-transform duration-300 group-hover:-translate-y-1">
+                  <span className="font-cinzel text-amber-400 font-bold text-[8px] sm:text-[10px] tracking-[0.15em] mb-0.5 sm:mb-1 drop-shadow-md">{cat.subtitle}</span>
+                  <h3 className="font-luxury text-white text-sm sm:text-lg md:text-xl font-bold mb-2 drop-shadow-md line-clamp-1">{cat.title}</h3>
+                  <div className="bg-white/15 backdrop-blur-md border border-white/25 text-white px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full font-semibold text-[10px] sm:text-xs group-hover:bg-white group-hover:text-[#064e3b] transition-all flex items-center gap-1 shadow-sm">
+                    <span>Shop</span>
+                    <ArrowRight size={11} className="group-hover:translate-x-0.5 transition-transform" />
+                  </div>
                 </div>
               </motion.div>
             ))}
-          </div>
-        </div>
+          </motion.div>
       </motion.section>
 
         {/* Ultra-Premium Features Section */}
@@ -1244,95 +1150,85 @@ export default function Home() {
             </p>
           </motion.div>
 
-          {/* Flavor Carousel with Edge Navigation Controls */}
-          <div className="relative group/flavor-carousel px-1 sm:px-4">
+          {/* Flavor Grid: 2x2 on Mobile (2 ta 2 ta 4 ta), 4 across on Desktop */}
+          <motion.div
+            className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5 md:gap-6"
+            variants={staggerContainer}
+          >
+            {displayedFlavors.map((flavor, idx) => (
+              <motion.div
+                key={idx}
+                variants={fadeInScale}
+                whileHover={{ y: -6, transition: { duration: 0.3 } }}
+                className={`group relative rounded-2xl sm:rounded-3xl p-3 sm:p-5 bg-gradient-to-b ${flavor.bgGradient} border border-neutral-200/80 shadow-[0_4px_15px_rgba(0,0,0,0.05)] ${flavor.glowColor} transition-all duration-500 flex flex-col justify-between overflow-hidden cursor-pointer`}
+              >
+                {/* Decorative background radial tint */}
+                <div
+                  className="absolute -right-10 -bottom-10 w-36 h-36 rounded-full blur-3xl opacity-20 pointer-events-none transition-opacity duration-500 group-hover:opacity-40"
+                  style={{ backgroundColor: flavor.accentColor }}
+                ></div>
+
+                {/* Header badges */}
+                <div className="flex items-center justify-between mb-2 z-10 relative">
+                  <span className={`text-[8px] sm:text-[9px] font-black tracking-wider uppercase px-2 py-0.5 rounded-full shadow-xs ${flavor.badgeBg}`}>
+                    {flavor.tag}
+                  </span>
+                  <span className="text-[9px] sm:text-[10px] font-bold text-neutral-500 bg-white/80 backdrop-blur-sm border border-neutral-200/70 px-1.5 sm:px-2 py-0.5 rounded-full shadow-xs">
+                    {flavor.productCount}+
+                  </span>
+                </div>
+
+                {/* Image showcase */}
+                <div className="relative w-full h-24 sm:h-36 my-1 flex items-center justify-center overflow-hidden">
+                  <div className="relative w-20 h-20 sm:w-28 sm:h-28 transform group-hover:scale-110 group-hover:-rotate-2 transition-transform duration-500 ease-out">
+                    <Image
+                      src={flavor.img}
+                      alt={flavor.title}
+                      fill
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      className="object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.2)]"
+                    />
+                  </div>
+                </div>
+
+                {/* Content & Action */}
+                <div className="flex flex-col z-10 relative mt-1 pt-2 border-t border-neutral-200/60">
+                  <span className="font-cinzel text-[8px] sm:text-[9px] font-extrabold tracking-[0.15em] text-neutral-400 uppercase mb-0.5">
+                    {flavor.category}
+                  </span>
+                  <h3 className="font-luxury text-xs sm:text-base md:text-lg font-extrabold text-neutral-900 mb-1 group-hover:text-[#064e3b] transition-colors line-clamp-1">
+                    {flavor.title}
+                  </h3>
+                  <p className="text-neutral-500 text-[10px] sm:text-xs leading-relaxed line-clamp-2 mb-2 hidden sm:block">
+                    {flavor.desc}
+                  </p>
+
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="w-full py-1.5 sm:py-2 px-2.5 sm:px-3 rounded-lg sm:rounded-xl bg-white hover:bg-[#064e3b] text-neutral-800 hover:text-white border border-neutral-200 hover:border-transparent font-bold text-[10px] sm:text-xs flex items-center justify-between transition-all duration-300 shadow-xs hover:shadow-md cursor-pointer group/btn relative overflow-hidden mt-1"
+                  >
+                    <span className="relative z-10">Explore</span>
+                    <ArrowRight size={12} className="relative z-10 transform group-hover/btn:translate-x-1 transition-transform" />
+                    <span className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none"></span>
+                  </motion.button>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* View All / Show Less Button */}
+          <motion.div className="mt-8 flex justify-center" variants={fadeInUp}>
             <motion.button
-              whileHover={{ scale: 1.1, backgroundColor: "#064e3b", color: "#ffffff" }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => scrollFlavors('left')}
-              className="absolute -left-1 sm:-left-3 md:-left-5 top-1/2 -translate-y-1/2 z-30 w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full border border-neutral-200/90 bg-white/95 text-[#064e3b] shadow-[0_4px_15px_rgba(0,0,0,0.12)] hover:shadow-2xl flex items-center justify-center transition-all cursor-pointer backdrop-blur-md"
-              aria-label="Previous flavor"
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setShowAllFlavors(!showAllFlavors)}
+              className="px-6 py-2.5 sm:px-8 sm:py-3 rounded-full bg-[#064e3b] text-white text-xs sm:text-sm font-bold shadow-md shadow-emerald-900/15 hover:bg-[#022c22] transition-all flex items-center gap-2 cursor-pointer group"
             >
-              <ChevronLeft size={18} className="sm:hidden" />
-              <ChevronLeft size={22} className="hidden sm:block" />
+              <span>{showAllFlavors ? "Show Less" : `View All (${flavorsData.length})`}</span>
+              <ArrowRight size={15} className={`transition-transform duration-300 ${showAllFlavors ? "-rotate-90" : "group-hover:translate-x-1"}`} />
             </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.1, backgroundColor: "#064e3b", color: "#ffffff" }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => scrollFlavors('right')}
-              className="absolute -right-1 sm:-right-3 md:-right-5 top-1/2 -translate-y-1/2 z-30 w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full border border-neutral-200/90 bg-white/95 text-[#064e3b] shadow-[0_4px_15px_rgba(0,0,0,0.12)] hover:shadow-2xl flex items-center justify-center transition-all cursor-pointer backdrop-blur-md"
-              aria-label="Next flavor"
-            >
-              <ChevronRight size={18} className="sm:hidden" />
-              <ChevronRight size={22} className="hidden sm:block" />
-            </motion.button>
-
-            <div
-              ref={flavorScrollRef}
-              className="flex gap-4 sm:gap-6 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory py-4"
-            >
-              {flavorsData.map((flavor, idx) => (
-                <motion.div
-                  key={idx}
-                  variants={fadeInScale}
-                  whileHover={{ y: -8, transition: { duration: 0.3 } }}
-                  className={`snap-start shrink-0 w-full sm:w-[calc((100%-24px)/2)] md:w-[calc((100%-48px)/3)] lg:w-[calc((100%-72px)/4)] group relative rounded-[28px] p-6 bg-gradient-to-b ${flavor.bgGradient} border border-neutral-200/80 shadow-[0_8px_25px_-5px_rgba(0,0,0,0.06)] ${flavor.glowColor} transition-all duration-500 flex flex-col justify-between overflow-hidden cursor-pointer`}
-                >
-                  {/* Decorative background radial tint */}
-                  <div
-                    className="absolute -right-10 -bottom-10 w-44 h-44 rounded-full blur-3xl opacity-20 pointer-events-none transition-opacity duration-500 group-hover:opacity-40"
-                    style={{ backgroundColor: flavor.accentColor }}
-                  ></div>
-
-                  {/* Header badges */}
-                  <div className="flex items-center justify-between mb-4 z-10 relative">
-                    <span className={`text-[10px] font-black tracking-wider uppercase px-3 py-1 rounded-full shadow-sm ${flavor.badgeBg}`}>
-                      {flavor.tag}
-                    </span>
-                    <span className="text-[11px] font-bold text-neutral-500 bg-white/80 backdrop-blur-sm border border-neutral-200/70 px-2.5 py-0.5 rounded-full shadow-xs">
-                      {flavor.productCount}+ Products
-                    </span>
-                  </div>
-
-                  {/* Image showcase */}
-                  <div className="relative w-full h-44 my-2 flex items-center justify-center overflow-hidden">
-                    <div className="relative w-36 h-36 transform group-hover:scale-115 group-hover:-rotate-3 transition-transform duration-700 ease-out">
-                      <Image
-                        src={flavor.img}
-                        alt={flavor.title}
-                        fill
-                        sizes="(max-width: 768px) 100vw, 25vw"
-                        className="object-contain drop-shadow-[0_15px_25px_rgba(0,0,0,0.25)]"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Content & Action */}
-                  <div className="flex flex-col z-10 relative mt-2 pt-4 border-t border-neutral-200/50">
-                    <span className="font-cinzel text-[10px] font-extrabold tracking-[0.2em] text-neutral-400 uppercase mb-1">
-                      {flavor.category}
-                    </span>
-                    <h3 className="font-luxury text-xl font-extrabold text-neutral-900 mb-1.5 group-hover:text-[#064e3b] transition-colors">
-                      {flavor.title}
-                    </h3>
-                    <p className="text-neutral-500 text-xs leading-relaxed line-clamp-2 mb-4">
-                      {flavor.desc}
-                    </p>
-
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.97 }}
-                      className="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-[#064e3b] text-neutral-800 hover:text-white border border-neutral-200 hover:border-transparent font-bold text-xs flex items-center justify-between transition-all duration-300 shadow-xs hover:shadow-md cursor-pointer group/btn relative overflow-hidden"
-                    >
-                      <span className="relative z-10">Explore Flavor</span>
-                      <ArrowRight size={14} className="relative z-10 transform group-hover/btn:translate-x-1 transition-transform" />
-                      <span className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none"></span>
-                    </motion.button>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
+          </motion.div>
         </motion.section>
 
         {/* Ultra-Premium FAQ Section */}
@@ -1404,7 +1300,6 @@ export default function Home() {
             </motion.div>
           </div>
         </motion.section>
-      </div>
 
       {/* Ultra-Premium Trust & Reviews Hub Section */}
       <motion.section
