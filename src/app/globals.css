@@ -883,10 +883,28 @@ body {
 }
 
 .section-header-bs h2 {
-  color: var(--blue-dark);
-  font-size: 48px;
+  color: inherit;
   font-weight: 800;
   margin-bottom: 10px;
+}
+
+@media (min-width: 768px) {
+  .best-selling-section.green-box-pc .section-header-bs h2 {
+    color: #ffffff !important;
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+  }
+  .best-selling-section.green-box-pc .top-picks .text {
+    color: #fde047 !important;
+    font-weight: 800 !important;
+  }
+  .best-selling-section.green-box-pc .top-picks .line {
+    background-color: #fde047 !important;
+    opacity: 0.9 !important;
+  }
+  .best-selling-section.green-box-pc p {
+    color: #d1fae5 !important;
+    opacity: 0.9 !important;
+  }
 }
 
 .dots-indicator {

@@ -236,43 +236,57 @@ function ProductCarousel({
   title,
   subtitle,
   badgeText,
-  products
+  products,
+  greenBoxPC = false
 }: {
   title: string;
   subtitle: string;
   badgeText: string;
   products: Product[];
+  greenBoxPC?: boolean;
 }) {
   const [showAll, setShowAll] = useState(false);
   const displayedProducts = showAll ? products : products.slice(0, 4);
 
   return (
     <motion.section
-      className="best-selling-section relative max-w-[1400px] mx-auto px-3 sm:px-6 py-8 sm:py-12"
+      className={`best-selling-section relative max-w-[1400px] mx-auto px-3 sm:px-6 py-8 sm:py-12 transition-all duration-500 ${
+        greenBoxPC
+          ? "green-box-pc md:my-12 md:bg-gradient-to-br md:from-[#064e3b] md:via-[#043e2e] md:to-[#022c22] md:rounded-[36px] md:p-10 lg:md:p-12 md:shadow-[0_25px_60px_-15px_rgba(6,78,59,0.35)] md:border md:border-emerald-700/60 overflow-hidden"
+          : ""
+      }`}
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.1 }}
       variants={staggerContainer}
     >
+      {/* Background ambient glows only on PC when greenBoxPC is active */}
+      {greenBoxPC && (
+        <>
+          <div className="hidden md:block absolute -top-24 -left-24 w-80 h-80 rounded-full bg-emerald-400/15 blur-[90px] pointer-events-none" />
+          <div className="hidden md:block absolute -bottom-24 -right-24 w-80 h-80 rounded-full bg-amber-400/15 blur-[90px] pointer-events-none" />
+        </>
+      )}
+
       {/* Centered Section Header */}
-      <motion.div className="section-header-bs mb-6 sm:mb-10 text-center" variants={fadeInUp}>
+      <motion.div className="section-header-bs mb-6 sm:mb-10 text-center relative z-10" variants={fadeInUp}>
         <div className="top-picks flex items-center justify-center gap-2 mb-2">
-          <span className="line w-6 h-[2px] bg-[#064e3b] rounded-full"></span>
-          <span className="text font-cinzel text-xs font-bold tracking-[0.25em] text-[#064e3b] uppercase">{badgeText}</span>
-          <span className="line w-6 h-[2px] bg-[#064e3b] rounded-full"></span>
+          <span className={`line w-6 h-[2px] rounded-full ${greenBoxPC ? "bg-[#064e3b] md:!bg-amber-400" : "bg-[#064e3b]"}`}></span>
+          <span className={`text font-cinzel text-xs font-bold tracking-[0.25em] uppercase ${greenBoxPC ? "text-[#064e3b] md:!text-amber-300" : "text-[#064e3b]"}`}>{badgeText}</span>
+          <span className={`line w-6 h-[2px] rounded-full ${greenBoxPC ? "bg-[#064e3b] md:!bg-amber-400" : "bg-[#064e3b]"}`}></span>
         </div>
-        <h2 className="font-luxury text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-neutral-900 tracking-tight">{title}</h2>
+        <h2 className={`font-luxury text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight ${greenBoxPC ? "text-neutral-900 md:!text-white md:drop-shadow-[0_4px_16px_rgba(0,0,0,0.5)]" : "text-neutral-900"}`}>{title}</h2>
         <div className="flex items-center justify-center gap-4 my-2 sm:my-3">
-          <div className="h-px w-12 sm:w-16 bg-gradient-to-r from-transparent to-[#064e3b]"></div>
-          <div className="w-2 h-2 rotate-45 bg-[#064e3b]"></div>
-          <div className="h-px w-12 sm:w-16 bg-gradient-to-l from-transparent to-[#064e3b]"></div>
+          <div className={`h-px w-12 sm:w-16 bg-gradient-to-r from-transparent ${greenBoxPC ? "to-[#064e3b] md:to-emerald-300" : "to-[#064e3b]"}`}></div>
+          <div className={`w-2 h-2 rotate-45 ${greenBoxPC ? "bg-[#064e3b] md:!bg-amber-400" : "bg-[#064e3b]"}`}></div>
+          <div className={`h-px w-12 sm:w-16 bg-gradient-to-l from-transparent ${greenBoxPC ? "to-[#064e3b] md:to-emerald-300" : "to-[#064e3b]"}`}></div>
         </div>
-        <p className="text-neutral-500 text-xs sm:text-sm max-w-xl mx-auto">{subtitle}</p>
+        <p className={`text-xs sm:text-sm max-w-xl mx-auto ${greenBoxPC ? "text-neutral-500 md:!text-emerald-100/90 font-medium" : "text-neutral-500"}`}>{subtitle}</p>
       </motion.div>
 
       {/* 2x2 on Mobile (2 ta 2 ta 4 ta), 4 across on Desktop */}
       <motion.div 
-        className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5 md:gap-6"
+        className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5 md:gap-6 relative z-10"
         variants={staggerContainer}
       >
         {displayedProducts.map((prod, idx) => (
@@ -281,12 +295,16 @@ function ProductCarousel({
       </motion.div>
 
       {/* View All / Show Less Button */}
-      <motion.div className="mt-8 flex justify-center" variants={fadeInUp}>
+      <motion.div className="mt-8 flex justify-center relative z-10" variants={fadeInUp}>
         <motion.button
           whileHover={{ scale: 1.05, y: -2 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setShowAll(!showAll)}
-          className="px-6 py-2.5 sm:px-8 sm:py-3 rounded-full bg-[#064e3b] text-white text-xs sm:text-sm font-bold shadow-md shadow-emerald-900/15 hover:bg-[#022c22] transition-all flex items-center gap-2 cursor-pointer group"
+          className={`px-6 py-2.5 sm:px-8 sm:py-3 rounded-full text-xs sm:text-sm font-bold shadow-md transition-all flex items-center gap-2 cursor-pointer group ${
+            greenBoxPC
+              ? "bg-[#064e3b] text-white md:bg-white md:text-[#064e3b] md:hover:bg-amber-400 md:hover:text-neutral-950 md:shadow-[0_10px_25px_rgba(0,0,0,0.25)]"
+              : "bg-[#064e3b] text-white shadow-emerald-900/15 hover:bg-[#022c22]"
+          }`}
         >
           <span>{showAll ? "Show Less" : `View All (${products.length})`}</span>
           <ArrowRight size={15} className={`transition-transform duration-300 ${showAll ? "-rotate-90" : "group-hover:translate-x-1"}`} />
@@ -1131,6 +1149,7 @@ export default function Home() {
           subtitle="Our most loved products, chosen by you"
           badgeText="TOP PICKS"
           products={bestSellingProducts}
+          greenBoxPC={true}
         />
 
         {/* TEREA & HEETS Carousel */}
