@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { motion, useScroll, useSpring, AnimatePresence } from "framer-motion";
-import { Search, Heart, User, ShoppingBag, ChevronLeft, ChevronRight, Phone, ArrowRight, Truck, Headset, RotateCcw, CreditCard, Star, ShoppingCart, Plus, ArrowUpRight, HelpCircle, ChevronDown, ShieldCheck, CheckCircle, Shield, Lock, Tag, Send, Calendar, Mail, MapPin, Flame, Zap, Droplets, Clock, Check, ArrowUp, Menu, X, Home as HomeIcon, Layers } from "lucide-react";
+import { Search, Heart, User, ShoppingBag, ChevronLeft, ChevronRight, Phone, ArrowRight, Truck, Headset, RotateCcw, CreditCard, Star, ShoppingCart, Plus, ArrowUpRight, HelpCircle, ChevronDown, ShieldCheck, CheckCircle, Shield, Lock, Tag, Send, Calendar, Mail, MapPin, Flame, Zap, Droplets, Clock, Check, ArrowUp, Menu, X, Home as HomeIcon, Layers, Play, Pause } from "lucide-react";
 import { SfButton, SfRating } from "@storefront-ui/react";
 import Lenis from "lenis";
 import "lenis/dist/lenis.css";
@@ -98,42 +98,38 @@ function AnimatedCounter({ end, duration = 2500, suffix = "" }: { end: number, d
 }
 
 const fadeInUp = {
-  hidden: { opacity: 0, y: 30, filter: "blur(4px)" },
+  hidden: { opacity: 0, y: 30 },
   visible: { 
     opacity: 1, 
     y: 0, 
-    filter: "blur(0px)",
     transition: { duration: 0.65, ease: [0.16, 1, 0.3, 1] as const } 
   }
 };
 
 const fadeInScale = {
-  hidden: { opacity: 0, scale: 0.95, y: 20, filter: "blur(4px)" },
+  hidden: { opacity: 0, scale: 0.95, y: 20 },
   visible: { 
     opacity: 1, 
     scale: 1, 
     y: 0, 
-    filter: "blur(0px)",
     transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] as const } 
   }
 };
 
 const slideInLeft = {
-  hidden: { opacity: 0, x: -35, filter: "blur(4px)" },
+  hidden: { opacity: 0, x: -35 },
   visible: { 
     opacity: 1, 
     x: 0, 
-    filter: "blur(0px)",
     transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] as const } 
   }
 };
 
 const slideInRight = {
-  hidden: { opacity: 0, x: 35, filter: "blur(4px)" },
+  hidden: { opacity: 0, x: 35 },
   visible: { 
     opacity: 1, 
     x: 0, 
-    filter: "blur(0px)",
     transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] as const } 
   }
 };
@@ -370,115 +366,382 @@ const mostPopularProducts: Product[] = [
   { title: "Tokyo Iced Mango 30ml Saltnic Premium E-Liquid", price: "45.00", revs: 88, badge: "POPULAR", img: "/images/prod_disposable.png" }
 ];
 
+interface MatchedFlavorProduct {
+  title: string;
+  price: string;
+  rating: number;
+  revs: number;
+  img: string;
+  badge?: string;
+}
+
 interface FlavorItem {
+  id: string;
   title: string;
   category: string;
   tag: string;
   desc: string;
   productCount: number;
   img: string;
-  bgGradient: string;
-  glowColor: string;
-  badgeBg: string;
   accentColor: string;
+  ringColor: string;
+  sweetness: number;
+  cooling: number;
+  throatHit: number;
+  topNote: string;
+  heartNote: string;
+  baseNote: string;
+  ratio: string;
+  family: "berries" | "menthol" | "tropical" | "dessert";
+  matchedProducts: MatchedFlavorProduct[];
 }
 
 const flavorsData: FlavorItem[] = [
   {
-    title: "Watermelon Ice",
-    category: "FRUITY & CHILLED",
-    tag: "BEST SELLER",
-    desc: "Crisp red watermelon slice paired with an icy arctic breeze.",
+    id: "strawberry",
+    title: "Strawberry Garden",
+    category: "LUSH ORCHARD & BERRIES",
+    tag: "SIGNATURE BLEND",
+    desc: "Sun-drenched California strawberries picked at peak ripeness, infused with delicate nectar sweetness and subtle velvet vapor.",
+    productCount: 42,
+    img: "/images/flavors/strawberry.jpg",
+    accentColor: "#ef4444",
+    ringColor: "ring-rose-500",
+    sweetness: 5,
+    cooling: 2,
+    throatHit: 3,
+    topNote: "Sun-ripened Sweet Strawberry",
+    heartNote: "Rich Wild Berry Nectar",
+    baseNote: "Velvet Cream & Mild Mist",
+    ratio: "70 VG / 30 PG",
+    family: "berries",
+    matchedProducts: [
+      { title: "Tokyo Iced Strawberry 30ml Saltnic", price: "45.00", rating: 4.9, revs: 88, img: "/images/prod_eliquid.png", badge: "TOP SELLER" },
+      { title: "Vozol Gear 10000 Strawberry Kiwi", price: "42.00", rating: 4.8, revs: 76, img: "/images/prod_disposable.png", badge: "TRENDING" }
+    ]
+  },
+  {
+    id: "watermelon",
+    title: "Watermelon Glacial Ice",
+    category: "LUSH ORCHARD & BERRIES",
+    tag: "GLOBAL BEST SELLER",
+    desc: "Crisp succulent red watermelon wedges layered with crushed arctic glacier menthol for an exhilarating refreshing throat hit.",
     productCount: 48,
-    img: "/images/prod_disposable.png",
-    bgGradient: "from-rose-50 to-pink-50/60",
-    glowColor: "group-hover:shadow-[0_20px_45px_rgba(244,63,94,0.18)]",
-    badgeBg: "bg-rose-500 text-white",
-    accentColor: "#f43f5e"
+    img: "/images/flavors/watermelon.jpg",
+    accentColor: "#10b981",
+    ringColor: "ring-emerald-500",
+    sweetness: 4,
+    cooling: 5,
+    throatHit: 4,
+    topNote: "Crisp Sweet Watermelon Rind",
+    heartNote: "Succulent Red Melon Puree",
+    baseNote: "Sub-Zero Alpine Glacier Freeze",
+    ratio: "70 VG / 30 PG",
+    family: "berries",
+    matchedProducts: [
+      { title: "Juice Head Watermelon Lime 100ml", price: "55.00", rating: 4.9, revs: 94, img: "/images/prod_eliquid.png", badge: "BEST SELLER" },
+      { title: "Al Fakher Crown Bar 8000 Watermelon Ice", price: "40.00", rating: 5.0, revs: 112, img: "/images/cat_vape_kits.png", badge: "HOT" }
+    ]
   },
   {
-    title: "Cool Mint & Spearmint",
-    category: "MENTHOL & ICED",
-    tag: "ULTRA FRESH",
-    desc: "Pure icy mint leaf infused with refreshing crushed menthol crystals.",
+    id: "mint",
+    title: "Cool Spearmint Frost",
+    category: "ARCTIC FROST & MENTHOL",
+    tag: "ARCTIC HIT",
+    desc: "Fresh garden spearmint leaves crushed over pure crystalline menthol, delivering crisp palate-cleansing coolness on every draw.",
     productCount: 39,
-    img: "/images/cat_disposables.png",
-    bgGradient: "from-cyan-50 to-teal-50/60",
-    glowColor: "group-hover:shadow-[0_20px_45px_rgba(6,182,212,0.18)]",
-    badgeBg: "bg-cyan-600 text-white",
-    accentColor: "#0891b2"
+    img: "/images/flavors/mint.jpg",
+    accentColor: "#06b6d4",
+    ringColor: "ring-cyan-500",
+    sweetness: 2,
+    cooling: 5,
+    throatHit: 5,
+    topNote: "Fresh Garden Spearmint Leaf",
+    heartNote: "Double Distilled Peppermint Essence",
+    baseNote: "Crystal Menthol Chill",
+    ratio: "50 VG / 50 PG",
+    family: "menthol",
+    matchedProducts: [
+      { title: "Mighty Mint Saltnic 30ml Arctic Edition", price: "45.00", rating: 4.9, revs: 83, img: "/images/prod_eliquid.png", badge: "ARCTIC" },
+      { title: "Uwell Caliburn G2 Pod System Starter Kit", price: "95.00", rating: 4.9, revs: 112, img: "/images/prod_pod.png", badge: "RECOMMENDED" }
+    ]
   },
   {
-    title: "Blue Razz Lemonade",
-    category: "BERRY & TANGY",
-    tag: "POPULAR",
-    desc: "Sweet blue raspberries stirred with zesty sparkling lemonade.",
-    productCount: 52,
-    img: "/images/prod_eliquid.png",
-    bgGradient: "from-blue-50 to-indigo-50/60",
-    glowColor: "group-hover:shadow-[0_20px_45px_rgba(59,130,246,0.18)]",
-    badgeBg: "bg-blue-600 text-white",
-    accentColor: "#2563eb"
-  },
-  {
-    title: "Mango Passion Fruit",
-    category: "TROPICAL EXOTIC",
-    tag: "HOT PICK",
-    desc: "Golden ripe Alphonso mangoes splashed with tangy passion fruit.",
-    productCount: 36,
-    img: "/images/vape_hero_sky.png",
-    bgGradient: "from-amber-50 to-orange-50/60",
-    glowColor: "group-hover:shadow-[0_20px_45px_rgba(245,158,11,0.18)]",
-    badgeBg: "bg-amber-500 text-white",
-    accentColor: "#d97706"
-  },
-  {
-    title: "Virginia Tobacco Blend",
-    category: "RICH CLASSIC",
-    tag: "SMOOTH & BOLD",
-    desc: "Sun-cured Virginia golden tobacco leaf with subtle caramel undertones.",
-    productCount: 28,
-    img: "/images/product-2.png",
-    bgGradient: "from-stone-100 to-amber-50/70",
-    glowColor: "group-hover:shadow-[0_20px_45px_rgba(180,83,9,0.18)]",
-    badgeBg: "bg-amber-800 text-white",
-    accentColor: "#92400e"
-  },
-  {
-    title: "Lemon Tart & Vanilla",
-    category: "DESSERT & BAKERY",
-    tag: "GOURMET",
-    desc: "Crumbly buttery pastry crust layered with zesty whipped lemon curd.",
-    productCount: 31,
-    img: "/images/product-3.png",
-    bgGradient: "from-yellow-50 to-amber-50/60",
-    glowColor: "group-hover:shadow-[0_20px_45px_rgba(234,179,8,0.18)]",
-    badgeBg: "bg-yellow-600 text-white",
-    accentColor: "#ca8a04"
-  },
-  {
-    title: "Grape Ice & Aloe",
-    category: "CHILLED FRUIT",
-    tag: "TRENDING",
-    desc: "Dark concord grapes blended with soothing aloe and frosted mint.",
+    id: "peach",
+    title: "Juicy Georgia Peach",
+    category: "LUSH ORCHARD & BERRIES",
+    tag: "POPULAR PICK",
+    desc: "Golden velvety Georgia peach nectar layered with delicate white blossom honey and a light soothing vapor exhale.",
     productCount: 34,
-    img: "/images/product-1.png",
-    bgGradient: "from-purple-50 to-fuchsia-50/60",
-    glowColor: "group-hover:shadow-[0_20px_45px_rgba(168,85,247,0.18)]",
-    badgeBg: "bg-purple-600 text-white",
-    accentColor: "#9333ea"
+    img: "/images/flavors/peach.png",
+    accentColor: "#f97316",
+    ringColor: "ring-orange-500",
+    sweetness: 4,
+    cooling: 3,
+    throatHit: 3,
+    topNote: "Sun-warmed Golden Peach Skin",
+    heartNote: "Velvety Peach Nectar & Pulp",
+    baseNote: "Wild Blossom Floral Honey",
+    ratio: "70 VG / 30 PG",
+    family: "berries",
+    matchedProducts: [
+      { title: "Tokyo Iced Peach 30ml Premium Saltnic", price: "45.00", rating: 4.8, revs: 64, img: "/images/prod_eliquid.png", badge: "NEW" },
+      { title: "Vozol Gear 10000 Juicy Peach Burst", price: "42.00", rating: 4.8, revs: 71, img: "/images/prod_disposable.png", badge: "POPULAR" }
+    ]
   },
   {
-    title: "Strawberry Kiwi Splash",
-    category: "SWEET & SOUR",
-    tag: "SUMMER VIBE",
-    desc: "Sun-ripened garden strawberries accented with tangy green kiwi slices.",
-    productCount: 44,
-    img: "/images/cat_vape_kits.png",
-    bgGradient: "from-emerald-50 to-rose-50/60",
-    glowColor: "group-hover:shadow-[0_20px_45px_rgba(16,185,129,0.18)]",
+    id: "grape",
+    title: "Purple Concord Grape",
+    category: "LUSH ORCHARD & BERRIES",
+    tag: "TRENDING",
+    desc: "Deep vineyard Concord grapes bursting with natural tart sweetness, candied skin zest, and sparkling chilled vapor.",
+    productCount: 36,
+    img: "/images/flavors/grape.png",
+    accentColor: "#a855f7",
+    ringColor: "ring-purple-500",
+    sweetness: 4,
+    cooling: 4,
+    throatHit: 3,
+    topNote: "Dark Concord Grape Skin Zest",
+    heartNote: "Rich Purple Grape Jam Nectar",
+    baseNote: "Effervescent Chilled Soda Finish",
+    ratio: "70 VG / 30 PG",
+    family: "berries",
+    matchedProducts: [
+      { title: "Nasty Juice ASAP Grape 60ml High VG", price: "48.00", rating: 4.9, revs: 91, img: "/images/prod_eliquid.png", badge: "CLASSIC" },
+      { title: "Al Fakher Crown Bar Grape Mint 8000", price: "40.00", rating: 4.9, revs: 85, img: "/images/cat_vape_kits.png", badge: "HOT" }
+    ]
+  },
+  {
+    id: "blueberry",
+    title: "Blueberry Mountain Mist",
+    category: "ARCTIC FROST & MENTHOL",
+    tag: "TOP RATED",
+    desc: "Plump wild forest blueberries chilled with a touch of crushed mountain snow and tart citrus undertones.",
+    productCount: 52,
+    img: "/images/flavors/blueberry.png",
+    accentColor: "#3b82f6",
+    ringColor: "ring-blue-500",
+    sweetness: 3,
+    cooling: 4,
+    throatHit: 3,
+    topNote: "Fresh Wild Blueberries",
+    heartNote: "Subtle Tart Blackberry Juice",
+    baseNote: "Crisp Mountain Breeze Ice",
+    ratio: "70 VG / 30 PG",
+    family: "menthol",
+    matchedProducts: [
+      { title: "Juice Head Blueberry Lemon 100ml", price: "55.00", rating: 4.9, revs: 79, img: "/images/prod_eliquid.png", badge: "TOP RATED" },
+      { title: "Geekvape Wenax K1 Pod Kit 16W", price: "75.00", rating: 4.8, revs: 98, img: "/images/product-3.png", badge: "HOT" }
+    ]
+  },
+  {
+    id: "pineapple",
+    title: "Golden Hawaiian Pineapple",
+    category: "TROPICAL & CITRUS",
+    tag: "ISLAND EXOTIC",
+    desc: "Tangy sweet Maui golden pineapples dripping with sun-drenched island juice and cool coastal sea spray.",
+    productCount: 29,
+    img: "/images/flavors/pineapple.png",
+    accentColor: "#eab308",
+    ringColor: "ring-amber-500",
+    sweetness: 4,
+    cooling: 4,
+    throatHit: 3,
+    topNote: "Bright Tangy Pineapple Crown",
+    heartNote: "Sun-Ripened Golden Island Core",
+    baseNote: "Chilled Coconut Water Mist",
+    ratio: "70 VG / 30 PG",
+    family: "tropical",
+    matchedProducts: [
+      { title: "Tokyo Iced Pineapple 30ml Island", price: "45.00", rating: 4.9, revs: 58, img: "/images/prod_eliquid.png", badge: "EXOTIC" },
+      { title: "Vozol Gear 10000 Pineapple Mango", price: "42.00", rating: 4.7, revs: 63, img: "/images/prod_disposable.png", badge: "POPULAR" }
+    ]
+  },
+  {
+    id: "lychee",
+    title: "Exotic Asian Lychee",
+    category: "TROPICAL & CITRUS",
+    tag: "RARE ARTISAN",
+    desc: "Fragrant translucent imperial lychee fruit with delicate natural rosewater perfume and a silky refreshing finish.",
+    productCount: 26,
+    img: "/images/flavors/lychee.png",
+    accentColor: "#ec4899",
+    ringColor: "ring-pink-500",
+    sweetness: 4,
+    cooling: 3,
+    throatHit: 2,
+    topNote: "Fresh Lychee Floral Bloom",
+    heartNote: "Sweet Translucent Fruit Pulp",
+    baseNote: "Delicate Rosewater & Light Frost",
+    ratio: "50 VG / 50 PG",
+    family: "tropical",
+    matchedProducts: [
+      { title: "Skwezed Iced Lychee 30ml Saltnic", price: "46.00", rating: 4.9, revs: 52, img: "/images/prod_eliquid.png", badge: "RARE GOURMET" },
+      { title: "Uwell Caliburn G2 Pod System Kit", price: "95.00", rating: 4.9, revs: 112, img: "/images/prod_pod.png", badge: "POPULAR" }
+    ]
+  },
+  {
+    id: "mixed_berry",
+    title: "Forest Berry Medley",
+    category: "LUSH ORCHARD & BERRIES",
+    tag: "ALL-DAY VAPE",
+    desc: "Sophisticated fusion of dark tart blackberries, sweet wild raspberries, and deep red currants balanced with subtle frost.",
+    productCount: 45,
+    img: "/images/flavors/mixed_berry.png",
+    accentColor: "#8b5cf6",
+    ringColor: "ring-violet-500",
+    sweetness: 4,
+    cooling: 4,
+    throatHit: 3,
+    topNote: "Tangy Ripe Raspberries",
+    heartNote: "Rich Forest Blackberries",
+    baseNote: "Dark Blackcurrant Spark & Ice",
+    ratio: "70 VG / 30 PG",
+    family: "berries",
+    matchedProducts: [
+      { title: "Vampire Vape Pinkman Forest Berries 60ml", price: "48.00", rating: 4.9, revs: 92, img: "/images/prod_eliquid.png", badge: "FAVORITE" },
+      { title: "Al Fakher Crown Bar Mixed Berries 8000", price: "40.00", rating: 4.8, revs: 84, img: "/images/cat_vape_kits.png", badge: "HOT" }
+    ]
+  },
+  {
+    id: "vanilla",
+    title: "Madagascan Vanilla Custard",
+    category: "ARTISAN CREAM & DESSERT",
+    tag: "GOURMET LUXURY",
+    desc: "Aged Madagascan vanilla bean pods steeped in warm rich golden egg custard, whipped velvet cream, and toasted caramel drizzle.",
+    productCount: 28,
+    img: "/images/flavors/vanilla.png",
+    accentColor: "#d97706",
+    ringColor: "ring-amber-600",
+    sweetness: 5,
+    cooling: 1,
+    throatHit: 4,
+    topNote: "Fragrant Madagascan Vanilla Bean",
+    heartNote: "Golden Creamy Custard Pudding",
+    baseNote: "Toasted Brown Sugar & Butter",
+    ratio: "80 VG / 20 PG",
+    family: "dessert",
+    matchedProducts: [
+      { title: "Dinner Lady Vanilla Custard Tart 60ml", price: "50.00", rating: 5.0, revs: 67, img: "/images/product-2.png", badge: "AWARD WINNER" },
+      { title: "Geekvape Wenax K1 Luxury Pod Kit", price: "75.00", rating: 4.8, revs: 98, img: "/images/product-3.png", badge: "RESERVE" }
+    ]
+  },
+  {
+    id: "orange",
+    title: "Valencia Sparkling Citrus",
+    category: "TROPICAL & CITRUS",
+    tag: "CITRUS BLISS",
+    desc: "Sun-drenched Spanish Valencia oranges cold-pressed over effervescent mineral tonic and chilled shaved ice.",
+    productCount: 31,
+    img: "/images/flavors/orange.png",
+    accentColor: "#ea580c",
+    ringColor: "ring-orange-600",
+    sweetness: 3,
+    cooling: 3,
+    throatHit: 3,
+    topNote: "Zesty Orange Peel Oils",
+    heartNote: "Sweet Valencia Orange Juice",
+    baseNote: "Effervescent Chilled Tonic",
+    ratio: "70 VG / 30 PG",
+    family: "tropical",
+    matchedProducts: [
+      { title: "Tokyo Iced Citrus Orange Soda 30ml", price: "45.00", rating: 4.8, revs: 55, img: "/images/prod_eliquid.png", badge: "REFRESHING" },
+      { title: "Vozol Gear 10000 Tangerine Blast", price: "42.00", rating: 4.7, revs: 49, img: "/images/prod_disposable.png", badge: "POPULAR" }
+    ]
+  },
+  {
+    id: "cheesecake",
+    title: "New York Caramel Cheesecake",
+    category: "ARTISAN CREAM & DESSERT",
+    tag: "CONFECTIONERY RESERVE",
+    desc: "Dense velvety cream cheese whipped over buttery honey-graham biscuit crust with sea salt caramel ribbon.",
+    productCount: 22,
+    img: "/images/flavors/cheesecake.png",
+    accentColor: "#b45309",
+    ringColor: "ring-amber-700",
+    sweetness: 5,
+    cooling: 0,
+    throatHit: 4,
+    topNote: "Buttery Honey-Graham Crust",
+    heartNote: "Rich Dense New York Cream Cheese",
+    baseNote: "Warm Fleur de Sel Caramel",
+    ratio: "80 VG / 20 PG",
+    family: "dessert",
+    matchedProducts: [
+      { title: "Dinner Lady Caramel Cheesecake 60ml", price: "50.00", rating: 4.9, revs: 43, img: "/images/product-2.png", badge: "GOURMET" },
+      { title: "Uwell Caliburn G2 Pod System", price: "95.00", rating: 4.9, revs: 112, img: "/images/prod_pod.png", badge: "POPULAR" }
+    ]
+  }
+];
+
+interface BlogPost {
+  id: number;
+  title: string;
+  category: string;
+  readTime: string;
+  date: string;
+  excerpt: string;
+  image: string;
+  badgeBg: string;
+  author: string;
+}
+
+const blogPostsData: BlogPost[] = [
+  {
+    id: 1,
+    title: "The Ultimate Guide to Selecting Your First Vape Kit",
+    category: "STARTER GUIDE",
+    readTime: "5 min read",
+    date: "Oct 24, 2026",
+    excerpt: "Starting your vaping journey can be overwhelming. Learn how to choose the perfect starter kit that suits your lifestyle.",
+    image: "/images/blog_1.png",
     badgeBg: "bg-emerald-600 text-white",
-    accentColor: "#059669"
+    author: "Alex Morgan"
+  },
+  {
+    id: 2,
+    title: "Top 5 Disposable Vapes of 2026: Flavor & Longevity",
+    category: "DEVICE REVIEWS",
+    readTime: "4 min read",
+    date: "Oct 18, 2026",
+    excerpt: "We put the newest disposable vapes to the test. Discover which devices offer the best flavor consistency and puff count.",
+    image: "/images/blog_2.png",
+    badgeBg: "bg-amber-600 text-white",
+    author: "Elena Rostova"
+  },
+  {
+    id: 3,
+    title: "Understanding E-Liquid Ratios: PG vs VG Explained",
+    category: "E-LIQUID SCIENCE",
+    readTime: "6 min read",
+    date: "Oct 12, 2026",
+    excerpt: "Confused about Propylene Glycol and Vegetable Glycerin? We break down the differences and how they affect your vape.",
+    image: "/images/blog_3.png",
+    badgeBg: "bg-blue-600 text-white",
+    author: "Dr. K. Vance"
+  },
+  {
+    id: 4,
+    title: "IQOS ILUMA vs Traditional Vaping: The Complete UAE Comparison",
+    category: "HEATED TOBACCO",
+    readTime: "7 min read",
+    date: "Oct 05, 2026",
+    excerpt: "An in-depth breakdown of TEREA smartcore induction sticks vs standard pod systems for adult smokers in Dubai and UAE.",
+    image: "/images/hero_slide_1.jpg",
+    badgeBg: "bg-purple-600 text-white",
+    author: "Tariq Al-Mansoor"
+  },
+  {
+    id: 5,
+    title: "Nicotine Salt vs Freebase: Which Delivers Better Satisfaction?",
+    category: "INSIGHTS",
+    readTime: "5 min read",
+    date: "Sep 28, 2026",
+    excerpt: "Explore the smoother absorption and instant satisfaction of saltnic formulations compared to standard freebase nicotine blends.",
+    image: "/images/hero_slide_3.jpg",
+    badgeBg: "bg-rose-600 text-white",
+    author: "Sarah Jenkins"
   }
 ];
 
@@ -561,8 +824,45 @@ export default function Home() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
-  const [showAllFlavors, setShowAllFlavors] = useState(false);
-  const displayedFlavors = showAllFlavors ? flavorsData : flavorsData.slice(0, 4);
+  // Option 2: Luxury 3D Arc Dial State
+  const [activeArcIdx, setActiveArcIdx] = useState<number>(0);
+  const [isArcAutoplay, setIsArcAutoplay] = useState<boolean>(true);
+  const isArcHovered = useRef<boolean>(false);
+
+  useEffect(() => {
+    if (!isArcAutoplay) return;
+    const timer = setInterval(() => {
+      if (!isArcHovered.current) {
+        setActiveArcIdx((prev) => (prev + 1) % flavorsData.length);
+      }
+    }, 4200);
+    return () => clearInterval(timer);
+  }, [isArcAutoplay]);
+
+  const currentArcFlavor = flavorsData[activeArcIdx] || flavorsData[0];
+
+  // 3D Curved Rotating Blog Carousel State
+  const [activeBlogIdx, setActiveBlogIdx] = useState(0);
+  const [isBlogAutoplay, setIsBlogAutoplay] = useState(false);
+  const isBlogHovered = useRef(false);
+
+  useEffect(() => {
+    if (!isBlogAutoplay) return;
+    const timer = setInterval(() => {
+      if (!isBlogHovered.current) {
+        setActiveBlogIdx((prev) => (prev + 1) % blogPostsData.length);
+      }
+    }, 4500);
+    return () => clearInterval(timer);
+  }, [isBlogAutoplay]);
+
+  const nextBlog = useCallback(() => {
+    setActiveBlogIdx((prev) => (prev + 1) % blogPostsData.length);
+  }, []);
+
+  const prevBlog = useCallback(() => {
+    setActiveBlogIdx((prev) => (prev - 1 + blogPostsData.length) % blogPostsData.length);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -1256,113 +1556,262 @@ export default function Home() {
             </div>
           </div>
         </motion.section>
-
-        {/* Shop by Flavors Section */}
+        {/* Option 2: Luxury 3D Arc Dial Section (Vibrant Light Luxury Edition) */}
         <motion.section
           id="flavors"
-          className="max-w-[1400px] mx-auto px-4 sm:px-6 py-12 sm:py-16 md:py-20"
+          className="relative max-w-[1380px] w-full mx-auto px-4 sm:px-6 my-16 md:my-24 select-none"
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.12 }}
+          viewport={{ once: true, amount: 0.1 }}
           variants={staggerContainer}
+          onMouseEnter={() => { isArcHovered.current = true; }}
+          onMouseLeave={() => { isArcHovered.current = false; }}
         >
-          {/* Centered Section Header */}
-          <motion.div className="flex flex-col items-center mb-10 sm:mb-14 text-center px-2" variants={fadeInUp}>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="w-6 h-[2px] bg-amber-500 rounded-full"></span>
-              <span className="font-cinzel text-xs font-bold tracking-[0.25em] text-amber-500 uppercase">TASTE THE EXPERIENCE</span>
-              <span className="w-6 h-[2px] bg-amber-500 rounded-full"></span>
-            </div>
-            <h2 className="font-luxury text-3xl sm:text-4xl md:text-5xl font-extrabold text-neutral-900 mb-3 sm:mb-4 tracking-tight">Shop by Flavors</h2>
-            <div className="flex items-center gap-4 mb-4 sm:mb-5">
-              <div className="h-px w-12 sm:w-16 bg-gradient-to-r from-transparent to-[#064e3b]"></div>
-              <div className="w-2 h-2 rotate-45 bg-[#064e3b]"></div>
-              <div className="h-px w-12 sm:w-16 bg-gradient-to-l from-transparent to-[#064e3b]"></div>
-            </div>
-            <p className="text-neutral-500 max-w-2xl text-xs sm:text-[15px] leading-relaxed">
-              Explore our mouthwatering selection of fruity, icy menthol, rich dessert, and classic tobacco blends crafted for maximum flavor satisfaction.
+          {/* Section Header with Site Royal Emerald & Amber Accents */}
+          <div className="flex flex-col items-center text-center mb-6 sm:mb-10">
+            <span className="font-cinzel text-xs font-black tracking-[0.25em] text-[#064e3b] bg-emerald-50 border border-emerald-200/80 px-4 py-1.5 rounded-full uppercase mb-3 shadow-2xs">
+              TASTE THE EXTRAORDINARY • 12 ARTISAN BLENDS
+            </span>
+            <h2 className="font-luxury text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#064e3b] tracking-tight mb-2">
+              Signature Flavours
+            </h2>
+            <p className="text-neutral-600 text-sm sm:text-base max-w-xl">
+              Rotate the artisan dial to explore hand-crafted tasting notes, sensory sweetness, and cooling ice profiles.
             </p>
-          </motion.div>
+          </div>
 
-          {/* Flavor Grid: 2x2 on Mobile (2 ta 2 ta 4 ta), 4 across on Desktop */}
-          <motion.div
-            className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5 md:gap-6"
-            variants={staggerContainer}
-          >
-            {displayedFlavors.map((flavor, idx) => (
+          {/* Luxury Arch Horizon Stage - Warm Ivory & Emerald Satin Pedestal */}
+          <div className="relative rounded-[36px] sm:rounded-[48px] bg-gradient-to-b from-[#f8fbf9] via-[#ffffff] to-[#f2f8f5] border-2 border-[#064e3b]/20 shadow-[0_24px_70px_-15px_rgba(6,78,59,0.14)] p-6 sm:p-10 md:p-12 overflow-hidden flex flex-col items-center">
+            {/* Top Amber & Emerald Ambient Glow */}
+            <div className="absolute top-0 inset-x-0 h-44 bg-gradient-to-b from-emerald-500/10 via-amber-400/5 to-transparent pointer-events-none" />
+
+            {/* Ambient Flavor Accent Glow */}
+            <div
+              className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[580px] h-[380px] rounded-full blur-[110px] pointer-events-none transition-all duration-700"
+              style={{ background: currentArcFlavor.accentColor, opacity: 0.22 }}
+            />
+
+            {/* Navigation Controls */}
+            <div className="w-full flex items-center justify-end z-20 mb-3">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setActiveArcIdx((prev) => (prev - 1 + flavorsData.length) % flavorsData.length)}
+                  aria-label="Previous flavor"
+                  className="w-9 h-9 rounded-full bg-white border border-[#064e3b]/30 text-[#064e3b] hover:bg-[#064e3b] hover:text-white flex items-center justify-center transition-all shadow-xs cursor-pointer active:scale-95"
+                >
+                  <ChevronLeft size={17} />
+                </button>
+                <button
+                  onClick={() => setIsArcAutoplay(!isArcAutoplay)}
+                  aria-label={isArcAutoplay ? "Pause autoplay" : "Start autoplay"}
+                  className="px-4 py-1.5 rounded-full bg-white border border-[#064e3b]/30 text-[#064e3b] text-xs font-black hover:bg-emerald-50 flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
+                >
+                  {isArcAutoplay ? <Pause size={12} className="text-[#064e3b]" /> : <Play size={12} className="text-[#064e3b]" />}
+                  <span className="text-[11px] uppercase tracking-wider">{isArcAutoplay ? "Auto-Rotating" : "Paused"}</span>
+                </button>
+                <button
+                  onClick={() => setActiveArcIdx((prev) => (prev + 1) % flavorsData.length)}
+                  aria-label="Next flavor"
+                  className="w-9 h-9 rounded-full bg-white border border-[#064e3b]/30 text-[#064e3b] hover:bg-[#064e3b] hover:text-white flex items-center justify-center transition-all shadow-xs cursor-pointer active:scale-95"
+                >
+                  <ChevronRight size={17} />
+                </button>
+              </div>
+            </div>
+
+            {/* The 3D Curved Arc Display Stage */}
+            <div 
+              className="relative w-full max-w-[960px] h-[280px] sm:h-[320px] md:h-[350px] flex items-center justify-center my-4 overflow-visible"
+              style={{ perspective: "1200px" }}
+            >
+              {/* SVG Horological Arc Track with Emerald & Gold Details */}
+              <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 960 350">
+                <defs>
+                  <linearGradient id="arcEmeraldGold" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#064e3b" stopOpacity="0.1" />
+                    <stop offset="25%" stopColor="#064e3b" stopOpacity="0.4" />
+                    <stop offset="50%" stopColor="#d97706" stopOpacity="0.8" />
+                    <stop offset="75%" stopColor="#064e3b" stopOpacity="0.4" />
+                    <stop offset="100%" stopColor="#064e3b" stopOpacity="0.1" />
+                  </linearGradient>
+                </defs>
+
+                {/* Primary Outer Solid Arc Track */}
+                <path
+                  d="M 60,270 Q 480,45 900,270"
+                  fill="none"
+                  stroke="#064e3b"
+                  strokeWidth="2.5"
+                  strokeOpacity="0.25"
+                />
+
+                {/* Inner Gold Precision Dotted Dial Track */}
+                <path
+                  d="M 100,275 Q 480,70 860,275"
+                  fill="none"
+                  stroke="url(#arcEmeraldGold)"
+                  strokeWidth="2"
+                  strokeDasharray="6 8"
+                />
+
+                {/* Dial Ticks & Anchor Pivot Dots */}
+                <circle cx="480" cy="45" r="4" fill="#d97706" />
+                <circle cx="340" cy="80" r="3.5" fill="#064e3b" opacity="0.6" />
+                <circle cx="620" cy="80" r="3.5" fill="#064e3b" opacity="0.6" />
+                <circle cx="200" cy="150" r="3" fill="#064e3b" opacity="0.4" />
+                <circle cx="760" cy="150" r="3" fill="#064e3b" opacity="0.4" />
+              </svg>
+
+              {/* 3D Arc Dial Nodes - High Contrast & Full Visibility */}
+              {flavorsData.map((flv, idx) => {
+                const total = flavorsData.length;
+                let diff = (idx - activeArcIdx) % total;
+                if (diff > total / 2) diff -= total;
+                if (diff < -total / 2) diff += total;
+
+                // Render visible items within arc range (-2 to +2 for clean elegance, or -3 to +3)
+                if (Math.abs(diff) > 2) return null;
+
+                const isCenter = diff === 0;
+                const isAdjacent = Math.abs(diff) === 1;
+
+                return (
+                  <motion.div
+                    key={flv.id}
+                    onClick={() => setActiveArcIdx(idx)}
+                    animate={{
+                      x: diff * 155,
+                      y: Math.pow(diff, 2) * 24,
+                      z: -Math.abs(diff) * 55,
+                      rotateY: -diff * 12,
+                      scale: isCenter ? 1.35 : isAdjacent ? 1.05 : 0.90,
+                      opacity: isCenter ? 1 : isAdjacent ? 0.95 : 0.82,
+                    }}
+                    transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                    className={`absolute cursor-pointer transition-transform ${
+                      isCenter ? "z-30" : "z-10 hover:opacity-100 hover:scale-110"
+                    }`}
+                  >
+                    {/* Ring Bezel with Brand Color & Accent Outline */}
+                    <div
+                      className={`relative rounded-full p-2 bg-white transition-all duration-300 flex items-center justify-center ${
+                        isCenter
+                          ? "w-28 h-28 sm:w-36 sm:h-36 shadow-[0_20px_45px_rgba(6,78,59,0.28)] ring-4 ring-[#d97706] border-4 border-[#064e3b]"
+                          : isAdjacent
+                          ? "w-22 h-22 sm:w-26 sm:h-26 shadow-lg border-2 border-[#064e3b]/40 ring-2 ring-emerald-500/10"
+                          : "w-18 h-18 sm:w-22 sm:h-22 shadow-md border-2 border-neutral-300"
+                      }`}
+                    >
+                      <div className="relative w-full h-full rounded-full overflow-hidden shadow-inner">
+                        <Image
+                          src={flv.img}
+                          alt={flv.title}
+                          fill
+                          sizes="(max-width: 640px) 110px, 150px"
+                          className="object-cover"
+                          priority={isCenter}
+                        />
+                      </div>
+
+                      {/* Flavor Badge - Center Active with Brand Emerald & Gold Border */}
+                      {isCenter ? (
+                        <div className="absolute -bottom-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-[#064e3b] border-2 border-amber-300/60 shadow-lg text-[11px] font-black tracking-wider uppercase whitespace-nowrap text-white flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                          <span>{flv.title}</span>
+                        </div>
+                      ) : (
+                        /* Flanking Visible Flavor Label Pill */
+                        <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-white/95 border border-[#064e3b]/30 shadow-xs text-[9px] sm:text-[10px] font-extrabold text-[#064e3b] whitespace-nowrap">
+                          {flv.title.split(' ')[0]}
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            {/* Center Details Showcase Card - Light Luxury Gold & Emerald Finish */}
+            <AnimatePresence mode="wait">
               <motion.div
-                key={idx}
-                variants={fadeInScale}
-                whileHover={{ y: -6, transition: { duration: 0.3 } }}
-                className={`group relative rounded-2xl sm:rounded-3xl p-3 sm:p-5 bg-gradient-to-b ${flavor.bgGradient} border border-neutral-200/80 shadow-[0_4px_15px_rgba(0,0,0,0.05)] ${flavor.glowColor} transition-all duration-500 flex flex-col justify-between overflow-hidden cursor-pointer`}
+                key={currentArcFlavor.id}
+                initial={{ opacity: 0, y: 14, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -14, scale: 0.98 }}
+                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                className="relative z-20 w-full max-w-2xl bg-white/98 rounded-3xl border-2 border-[#064e3b]/20 shadow-[0_20px_50px_-10px_rgba(6,78,59,0.12)] p-6 sm:p-8 flex flex-col items-center text-center mt-3 overflow-hidden"
               >
-                {/* Decorative background radial tint */}
-                <div
-                  className="absolute -right-10 -bottom-10 w-36 h-36 rounded-full blur-3xl opacity-20 pointer-events-none transition-opacity duration-500 group-hover:opacity-40"
-                  style={{ backgroundColor: flavor.accentColor }}
-                ></div>
+                {/* Gold-Emerald Luxury Top Bevel Strip */}
+                <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-[#064e3b] via-[#d97706] to-[#064e3b]" />
 
-                {/* Header badges */}
-                <div className="flex items-center justify-between mb-2 z-10 relative">
-                  <span className={`text-[8px] sm:text-[9px] font-black tracking-wider uppercase px-2 py-0.5 rounded-full shadow-xs ${flavor.badgeBg}`}>
-                    {flavor.tag}
+                {/* Tag & Category */}
+                <div className="flex items-center gap-2 mb-2 pt-1">
+                  <span
+                    className="px-3.5 py-1 rounded-full text-[10px] sm:text-[11px] font-black tracking-wider uppercase text-white shadow-xs"
+                    style={{ backgroundColor: currentArcFlavor.accentColor }}
+                  >
+                    {currentArcFlavor.tag}
                   </span>
-                  <span className="text-[9px] sm:text-[10px] font-bold text-neutral-500 bg-white/80 backdrop-blur-sm border border-neutral-200/70 px-1.5 sm:px-2 py-0.5 rounded-full shadow-xs">
-                    {flavor.productCount}+
+                  <span className="font-cinzel text-xs font-bold text-[#064e3b] uppercase tracking-widest">
+                    {currentArcFlavor.category}
                   </span>
                 </div>
 
-                {/* Image showcase */}
-                <div className="relative w-full h-24 sm:h-36 my-1 flex items-center justify-center overflow-hidden">
-                  <div className="relative w-20 h-20 sm:w-28 sm:h-28 transform group-hover:scale-110 group-hover:-rotate-2 transition-transform duration-500 ease-out">
-                    <Image
-                      src={flavor.img}
-                      alt={flavor.title}
-                      fill
-                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                      className="object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.2)]"
-                    />
+                {/* Flavor Name in Site Primary Emerald */}
+                <h3 className="font-luxury text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#064e3b] tracking-tight leading-tight mb-2">
+                  {currentArcFlavor.title}
+                </h3>
+
+                {/* 1-Line Tasting Description */}
+                <p className="text-neutral-700 text-xs sm:text-sm max-w-lg leading-relaxed mb-4 font-medium">
+                  {currentArcFlavor.desc}
+                </p>
+
+                {/* 3-Point Aroma Notes Strip with Emerald Accent */}
+                <div className="w-full grid grid-cols-3 gap-2 py-2.5 px-3 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 text-[11px] mb-4">
+                  <div>
+                    <span className="text-[9px] font-black tracking-wider uppercase text-[#064e3b] block mb-0.5">TOP NOTE</span>
+                    <span className="font-extrabold text-neutral-900 line-clamp-1">{currentArcFlavor.topNote}</span>
+                  </div>
+                  <div>
+                    <span className="text-[9px] font-black tracking-wider uppercase text-[#064e3b] block mb-0.5">HEART NOTE</span>
+                    <span className="font-extrabold text-neutral-900 line-clamp-1">{currentArcFlavor.heartNote}</span>
+                  </div>
+                  <div>
+                    <span className="text-[9px] font-black tracking-wider uppercase text-[#064e3b] block mb-0.5">BASE FINISH</span>
+                    <span className="font-extrabold text-neutral-900 line-clamp-1">{currentArcFlavor.baseNote}</span>
                   </div>
                 </div>
 
-                {/* Content & Action */}
-                <div className="flex flex-col z-10 relative mt-1 pt-2 border-t border-neutral-200/60">
-                  <span className="font-cinzel text-[8px] sm:text-[9px] font-extrabold tracking-[0.15em] text-neutral-400 uppercase mb-0.5">
-                    {flavor.category}
-                  </span>
-                  <h3 className="font-luxury text-xs sm:text-base md:text-lg font-extrabold text-neutral-900 mb-1 group-hover:text-[#064e3b] transition-colors line-clamp-1">
-                    {flavor.title}
-                  </h3>
-                  <p className="text-neutral-500 text-[10px] sm:text-xs leading-relaxed line-clamp-2 mb-2 hidden sm:block">
-                    {flavor.desc}
-                  </p>
+                {/* Sensory Balance & Action Button */}
+                <div className="flex items-center justify-between w-full flex-wrap gap-3 pt-1">
+                  <div className="flex items-center gap-3.5 text-xs font-bold text-neutral-700">
+                    <span className="flex items-center gap-1.5">
+                      Sweet: <span className="text-amber-600 font-black">{currentArcFlavor.sweetness}/5</span>
+                    </span>
+                    <span className="w-1 h-1 rounded-full bg-neutral-300" />
+                    <span className="flex items-center gap-1.5">
+                      Ice: <span className="text-cyan-700 font-black">{currentArcFlavor.cooling}/5</span>
+                    </span>
+                    <span className="w-1 h-1 rounded-full bg-neutral-300" />
+                    <span className="text-[#064e3b] font-black">
+                      {currentArcFlavor.productCount}+ Blends
+                    </span>
+                  </div>
 
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.97 }}
-                    className="w-full py-1.5 sm:py-2 px-2.5 sm:px-3 rounded-lg sm:rounded-xl bg-white hover:bg-[#064e3b] text-neutral-800 hover:text-white border border-neutral-200 hover:border-transparent font-bold text-[10px] sm:text-xs flex items-center justify-between transition-all duration-300 shadow-xs hover:shadow-md cursor-pointer group/btn relative overflow-hidden mt-1"
+                  <motion.a
+                    href="#shop"
+                    whileHover={{ scale: 1.04 }}
+                    whileTap={{ scale: 0.96 }}
+                    className="px-7 py-3 rounded-full bg-gradient-to-r from-[#064e3b] to-[#043729] hover:from-[#043729] hover:to-[#064e3b] text-white font-black text-xs sm:text-sm tracking-wider uppercase shadow-lg shadow-emerald-950/20 border border-amber-400/40 flex items-center gap-2 cursor-pointer no-underline transition-all"
                   >
-                    <span className="relative z-10">Explore</span>
-                    <ArrowRight size={12} className="relative z-10 transform group-hover/btn:translate-x-1 transition-transform" />
-                    <span className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none"></span>
-                  </motion.button>
+                    <span>Shop {currentArcFlavor.title}</span>
+                    <ArrowRight size={14} className="text-amber-300" />
+                  </motion.a>
                 </div>
               </motion.div>
-            ))}
-          </motion.div>
-
-          {/* View All / Show Less Button */}
-          <motion.div className="mt-8 flex justify-center" variants={fadeInUp}>
-            <motion.button
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setShowAllFlavors(!showAllFlavors)}
-              className="px-6 py-2.5 sm:px-8 sm:py-3 rounded-full bg-[#064e3b] text-white text-xs sm:text-sm font-bold shadow-md shadow-emerald-900/15 hover:bg-[#022c22] transition-all flex items-center gap-2 cursor-pointer group"
-            >
-              <span>{showAllFlavors ? "Show Less" : `View All (${flavorsData.length})`}</span>
-              <ArrowRight size={15} className={`transition-transform duration-300 ${showAllFlavors ? "-rotate-90" : "group-hover:translate-x-1"}`} />
-            </motion.button>
-          </motion.div>
+            </AnimatePresence>
+          </div>
         </motion.section>
 
         {/* Ultra-Premium FAQ Section */}
@@ -1573,116 +2022,252 @@ export default function Home() {
         </div>
       </motion.section>
 
-      {/* Blog Section */}
+      {/* Blog Section - 3D Curved Rotating Cover-Flow Carousel */}
       <motion.section
-        className="max-w-[1400px] mx-auto px-4 sm:px-6 pt-12 sm:pt-16 pb-8 sm:pb-10"
+        className="max-w-[1400px] mx-auto px-4 sm:px-6 pt-14 sm:pt-20 pb-14 sm:pb-20 relative overflow-hidden scroll-mt-28"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.15 }}
         variants={staggerContainer}
       >
+        {/* Soft Ambient Glows */}
+        <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none -z-10" />
+        <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl pointer-events-none -z-10" />
+
+        {/* Section Header */}
         <motion.div className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-12 gap-4 sm:gap-6" variants={fadeInUp}>
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200/60 mb-3">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 mb-3 shadow-xs">
               <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
-              <span className="font-cinzel text-[11px] font-black tracking-[0.25em] text-[#064e3b] uppercase">Blog & Guides</span>
+              <span className="font-cinzel text-[11px] font-black tracking-[0.25em] text-[#064e3b] uppercase">Blog & Guides • 3D Showcase</span>
             </div>
             <h2 className="font-luxury text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-neutral-900 tracking-tight">
               Vape Culture <span className="font-luxury text-[#064e3b]">&</span> Insights
             </h2>
             <p className="text-neutral-500 text-xs sm:text-sm md:text-base mt-2 max-w-xl">
-              Expert tips, product guides, and the latest trends from the vaping world
+              Immerse yourself in expert masterclasses, flavor science, and the latest vaping trends across UAE.
             </p>
           </div>
-          <motion.a
-            href="#"
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.98 }}
-            className="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full bg-[#064e3b] text-white text-xs sm:text-sm font-bold shadow-md shadow-emerald-900/10 hover:bg-[#022c22] transition-colors self-start md:self-end shrink-0 cursor-pointer group"
-          >
-            <span>View All Articles</span>
-            <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-          </motion.a>
+
+          <div className="flex items-center gap-3 self-start md:self-end shrink-0">
+            {/* Autoplay Pause/Play button */}
+            <button
+              onClick={() => setIsBlogAutoplay((prev) => !prev)}
+              aria-label={isBlogAutoplay ? "Pause carousel rotation" : "Resume carousel rotation"}
+              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full border text-xs font-bold transition-all shadow-xs cursor-pointer ${
+                isBlogAutoplay
+                  ? "bg-emerald-50 border-emerald-300 text-emerald-800"
+                  : "bg-white border-neutral-200 text-neutral-700 hover:bg-emerald-50 hover:border-emerald-200"
+              }`}
+            >
+              {isBlogAutoplay ? <Pause size={14} className="text-emerald-700" /> : <Play size={14} className="text-emerald-700" />}
+              <span className="text-[11px] uppercase tracking-wider">{isBlogAutoplay ? "Auto-Rotating" : "Paused"}</span>
+            </button>
+
+            <motion.a
+              href="#"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
+              className="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full bg-[#064e3b] text-white text-xs sm:text-sm font-bold shadow-md shadow-emerald-900/15 hover:bg-[#022c22] transition-colors cursor-pointer group"
+            >
+              <span>View All Articles</span>
+              <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+            </motion.a>
+          </div>
         </motion.div>
 
-        <motion.div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8" variants={staggerContainer}>
-          {[
-            {
-              title: "The Ultimate Guide to Selecting Your First Vape Kit",
-              category: "GUIDES",
-              readTime: "5 min read",
-              date: "Oct 24, 2026",
-              excerpt: "Starting your vaping journey can be overwhelming. Learn how to choose the perfect starter kit that suits your lifestyle.",
-              image: "/images/blog_1.png"
-            },
-            {
-              title: "Top 5 Disposable Vapes of 2026: Flavor & Longevity",
-              category: "REVIEWS",
-              readTime: "4 min read",
-              date: "Oct 18, 2026",
-              excerpt: "We put the newest disposable vapes to the test. Discover which ones offer the best flavor consistency and puff count.",
-              image: "/images/blog_2.png"
-            },
-            {
-              title: "Understanding E-Liquid Ratios: PG vs VG Explained",
-              category: "EDUCATION",
-              readTime: "6 min read",
-              date: "Oct 12, 2026",
-              excerpt: "Confused about Propylene Glycol and Vegetable Glycerin? We break down the differences and how they affect your vape.",
-              image: "/images/blog_3.png"
-            }
-          ].map((post, i) => (
-            <motion.div
-              key={i}
-              className="bg-white rounded-[24px] sm:rounded-[32px] overflow-hidden border border-neutral-100 shadow-[0_10px_30px_rgba(0,0,0,0.04)] hover:shadow-[0_20px_45px_rgba(6,78,59,0.12)] transition-all duration-500 group cursor-pointer flex flex-col hover:-translate-y-1"
-              variants={fadeInScale}
-              whileHover={{ y: -8, transition: { duration: 0.3 } }}
-            >
-              <div className="h-52 sm:h-60 w-full relative overflow-hidden bg-neutral-900">
-                <Image
-                  src={post.image}
-                  alt={post.title}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  className="object-cover transform group-hover:scale-110 transition-transform duration-700 ease-in-out opacity-90 group-hover:opacity-100"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent"></div>
-                <div className="absolute top-4 left-4 z-10">
-                  <span className="bg-[#022c22]/90 backdrop-blur-md border border-emerald-400/30 text-emerald-300 text-[10px] font-black tracking-widest uppercase px-3.5 py-1.5 rounded-full shadow-md">
-                    {post.category}
-                  </span>
-                </div>
-                <div className="absolute top-4 right-4 z-10">
-                  <span className="bg-black/50 backdrop-blur-md border border-white/20 text-white/90 text-[10px] font-bold px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
-                    <Clock size={11} className="text-amber-400" /> {post.readTime}
-                  </span>
-                </div>
-              </div>
-              <div className="p-5 sm:p-8 flex flex-col flex-1">
-                <div className="flex items-center justify-between mb-3 text-neutral-400 text-xs font-medium">
-                  <span className="flex items-center gap-1.5">
-                    <Calendar size={13} className="text-emerald-600" /> {post.date}
-                  </span>
-                  <span className="text-[11px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md">
-                    Verified Guide
-                  </span>
-                </div>
-                <h3 className="font-luxury font-extrabold text-lg sm:text-xl text-neutral-900 mb-3 leading-snug group-hover:text-[#064e3b] transition-colors line-clamp-2">
-                  {post.title}
-                </h3>
-                <p className="text-neutral-500 text-xs sm:text-sm leading-relaxed mb-5 sm:mb-6 line-clamp-3">
-                  {post.excerpt}
-                </p>
-                <div className="mt-auto flex items-center gap-2 font-black text-[#064e3b] text-xs sm:text-sm group-hover:gap-3 transition-all pt-3 border-t border-neutral-100">
-                  <span>Read Article</span>
-                  <div className="w-7 h-7 rounded-full bg-emerald-50 flex items-center justify-center text-[#064e3b] group-hover:bg-[#064e3b] group-hover:text-white transition-all">
-                    <ArrowRight size={14} />
+        {/* 3D Curved Carousel Stage */}
+        <div
+          className="relative w-full h-[520px] sm:h-[560px] md:h-[580px] flex items-center justify-center [perspective:1400px] select-none my-2"
+          onMouseEnter={() => { isBlogHovered.current = true; }}
+          onMouseLeave={() => { isBlogHovered.current = false; }}
+        >
+          {/* Navigation Arrow: Previous */}
+          <button
+            onClick={prevBlog}
+            aria-label="Previous article"
+            className="absolute left-2 sm:left-6 md:left-10 z-40 w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-white/95 backdrop-blur-md border border-neutral-200 shadow-xl flex items-center justify-center text-neutral-800 hover:text-emerald-700 hover:scale-110 hover:border-emerald-300 transition-all cursor-pointer group"
+          >
+            <ChevronLeft size={22} className="group-hover:-translate-x-0.5 transition-transform" />
+          </button>
+
+          {/* Navigation Arrow: Next */}
+          <button
+            onClick={nextBlog}
+            aria-label="Next article"
+            className="absolute right-2 sm:right-6 md:right-10 z-40 w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-white/95 backdrop-blur-md border border-neutral-200 shadow-xl flex items-center justify-center text-neutral-800 hover:text-emerald-700 hover:scale-110 hover:border-emerald-300 transition-all cursor-pointer group"
+          >
+            <ChevronRight size={22} className="group-hover:translate-x-0.5 transition-transform" />
+          </button>
+
+          {/* 3D Stack of Cards */}
+          <div className="relative w-full h-full flex items-center justify-center [transform-style:preserve-3d]">
+            {blogPostsData.map((post, idx) => {
+              // Calculate relative distance with wrapping
+              let diff = (idx - activeBlogIdx) % blogPostsData.length;
+              if (diff < -Math.floor(blogPostsData.length / 2)) {
+                diff += blogPostsData.length;
+              } else if (diff > Math.floor(blogPostsData.length / 2)) {
+                diff -= blogPostsData.length;
+              }
+
+              const isActive = diff === 0;
+              const isPrev = diff === -1;
+              const isNext = diff === 1;
+              const isVisible = Math.abs(diff) <= 1; // Only 3 cards visible at once to avoid edge clipping & flying
+
+              // Compute clean 3D transforms based on position
+              let translateX = "0%";
+              let translateZ = 0;
+              let rotateY = 0;
+              let scale = 1;
+              let opacity = 0;
+              let zIndex = 0;
+
+              if (isActive) {
+                translateX = "0%";
+                translateZ = 0;
+                rotateY = 0;
+                scale = 1;
+                opacity = 1;
+                zIndex = 30;
+              } else if (isNext) {
+                translateX = "70%";
+                translateZ = -25;
+                rotateY = -15;
+                scale = 0.90;
+                opacity = 0.85;
+                zIndex = 20;
+              } else if (isPrev) {
+                translateX = "-70%";
+                translateZ = -25;
+                rotateY = 15;
+                scale = 0.90;
+                opacity = 0.85;
+                zIndex = 20;
+              } else {
+                translateX = diff < 0 ? "-110%" : "110%";
+                translateZ = -80;
+                rotateY = 0;
+                scale = 0.75;
+                opacity = 0;
+                zIndex = 0;
+              }
+
+              return (
+                <div
+                  key={post.id}
+                  onClick={() => !isActive && setActiveBlogIdx(idx)}
+                  className={`absolute w-[86vw] max-w-[340px] sm:max-w-[390px] md:max-w-[430px] h-[470px] sm:h-[510px] md:h-[530px] rounded-[28px] sm:rounded-[32px] bg-white overflow-hidden flex flex-col transform-gpu [backface-visibility:hidden] [-webkit-font-smoothing:antialiased] transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] ${
+                    isActive
+                      ? "cursor-default border-2 border-emerald-500/70 shadow-[0_20px_50px_rgba(6,78,59,0.18)] ring-4 ring-emerald-500/15"
+                      : "cursor-pointer border border-neutral-200/90 shadow-[0_10px_28px_rgba(0,0,0,0.06)] hover:border-emerald-300"
+                  }`}
+                  style={{
+                    transform: `translate3d(${translateX}, 0, ${translateZ}px) rotateY(${rotateY}deg) scale(${scale})`,
+                    opacity: isVisible ? opacity : 0,
+                    zIndex,
+                    pointerEvents: isVisible ? "auto" : "none",
+                    WebkitFontSmoothing: "antialiased",
+                    backfaceVisibility: "hidden",
+                    WebkitBackfaceVisibility: "hidden",
+                  }}
+                >
+                  {/* Top Image Banner */}
+                  <div className="relative h-[220px] sm:h-[250px] w-full overflow-hidden bg-neutral-900 shrink-0">
+                    <Image
+                      src={post.image}
+                      alt={post.title}
+                      fill
+                      sizes="(max-width: 768px) 85vw, 430px"
+                      className="object-cover transform hover:scale-105 transition-transform duration-700 ease-out opacity-100"
+                      priority={isActive}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+
+                    {/* Floating Badges */}
+                    <div className="absolute top-4 left-4 z-10">
+                      <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/95 text-[#064e3b] border border-white/80 shadow-md">
+                        {post.category}
+                      </span>
+                    </div>
+
+                    <div className="absolute top-4 right-4 z-10">
+                      <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-black/75 text-white border border-white/20 flex items-center gap-1 shadow-sm">
+                        <Clock size={11} className="text-amber-400" /> {post.readTime}
+                      </span>
+                    </div>
+
+                    {/* Meta info overlaid at bottom of image */}
+                    <div className="absolute bottom-3 left-4 right-4 z-10 flex items-center justify-between text-white/95 text-xs">
+                      <span className="flex items-center gap-1.5 font-medium bg-black/50 px-2.5 py-0.5 rounded-md">
+                        <Calendar size={12} className="text-emerald-400" /> {post.date}
+                      </span>
+                      <span className="text-[11px] text-amber-300 font-semibold bg-black/50 px-2.5 py-0.5 rounded-md">
+                        By {post.author}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Card Content Body */}
+                  <div className="p-5 sm:p-6 flex flex-col flex-1 justify-between bg-gradient-to-b from-white to-[#fafcfb]">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                        <span className="text-[10px] font-black tracking-widest uppercase text-emerald-800">
+                          {isActive ? "FEATURED ARTICLE" : "RECOMMENDED"}
+                        </span>
+                      </div>
+                      <h3 className="font-luxury font-extrabold text-base sm:text-lg md:text-xl text-neutral-900 mb-2 leading-snug line-clamp-2 hover:text-[#064e3b] transition-colors">
+                        {post.title}
+                      </h3>
+                      <p className="text-neutral-500 text-xs sm:text-sm leading-relaxed line-clamp-2 sm:line-clamp-3">
+                        {post.excerpt}
+                      </p>
+                    </div>
+
+                    {/* Bottom Action Footer */}
+                    <div className="pt-3 border-t border-neutral-100 flex items-center justify-between mt-auto">
+                      <span className="text-xs font-bold text-neutral-400">
+                        Article 0{post.id} / 0{blogPostsData.length}
+                      </span>
+                      <a
+                        href="#"
+                        className="inline-flex items-center gap-2 text-xs sm:text-sm font-black text-[#064e3b] hover:text-[#022c22] group/btn transition-colors"
+                      >
+                        <span>Read Full Guide</span>
+                        <div className="w-7 h-7 rounded-full bg-emerald-50 border border-emerald-200/60 flex items-center justify-center text-[#064e3b] group-hover/btn:bg-[#064e3b] group-hover/btn:text-white transition-all shadow-2xs">
+                          <ArrowRight size={13} className="group-hover/btn:translate-x-0.5 transition-transform" />
+                        </div>
+                      </a>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Bottom Interactive Navigation Dots / Article Selectors */}
+        <div className="mt-8 flex flex-col items-center gap-3">
+          <div className="flex items-center justify-center gap-2 sm:gap-3">
+            {blogPostsData.map((post, idx) => (
+              <button
+                key={post.id}
+                onClick={() => setActiveBlogIdx(idx)}
+                aria-label={`Go to article ${idx + 1}: ${post.title}`}
+                className={`transition-all duration-300 rounded-full cursor-pointer flex items-center gap-1.5 ${
+                  activeBlogIdx === idx
+                    ? "w-10 sm:w-14 h-3 bg-[#064e3b] shadow-md shadow-emerald-900/20"
+                    : "w-3 h-3 bg-neutral-300 hover:bg-neutral-400"
+                }`}
+              />
+            ))}
+          </div>
+          <span className="text-neutral-400 text-xs font-medium">
+            Click side cards or drag arrows to explore • {activeBlogIdx + 1} of {blogPostsData.length}
+          </span>
+        </div>
       </motion.section>
 
       {/* Footer */}
