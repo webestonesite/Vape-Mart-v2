@@ -252,7 +252,7 @@ function ProductCarousel({
     <motion.section
       className={`best-selling-section relative max-w-[1400px] w-full mx-auto px-3 sm:px-6 py-8 sm:py-12 transition-all duration-500 ${
         greenBoxPC
-          ? "green-box-pc my-8 md:my-16 lg:my-20 md:bg-gradient-to-br md:from-[#064e3b] md:via-[#043e2e] md:to-[#022c22] md:rounded-[36px] md:p-10 lg:p-12 md:shadow-[0_25px_60px_-15px_rgba(6,78,59,0.35)] md:border md:border-emerald-700/60 overflow-hidden"
+          ? "green-box-pc my-5 md:my-8 lg:my-10 md:bg-gradient-to-br md:from-[#064e3b] md:via-[#043e2e] md:to-[#022c22] md:rounded-[36px] md:p-10 lg:p-12 md:pb-14 lg:pb-16 md:shadow-[0_25px_60px_-15px_rgba(6,78,59,0.35)] md:border md:border-emerald-700/60 overflow-hidden"
           : ""
       }`}
       initial="hidden"

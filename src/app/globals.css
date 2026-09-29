@@ -888,7 +888,16 @@ body {
   margin-bottom: 10px;
 }
 
+.best-selling-section.green-box-pc {
+  margin-top: 24px !important;
+  margin-bottom: 24px !important;
+}
+
 @media (min-width: 768px) {
+  .best-selling-section.green-box-pc {
+    margin-top: 36px !important;
+    margin-bottom: 36px !important;
+  }
   .best-selling-section.green-box-pc .section-header-bs h2 {
     color: #ffffff !important;
     text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
@@ -904,6 +913,13 @@ body {
   .best-selling-section.green-box-pc p {
     color: #d1fae5 !important;
     opacity: 0.9 !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .best-selling-section.green-box-pc {
+    margin-top: 44px !important;
+    margin-bottom: 44px !important;
   }
 }
 
