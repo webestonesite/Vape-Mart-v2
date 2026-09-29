@@ -1283,14 +1283,12 @@ body {
 
 .fb-logo-wrapper {
   position: relative;
-  width: 130px;
-  height: 130px;
-  margin: 0 auto 25px;
-  border-radius: 50%;
-  overflow: hidden;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
-  border: 3px solid rgba(6, 78, 59, 0.15);
-  background-color: #fff;
+  width: 180px;
+  height: 60px;
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .fb-left h3 {
@@ -2141,9 +2139,10 @@ body {
   }
 
   .fb-left .fb-logo-wrapper {
-    width: 85px !important;
-    height: 85px !important;
+    width: 130px !important;
+    height: 50px !important;
     margin-bottom: 14px !important;
+    border-radius: 12px !important;
   }
 
   .fb-grid {

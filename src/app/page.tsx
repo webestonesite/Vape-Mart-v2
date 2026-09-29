@@ -7,6 +7,7 @@ import { Search, Heart, User, ShoppingBag, ChevronLeft, ChevronRight, Phone, Arr
 import { SfButton, SfRating } from "@storefront-ui/react";
 import Lenis from "lenis";
 import "lenis/dist/lenis.css";
+import themePublished from "@/data/theme-published.json";
 
 interface Product {
   title: string;
@@ -16,6 +17,34 @@ interface Product {
   brand?: string;
   img: string;
 }
+
+interface ThemeSectionData {
+  title: string;
+  subtitle: string;
+  badgeText: string;
+  products: Product[];
+}
+
+interface ThemeConfig {
+  storeName?: string;
+  hero?: {
+    title: string;
+    subtitle: string;
+    buttonText: string;
+    image: string;
+  };
+  featured?: {
+    title: string;
+    products: unknown[];
+  };
+  footer?: {
+    text: string;
+  };
+  tereaHeets?: ThemeSectionData;
+  juulProducts?: ThemeSectionData;
+}
+
+const themeData = themePublished as unknown as ThemeConfig;
 
 function AnimatedCounter({ end, duration = 2500, suffix = "" }: { end: number, duration?: number, suffix?: string }) {
   const [count, setCount] = useState(0);
@@ -278,6 +307,29 @@ const bestSellingProducts: Product[] = [
   { title: "Nasty ModMate Grape & Mixed Berries 60ml", price: "45.00", revs: 62, badge: "", img: "/images/prod_eliquid.png" }
 ];
 
+const tereaHeetsProducts: Product[] = themeData.tereaHeets?.products ?? [
+  { title: "IQOS Terea Amber Selection Indonesian in UAE", price: "125.00", revs: 84, badge: "BEST SELLER", brand: "TEREA INDO", img: "/images/terea_heets.jpg" },
+  { title: "IQOS Terea Bronze Selection Indonesian Sticks", price: "125.00", revs: 67, badge: "POPULAR", brand: "TEREA INDO", img: "/images/terea_heets.jpg" },
+  { title: "IQOS Terea Purple Wave Menthol Heated Sticks", price: "130.00", revs: 92, badge: "COOL", brand: "TEREA INDO", img: "/images/terea_heets.jpg" },
+  { title: "IQOS Terea Sienna Balanced Warm Tobacco", price: "125.00", revs: 48, badge: "", brand: "TEREA ILUMA", img: "/images/terea_heets.jpg" },
+  { title: "IQOS Terea Green Zing Crisp Herbal Menthol", price: "130.00", revs: 53, badge: "FRESH", brand: "TEREA ILUMA", img: "/images/terea_heets.jpg" },
+  { title: "IQOS Heets Bronze Selection Arabic Version", price: "115.00", revs: 76, badge: "CLASSIC", brand: "HEETS DUO", img: "/images/terea_heets.jpg" },
+  { title: "IQOS Heets Amber Selection Smooth Rich Flavor", price: "115.00", revs: 61, badge: "", brand: "HEETS DUO", img: "/images/terea_heets.jpg" },
+  { title: "IQOS Heets Silver Selection Subtle Refined Tobacco", price: "115.00", revs: 39, badge: "", brand: "HEETS DUO", img: "/images/terea_heets.jpg" }
+];
+
+const juulProductsList: Product[] = themeData.juulProducts?.products ?? [
+  { title: "JUUL 2 Starter Kit with Slate Grey Device & 2 Pods", price: "145.00", revs: 110, badge: "STARTER KIT", brand: "JUUL OFFICIAL", img: "/images/juul_product.jpg" },
+  { title: "JUUL 2 Device with USB Magnetic Charging Dock", price: "95.00", revs: 88, badge: "DEVICE ONLY", brand: "JUUL OFFICIAL", img: "/images/juul_product.jpg" },
+  { title: "JUUL 2 Virginia Tobacco Pods 18mg (Pack of 2)", price: "45.00", revs: 142, badge: "TOP RATED", brand: "JUUL2 PODS", img: "/images/juul_product.jpg" },
+  { title: "JUUL 2 Crisp Menthol Pods 18mg Nicotine 2-Pack", price: "45.00", revs: 96, badge: "ICE", brand: "JUUL2 PODS", img: "/images/juul_product.jpg" },
+  { title: "JUUL 2 Polar Menthol Pods 18mg Extra Fresh", price: "45.00", revs: 74, badge: "POPULAR", brand: "JUUL2 PODS", img: "/images/juul_product.jpg" },
+  { title: "JUUL 2 Ruby Menthol Wild Berry Pods 2-Pack", price: "48.00", revs: 81, badge: "NEW", brand: "JUUL2 PODS", img: "/images/juul_product.jpg" },
+  { title: "JUUL 2 Autumn Tobacco Rich Blend Pods 2-Pack", price: "45.00", revs: 58, badge: "", brand: "JUUL2 PODS", img: "/images/juul_product.jpg" },
+  { title: "JUUL USB Magnetic Rapid Charging Cable", price: "35.00", revs: 43, badge: "ACCESSORY", brand: "JUUL GEAR", img: "/images/juul_product.jpg" }
+];
+
+
 const newArrivalsProducts: Product[] = [
   { title: "Lost Mary OS5000 Disposable Pod Device", price: "35.00", revs: 12, badge: "NEW", img: "/images/cat_vape_kits.png" },
   { title: "Geek Bar Pulse 15000 Puffs Disposable", price: "55.00", revs: 18, badge: "NEW", img: "/images/prod_disposable.png" },
@@ -451,8 +503,33 @@ export default function Home() {
     setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
   }, [slides.length]);
 
-  const prevSlide = () => {
+  const prevSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
+  }, [slides.length]);
+
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+    const deltaX = e.changedTouches[0].clientX - touchStartX.current;
+    const deltaY = e.changedTouches[0].clientY - touchStartY.current;
+
+    // Minimum swipe threshold 35px, horizontal motion must exceed vertical
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 35) {
+      if (deltaX < 0) {
+        nextSlide();
+      } else {
+        prevSlide();
+      }
+    }
+    touchStartX.current = null;
+    touchStartY.current = null;
   };
 
   useEffect(() => {
@@ -574,12 +651,17 @@ export default function Home() {
               {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
 
-            {/* Logo */}
-            <div className="flex-shrink-0 group cursor-pointer">
-              <div className="relative w-11 h-11 sm:w-14 sm:h-14 md:w-[70px] md:h-[70px] rounded-full overflow-hidden shadow-[0_4px_15px_rgba(0,0,0,0.2)] group-hover:shadow-[0_8px_25px_rgba(0,0,0,0.3)] transition-all duration-500 transform group-hover:scale-105 border-2 border-white/20 hover:border-white/40">
-                <Image src="/vape-mart-logo.jpg" alt="Vape Mart Logo" fill className="object-cover" priority />
-              </div>
-            </div>
+            {/* Logo without background */}
+            <a href="#" className="flex-shrink-0 group cursor-pointer block py-1">
+              <Image
+                src="/vape-mart-text-logo-white.png"
+                alt="Vape Mart Logo"
+                width={190}
+                height={66}
+                className="h-8 sm:h-10 md:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                priority
+              />
+            </a>
           </div>
 
           {/* Desktop Search Bar */}
@@ -707,14 +789,14 @@ export default function Home() {
             >
               {/* Drawer Header */}
               <div className="p-5 border-b border-emerald-800 flex items-center justify-between bg-[#064e3b]">
-                <div className="flex items-center gap-3">
-                  <div className="relative w-10 h-10 rounded-full overflow-hidden border border-white/20">
-                    <Image src="/vape-mart-logo.jpg" alt="Vape Mart Logo" fill className="object-cover" />
-                  </div>
-                  <div>
-                    <h3 className="font-luxury font-bold text-white text-lg leading-tight">Vape Mart</h3>
-                    <span className="font-cinzel text-amber-300 text-[10px] tracking-widest uppercase">Premium UAE</span>
-                  </div>
+                <div className="flex items-center">
+                  <Image
+                    src="/vape-mart-text-logo-white.png"
+                    alt="Vape Mart Logo"
+                    width={140}
+                    height={48}
+                    className="h-7 sm:h-8 w-auto object-contain"
+                  />
                 </div>
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}
@@ -778,7 +860,11 @@ export default function Home() {
       </AnimatePresence>
 
       {/* Hero Section */}
-      <section className="relative w-full min-h-[580px] sm:min-h-[640px] md:h-[650px] lg:h-[700px] overflow-hidden bg-gradient-to-br from-[#064e3b] via-[#022c22] to-[#064e3b]">
+      <section
+        className="relative w-full min-h-[580px] sm:min-h-[640px] md:h-[650px] lg:h-[700px] overflow-hidden bg-gradient-to-br from-[#064e3b] via-[#022c22] to-[#064e3b] select-none"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
           {/* Background Effects */}
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay"></div>
           <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[70%] rounded-full bg-emerald-500/20 blur-[120px]"></div>
@@ -1047,6 +1133,22 @@ export default function Home() {
           products={bestSellingProducts}
         />
 
+        {/* TEREA & HEETS Carousel */}
+        <ProductCarousel
+          title={themeData.tereaHeets?.title || "TEREA & HEETS"}
+          subtitle={themeData.tereaHeets?.subtitle || "Authentic heated tobacco sticks for IQOS ILUMA & IQOS 3 Duo in UAE"}
+          badgeText={themeData.tereaHeets?.badgeText || "HEATED TOBACCO"}
+          products={tereaHeetsProducts}
+        />
+
+        {/* JUUL Products Carousel */}
+        <ProductCarousel
+          title={themeData.juulProducts?.title || "JUUL Pods & Devices"}
+          subtitle={themeData.juulProducts?.subtitle || "Original JUUL2 starter kits, replacement pods & accessories with rapid delivery"}
+          badgeText={themeData.juulProducts?.badgeText || "PREMIUM PODS"}
+          products={juulProductsList}
+        />
+
         {/* New Arrivals Carousel */}
         <ProductCarousel
           title="New Arrivals"
@@ -1075,7 +1177,7 @@ export default function Home() {
             <motion.div className="fb-left" variants={slideInLeft}>
               <div className="fb-badge font-cinzel tracking-[0.25em]">FEATURED</div>
               <div className="fb-logo-wrapper">
-                <Image src="/vape-mart-logo.jpg" alt="Vape Mart Brand Logo" fill sizes="130px" className="object-cover" priority />
+                <Image src="/vape-mart-text-logo.png" alt="Vape Mart Brand Logo" fill sizes="170px" className="object-contain p-2" priority />
               </div>
               <h3 className="font-luxury text-2xl sm:text-3xl font-bold text-[#064e3b] mb-6">Your Vibe. Your Flavor.</h3>
               <motion.button
@@ -1577,11 +1679,14 @@ export default function Home() {
             
             {/* Brand Col */}
             <motion.div variants={fadeInUp} className="lg:col-span-4 flex flex-col items-start">
-              <div className="text-2xl sm:text-3xl font-black tracking-tighter flex items-center gap-2 mb-4 sm:mb-6">
-                <div className="w-9 h-9 sm:w-10 sm:h-10 bg-amber-400 rounded-xl flex items-center justify-center transform -rotate-6">
-                  <span className="text-[#064e3b] text-xl sm:text-2xl">⚡</span>
-                </div>
-                VAPE <span className="text-emerald-400">MART</span>
+              <div className="mb-4 sm:mb-6">
+                <Image
+                  src="/vape-mart-text-logo-white.png"
+                  alt="Vape Mart"
+                  width={180}
+                  height={62}
+                  className="h-8 sm:h-10 w-auto object-contain"
+                />
               </div>
               <p className="text-emerald-100/60 leading-relaxed text-xs sm:text-sm mb-6 sm:mb-8 pr-4">
                 The UAE&apos;s premier destination for premium vaping products. We offer 100% authentic devices, exquisite e-liquids, and top-tier accessories with exceptional customer service.

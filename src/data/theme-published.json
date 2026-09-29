@@ -34,5 +34,35 @@
   },
   "footer": {
     "text": "© 2026 Vape Mart. All rights reserved. Must be 21+ to purchase."
+  },
+  "tereaHeets": {
+    "title": "TEREA & HEETS",
+    "subtitle": "Authentic heated tobacco sticks for IQOS ILUMA & IQOS 3 Duo in UAE",
+    "badgeText": "HEATED TOBACCO",
+    "products": [
+      { "title": "IQOS Terea Amber Selection Indonesian in UAE", "price": "125.00", "revs": 84, "badge": "BEST SELLER", "brand": "TEREA INDO", "img": "/images/terea_heets.jpg" },
+      { "title": "IQOS Terea Bronze Selection Indonesian Sticks", "price": "125.00", "revs": 67, "badge": "POPULAR", "brand": "TEREA INDO", "img": "/images/terea_heets.jpg" },
+      { "title": "IQOS Terea Purple Wave Menthol Heated Sticks", "price": "130.00", "revs": 92, "badge": "COOL", "brand": "TEREA INDO", "img": "/images/terea_heets.jpg" },
+      { "title": "IQOS Terea Sienna Balanced Warm Tobacco", "price": "125.00", "revs": 48, "badge": "", "brand": "TEREA ILUMA", "img": "/images/terea_heets.jpg" },
+      { "title": "IQOS Terea Green Zing Crisp Herbal Menthol", "price": "130.00", "revs": 53, "badge": "FRESH", "brand": "TEREA ILUMA", "img": "/images/terea_heets.jpg" },
+      { "title": "IQOS Heets Bronze Selection Arabic Version", "price": "115.00", "revs": 76, "badge": "CLASSIC", "brand": "HEETS DUO", "img": "/images/terea_heets.jpg" },
+      { "title": "IQOS Heets Amber Selection Smooth Rich Flavor", "price": "115.00", "revs": 61, "badge": "", "brand": "HEETS DUO", "img": "/images/terea_heets.jpg" },
+      { "title": "IQOS Heets Silver Selection Subtle Refined Tobacco", "price": "115.00", "revs": 39, "badge": "", "brand": "HEETS DUO", "img": "/images/terea_heets.jpg" }
+    ]
+  },
+  "juulProducts": {
+    "title": "JUUL Pods & Devices",
+    "subtitle": "Original JUUL2 starter kits, replacement pods & accessories with rapid delivery",
+    "badgeText": "PREMIUM PODS",
+    "products": [
+      { "title": "JUUL 2 Starter Kit with Slate Grey Device & 2 Pods", "price": "145.00", "revs": 110, "badge": "STARTER KIT", "brand": "JUUL OFFICIAL", "img": "/images/juul_product.jpg" },
+      { "title": "JUUL 2 Device with USB Magnetic Charging Dock", "price": "95.00", "revs": 88, "badge": "DEVICE ONLY", "brand": "JUUL OFFICIAL", "img": "/images/juul_product.jpg" },
+      { "title": "JUUL 2 Virginia Tobacco Pods 18mg (Pack of 2)", "price": "45.00", "revs": 142, "badge": "TOP RATED", "brand": "JUUL2 PODS", "img": "/images/juul_product.jpg" },
+      { "title": "JUUL 2 Crisp Menthol Pods 18mg Nicotine 2-Pack", "price": "45.00", "revs": 96, "badge": "ICE", "brand": "JUUL2 PODS", "img": "/images/juul_product.jpg" },
+      { "title": "JUUL 2 Polar Menthol Pods 18mg Extra Fresh", "price": "45.00", "revs": 74, "badge": "POPULAR", "brand": "JUUL2 PODS", "img": "/images/juul_product.jpg" },
+      { "title": "JUUL 2 Ruby Menthol Wild Berry Pods 2-Pack", "price": "48.00", "revs": 81, "badge": "NEW", "brand": "JUUL2 PODS", "img": "/images/juul_product.jpg" },
+      { "title": "JUUL 2 Autumn Tobacco Rich Blend Pods 2-Pack", "price": "45.00", "revs": 58, "badge": "", "brand": "JUUL2 PODS", "img": "/images/juul_product.jpg" },
+      { "title": "JUUL USB Magnetic Rapid Charging Cable", "price": "35.00", "revs": 43, "badge": "ACCESSORY", "brand": "JUUL GEAR", "img": "/images/juul_product.jpg" }
+    ]
   }
 }
