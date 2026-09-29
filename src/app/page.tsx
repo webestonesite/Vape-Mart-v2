@@ -237,7 +237,7 @@ function ProductCarousel({
   subtitle,
   badgeText,
   products,
-  greenBoxPC = false
+  greenBoxPC = true
 }: {
   title: string;
   subtitle: string;
@@ -250,9 +250,9 @@ function ProductCarousel({
 
   return (
     <motion.section
-      className={`best-selling-section relative max-w-[1400px] mx-auto px-3 sm:px-6 py-8 sm:py-12 transition-all duration-500 ${
+      className={`best-selling-section relative max-w-[1400px] w-full mx-auto px-3 sm:px-6 py-8 sm:py-12 transition-all duration-500 ${
         greenBoxPC
-          ? "green-box-pc md:my-12 md:bg-gradient-to-br md:from-[#064e3b] md:via-[#043e2e] md:to-[#022c22] md:rounded-[36px] md:p-10 lg:md:p-12 md:shadow-[0_25px_60px_-15px_rgba(6,78,59,0.35)] md:border md:border-emerald-700/60 overflow-hidden"
+          ? "green-box-pc my-8 md:my-16 lg:my-20 md:bg-gradient-to-br md:from-[#064e3b] md:via-[#043e2e] md:to-[#022c22] md:rounded-[36px] md:p-10 lg:p-12 md:shadow-[0_25px_60px_-15px_rgba(6,78,59,0.35)] md:border md:border-emerald-700/60 overflow-hidden"
           : ""
       }`}
       initial="hidden"
@@ -657,7 +657,7 @@ export default function Home() {
 
       {/* Ultra-Premium Main Header */}
       <header className={`sticky top-0 z-50 bg-[#064e3b] border-b border-emerald-800 transition-all duration-300 ${isScrolled ? 'shadow-[0_12px_40px_rgba(0,0,0,0.3)] bg-[#064e3b]/95 backdrop-blur-xl' : 'shadow-[0_10px_40px_-15px_rgba(6,78,59,0.3)]'}`}>
-        <div className={`max-w-[1400px] mx-auto px-4 sm:px-6 flex items-center justify-between gap-3 sm:gap-6 md:gap-12 transition-all duration-300 ${isScrolled ? 'h-[64px] sm:h-[76px]' : 'h-[70px] sm:h-[90px]'}`}>
+        <div className={`max-w-[1400px] mx-auto px-4 sm:px-6 flex items-center justify-between gap-3 sm:gap-6 md:gap-10 transition-all duration-300 ${isScrolled ? 'h-[58px] sm:h-[66px]' : 'h-[64px] sm:h-[72px]'}`}>
 
           {/* Left: Mobile Menu Toggle + Brand Logo */}
           <div className="flex items-center gap-2.5 sm:gap-4">
@@ -669,14 +669,14 @@ export default function Home() {
               {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
 
-            {/* Logo without background */}
+            {/* Standard Brand Logo */}
             <a href="#" className="flex-shrink-0 group cursor-pointer block py-1">
               <Image
                 src="/vape-mart-text-logo-white.png"
                 alt="Vape Mart Logo"
-                width={190}
-                height={66}
-                className="h-8 sm:h-10 md:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                width={170}
+                height={40}
+                className="h-6 sm:h-7 md:h-8 w-auto max-w-[150px] sm:max-w-[185px] md:max-w-[210px] object-contain transition-transform duration-300 group-hover:scale-105"
                 priority
               />
             </a>
@@ -1158,6 +1158,7 @@ export default function Home() {
           subtitle={themeData.tereaHeets?.subtitle || "Authentic heated tobacco sticks for IQOS ILUMA & IQOS 3 Duo in UAE"}
           badgeText={themeData.tereaHeets?.badgeText || "HEATED TOBACCO"}
           products={tereaHeetsProducts}
+          greenBoxPC={true}
         />
 
         {/* JUUL Products Carousel */}
@@ -1166,6 +1167,7 @@ export default function Home() {
           subtitle={themeData.juulProducts?.subtitle || "Original JUUL2 starter kits, replacement pods & accessories with rapid delivery"}
           badgeText={themeData.juulProducts?.badgeText || "PREMIUM PODS"}
           products={juulProductsList}
+          greenBoxPC={true}
         />
 
         {/* New Arrivals Carousel */}
@@ -1174,6 +1176,7 @@ export default function Home() {
           subtitle="Explore our latest premium collection"
           badgeText="NEW ITEMS"
           products={newArrivalsProducts}
+          greenBoxPC={true}
         />
 
         {/* Most Popular Carousel */}
@@ -1182,6 +1185,7 @@ export default function Home() {
           subtitle="The most trending products right now"
           badgeText="TRENDING"
           products={mostPopularProducts}
+          greenBoxPC={true}
         />
 
         {/* Featured Brand Section */}
