@@ -152,7 +152,7 @@ function ProductCard({ prod }: { prod: Product }) {
     <motion.div
       variants={fadeInScale}
       whileHover={{ y: -4, transition: { duration: 0.25 } }}
-      className="group bg-white rounded-2xl border border-neutral-200/80 p-2.5 sm:p-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_30px_rgba(6,78,59,0.12)] transition-all duration-300 flex flex-col justify-between relative overflow-hidden h-full"
+      className="group bg-white rounded-2xl border border-neutral-200/80 p-3 sm:p-4 md:p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_30px_rgba(6,78,59,0.12)] transition-all duration-300 flex flex-col justify-between relative overflow-hidden h-full"
     >
       {/* Top Bar: Wishlist & Badge */}
       <div className="flex items-center justify-between w-full mb-1 z-10">
@@ -168,14 +168,14 @@ function ProductCard({ prod }: { prod: Product }) {
         </button>
 
         {prod.badge && (
-          <span className="bg-red-600 text-white text-[8px] sm:text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full shadow-xs">
+          <span className="bg-red-600 text-white text-[8.5px] sm:text-[9.5px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-xs">
             {prod.badge}
           </span>
         )}
       </div>
 
       {/* Product Image Area - Clean White Presentation */}
-      <div className="relative w-full aspect-square flex items-center justify-center p-2 my-1 overflow-hidden">
+      <div className="relative w-full aspect-square max-h-[235px] md:max-h-[255px] mx-auto flex items-center justify-center p-2 my-0.5 sm:my-1 overflow-hidden">
         <div className="relative w-full h-full transform group-hover:scale-108 transition-transform duration-500 ease-out">
           <Image
             src={prod.img}
@@ -188,20 +188,20 @@ function ProductCard({ prod }: { prod: Product }) {
       </div>
 
       {/* Brand Series Tag (Like Reference Image) */}
-      <div className="w-full bg-neutral-900 text-white text-[8px] sm:text-[9px] font-black uppercase tracking-wider py-1 px-2 text-center rounded-sm my-1 truncate">
+      <div className="w-full bg-neutral-900 text-white text-[8px] sm:text-[9px] font-black uppercase tracking-wider py-1 px-2 text-center rounded-sm my-0.5 sm:my-1 truncate">
         {prod.brand || prod.title.split(' ').slice(0, 3).join(' ')}
       </div>
 
       {/* Product Title */}
       <a
         href="#"
-        className="font-bold text-neutral-900 text-[12px] sm:text-[13px] leading-snug line-clamp-2 text-center my-1 hover:text-[#064e3b] transition-colors min-h-[34px] flex items-center justify-center no-underline"
+        className="font-bold text-neutral-900 text-[12.5px] sm:text-[13.5px] md:text-[14px] leading-snug line-clamp-2 text-center my-0.5 sm:my-1 hover:text-[#064e3b] transition-colors min-h-[36px] sm:min-h-[38px] flex items-center justify-center no-underline"
       >
         {prod.title}
       </a>
 
       {/* Star Rating */}
-      <div className="flex items-center justify-center gap-0.5 my-1 text-amber-400">
+      <div className="flex items-center justify-center gap-0.5 my-0.5 sm:my-1 text-amber-400">
         {[1, 2, 3, 4, 5].map((i) => (
           <Star key={i} size={11} fill="#fbbf24" color="#fbbf24" />
         ))}
@@ -209,8 +209,8 @@ function ProductCard({ prod }: { prod: Product }) {
       </div>
 
       {/* Price */}
-      <div className="text-center my-1">
-        <span className="text-[13px] sm:text-[15px] font-black text-neutral-900 tracking-tight">
+      <div className="text-center my-0.5 sm:my-1">
+        <span className="text-[13.5px] sm:text-[15px] md:text-[16px] font-black text-neutral-900 tracking-tight">
           AED {prod.price}
         </span>
       </div>
@@ -219,7 +219,7 @@ function ProductCard({ prod }: { prod: Product }) {
       <motion.button
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.97 }}
-        className="w-full py-2 sm:py-2.5 bg-[#064e3b] hover:bg-[#022c22] text-white text-[11px] sm:text-xs font-bold rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer mt-1"
+        className="w-full py-2 sm:py-2.5 bg-[#064e3b] hover:bg-[#022c22] text-white text-[11px] sm:text-xs font-bold rounded-lg sm:rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer mt-1"
       >
         <ShoppingBag size={13} className="shrink-0" />
         <span>Add to cart</span>
@@ -246,9 +246,9 @@ function ProductCarousel({
 
   return (
     <motion.section
-      className={`best-selling-section relative max-w-[1400px] w-full mx-auto px-3 sm:px-6 py-8 sm:py-12 transition-all duration-500 ${
+      className={`best-selling-section relative max-w-[1440px] w-full mx-auto px-3 sm:px-6 py-7 sm:py-10 transition-all duration-500 ${
         greenBoxPC
-          ? "green-box-pc my-5 md:my-8 lg:my-10 md:bg-gradient-to-br md:from-[#064e3b] md:via-[#043e2e] md:to-[#022c22] md:rounded-[36px] md:p-10 lg:p-12 md:pb-14 lg:pb-16 md:shadow-[0_25px_60px_-15px_rgba(6,78,59,0.35)] md:border md:border-emerald-700/60 overflow-hidden"
+          ? "green-box-pc my-5 md:my-7 lg:my-9 md:bg-gradient-to-br md:from-[#064e3b] md:via-[#043e2e] md:to-[#022c22] md:rounded-[36px] md:p-10 lg:p-11 md:pb-12 lg:pb-14 md:shadow-[0_24px_60px_-15px_rgba(6,78,59,0.34)] md:border md:border-emerald-700/60 overflow-hidden"
           : ""
       }`}
       initial="hidden"
@@ -265,14 +265,14 @@ function ProductCarousel({
       )}
 
       {/* Centered Section Header */}
-      <motion.div className="section-header-bs mb-6 sm:mb-10 text-center relative z-10" variants={fadeInUp}>
+      <motion.div className="section-header-bs mb-6 sm:mb-9 text-center relative z-10" variants={fadeInUp}>
         <div className="top-picks flex items-center justify-center gap-2 mb-2">
-          <span className={`line w-6 h-[2px] rounded-full ${greenBoxPC ? "bg-[#064e3b] md:!bg-amber-400" : "bg-[#064e3b]"}`}></span>
-          <span className={`text font-cinzel text-xs font-bold tracking-[0.25em] uppercase ${greenBoxPC ? "text-[#064e3b] md:!text-amber-300" : "text-[#064e3b]"}`}>{badgeText}</span>
-          <span className={`line w-6 h-[2px] rounded-full ${greenBoxPC ? "bg-[#064e3b] md:!bg-amber-400" : "bg-[#064e3b]"}`}></span>
+          <span className={`line w-5 sm:w-6 h-[2px] rounded-full ${greenBoxPC ? "bg-[#064e3b] md:!bg-amber-400" : "bg-[#064e3b]"}`}></span>
+          <span className={`text font-cinzel text-[11px] sm:text-xs font-bold tracking-[0.24em] uppercase ${greenBoxPC ? "text-[#064e3b] md:!text-amber-300" : "text-[#064e3b]"}`}>{badgeText}</span>
+          <span className={`line w-5 sm:w-6 h-[2px] rounded-full ${greenBoxPC ? "bg-[#064e3b] md:!bg-amber-400" : "bg-[#064e3b]"}`}></span>
         </div>
-        <h2 className={`font-luxury text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight ${greenBoxPC ? "text-neutral-900 md:!text-white md:drop-shadow-[0_4px_16px_rgba(0,0,0,0.5)]" : "text-neutral-900"}`}>{title}</h2>
-        <div className="flex items-center justify-center gap-4 my-2 sm:my-3">
+        <h2 className={`font-luxury text-2xl sm:text-3xl md:text-4xl lg:text-[46px] font-extrabold tracking-tight ${greenBoxPC ? "text-neutral-900 md:!text-white md:drop-shadow-[0_4px_16px_rgba(0,0,0,0.5)]" : "text-neutral-900"}`}>{title}</h2>
+        <div className="flex items-center justify-center gap-3 my-2 sm:my-3">
           <div className={`h-px w-12 sm:w-16 bg-gradient-to-r from-transparent ${greenBoxPC ? "to-[#064e3b] md:to-emerald-300" : "to-[#064e3b]"}`}></div>
           <div className={`w-2 h-2 rotate-45 ${greenBoxPC ? "bg-[#064e3b] md:!bg-amber-400" : "bg-[#064e3b]"}`}></div>
           <div className={`h-px w-12 sm:w-16 bg-gradient-to-l from-transparent ${greenBoxPC ? "to-[#064e3b] md:to-emerald-300" : "to-[#064e3b]"}`}></div>
@@ -282,7 +282,7 @@ function ProductCarousel({
 
       {/* 2x2 on Mobile (2 ta 2 ta 4 ta), 4 across on Desktop */}
       <motion.div 
-        className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5 md:gap-6 relative z-10"
+        className="grid grid-cols-2 md:grid-cols-4 gap-3.5 sm:gap-5 md:gap-5.5 lg:gap-6 relative z-10"
         variants={staggerContainer}
       >
         {displayedProducts.map((prod, idx) => (
@@ -291,14 +291,14 @@ function ProductCarousel({
       </motion.div>
 
       {/* View All / Show Less Button */}
-      <motion.div className="mt-8 flex justify-center relative z-10" variants={fadeInUp}>
+      <motion.div className="mt-7 sm:mt-9 flex justify-center relative z-10" variants={fadeInUp}>
         <motion.button
           whileHover={{ scale: 1.05, y: -2 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setShowAll(!showAll)}
           className={`px-6 py-2.5 sm:px-8 sm:py-3 rounded-full text-xs sm:text-sm font-bold shadow-md transition-all flex items-center gap-2 cursor-pointer group ${
             greenBoxPC
-              ? "bg-[#064e3b] text-white md:bg-white md:text-[#064e3b] md:hover:bg-amber-400 md:hover:text-neutral-950 md:shadow-[0_10px_25px_rgba(0,0,0,0.25)]"
+              ? "bg-[#064e3b] text-white md:bg-white md:text-[#064e3b] md:hover:bg-amber-400 md:hover:text-neutral-950 md:shadow-[0_10px_25px_rgba(0,0,0,0.22)]"
               : "bg-[#064e3b] text-white shadow-emerald-900/15 hover:bg-[#022c22]"
           }`}
         >
