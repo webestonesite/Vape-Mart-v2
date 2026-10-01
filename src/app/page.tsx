@@ -835,7 +835,7 @@ export default function Home() {
       if (!isArcHovered.current) {
         setActiveArcIdx((prev) => (prev + 1) % flavorsData.length);
       }
-    }, 4200);
+    }, 1300);
     return () => clearInterval(timer);
   }, [isArcAutoplay]);
 
@@ -1564,8 +1564,6 @@ export default function Home() {
           whileInView="visible"
           viewport={{ once: true, amount: 0.1 }}
           variants={staggerContainer}
-          onMouseEnter={() => { isArcHovered.current = true; }}
-          onMouseLeave={() => { isArcHovered.current = false; }}
         >
           {/* Section Header with Site Royal Emerald & Amber Accents */}
           <div className="flex flex-col items-center text-center mb-6 sm:mb-10">
@@ -1662,32 +1660,35 @@ export default function Home() {
                 <circle cx="760" cy="150" r="3" fill="#064e3b" opacity="0.4" />
               </svg>
 
-              {/* 3D Arc Dial Nodes - High Contrast & Full Visibility */}
+              {/* 3D Arc Dial Nodes - High Contrast & Continuous Marquee Flow */}
               {flavorsData.map((flv, idx) => {
                 const total = flavorsData.length;
                 let diff = (idx - activeArcIdx) % total;
                 if (diff > total / 2) diff -= total;
                 if (diff < -total / 2) diff += total;
 
-                // Render visible items within arc range (-2 to +2 for clean elegance, or -3 to +3)
-                if (Math.abs(diff) > 2) return null;
+                // Render visible items across full horizon (-3 to +3 for continuous marquee flow)
+                if (Math.abs(diff) > 3) return null;
 
                 const isCenter = diff === 0;
                 const isAdjacent = Math.abs(diff) === 1;
+                const isSecondary = Math.abs(diff) === 2;
 
                 return (
                   <motion.div
                     key={flv.id}
                     onClick={() => setActiveArcIdx(idx)}
+                    onMouseEnter={() => { isArcHovered.current = true; }}
+                    onMouseLeave={() => { isArcHovered.current = false; }}
                     animate={{
                       x: diff * 155,
-                      y: Math.pow(diff, 2) * 24,
-                      z: -Math.abs(diff) * 55,
+                      y: Math.pow(diff, 2) * 20,
+                      z: -Math.abs(diff) * 50,
                       rotateY: -diff * 12,
-                      scale: isCenter ? 1.35 : isAdjacent ? 1.05 : 0.90,
-                      opacity: isCenter ? 1 : isAdjacent ? 0.95 : 0.82,
+                      scale: isCenter ? 1.35 : isAdjacent ? 1.05 : isSecondary ? 0.88 : 0.70,
+                      opacity: isCenter ? 1 : isAdjacent ? 0.95 : isSecondary ? 0.70 : 0,
                     }}
-                    transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                    transition={{ duration: 0.85, ease: [0.25, 0.1, 0.25, 1] }}
                     className={`absolute cursor-pointer transition-transform ${
                       isCenter ? "z-30" : "z-10 hover:opacity-100 hover:scale-110"
                     }`}
@@ -1732,13 +1733,13 @@ export default function Home() {
             </div>
 
             {/* Center Details Showcase Card - Light Luxury Gold & Emerald Finish */}
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="popLayout">
               <motion.div
                 key={currentArcFlavor.id}
-                initial={{ opacity: 0, y: 14, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -14, scale: 0.98 }}
-                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.22, ease: "easeOut" }}
                 className="relative z-20 w-full max-w-2xl bg-white/98 rounded-3xl border-2 border-[#064e3b]/20 shadow-[0_20px_50px_-10px_rgba(6,78,59,0.12)] p-6 sm:p-8 flex flex-col items-center text-center mt-3 overflow-hidden"
               >
                 {/* Gold-Emerald Luxury Top Bevel Strip */}
@@ -1938,64 +1939,128 @@ export default function Home() {
             </div>
           </motion.div>
 
-          {/* 3 Compact Review Cards */}
-          <motion.div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mb-8" variants={staggerContainer}>
-            {[
-              {
-                name: 'John Doe',
-                avatar: 'JD',
-                role: 'Verified Buyer',
-                title: 'Super fast delivery & 100% authentic',
-                review: "Best vape store in Dubai! Delivery arrived within hours, and the scratch-off authenticity code checked out directly on the manufacturer's site."
-              },
-              {
-                name: 'Sarah M.',
-                avatar: 'SM',
-                role: 'Verified Buyer',
-                title: 'Genuine products guaranteed',
-                review: "I've bought knock-offs from random stores before, but Vape Mart only delivers original factory-sealed products. Truly unmatched service."
-              },
-              {
-                name: 'Alex K.',
-                avatar: 'AK',
-                role: 'Verified Buyer',
-                title: 'Great flavor selection & support',
-                review: "Their premium collection is always in stock with fresh batches. Smooth checkout, great customer care, and unbeatable prices."
-              }
-            ].map((rev, i) => (
-              <motion.div
-                key={i}
-                variants={fadeInScale}
-                whileHover={{ y: -4, transition: { duration: 0.25 } }}
-                className="bg-white/[0.06] hover:bg-white/[0.09] backdrop-blur-xl border border-white/10 rounded-2xl p-6 transition-all duration-300 shadow-lg flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex gap-3 items-center">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center font-bold text-sm text-white shadow-inner border border-white/20">
-                        {rev.avatar}
+          {/* Continuous Infinite Marquee Reviews Carousel */}
+          <div className="w-full overflow-hidden relative mb-8 [mask-image:linear-gradient(to_right,transparent,black_4%,black_96%,transparent)] py-2">
+            <div className="reviews-marquee-track">
+              {[
+                {
+                  name: 'John Doe',
+                  avatar: 'JD',
+                  role: 'Verified Buyer',
+                  title: 'Super fast delivery & 100% authentic',
+                  review: "Best vape store in Dubai! Delivery arrived within hours, and the scratch-off authenticity code checked out directly on the manufacturer's site."
+                },
+                {
+                  name: 'Sarah M.',
+                  avatar: 'SM',
+                  role: 'Verified Buyer',
+                  title: 'Genuine products guaranteed',
+                  review: "I've bought knock-offs from random stores before, but Vape Mart only delivers original factory-sealed products. Truly unmatched service."
+                },
+                {
+                  name: 'Alex K.',
+                  avatar: 'AK',
+                  role: 'Verified Buyer',
+                  title: 'Great flavor selection & support',
+                  review: "Their premium collection is always in stock with fresh batches. Smooth checkout, great customer care, and unbeatable prices."
+                },
+                {
+                  name: 'Mohammed Al-Nuaimi',
+                  avatar: 'MN',
+                  role: 'Verified Buyer',
+                  title: 'Always fresh stock & fast WhatsApp response',
+                  review: "Ordered TEREA and disposable kits multiple times. Delivery always on time and verified original seal. Customer service is 10/10."
+                },
+                {
+                  name: 'Elena Rostova',
+                  avatar: 'ER',
+                  role: 'Verified Buyer',
+                  title: 'Best disposable vape deals in UAE',
+                  review: "Authentic devices with authentic QR codes. Super responsive team, discreet delivery, and prices are better than physical shops."
+                },
+                {
+                  name: 'Tariq Farooq',
+                  avatar: 'TF',
+                  role: 'Verified Buyer',
+                  title: 'Flawless experience every single order',
+                  review: "Top quality pod devices and pods. Packaging is tamper-proof with cold ice packs. Recommended to all my friends!"
+                },
+                /* Duplicated for seamless infinite scrolling */
+                {
+                  name: 'John Doe',
+                  avatar: 'JD',
+                  role: 'Verified Buyer',
+                  title: 'Super fast delivery & 100% authentic',
+                  review: "Best vape store in Dubai! Delivery arrived within hours, and the scratch-off authenticity code checked out directly on the manufacturer's site."
+                },
+                {
+                  name: 'Sarah M.',
+                  avatar: 'SM',
+                  role: 'Verified Buyer',
+                  title: 'Genuine products guaranteed',
+                  review: "I've bought knock-offs from random stores before, but Vape Mart only delivers original factory-sealed products. Truly unmatched service."
+                },
+                {
+                  name: 'Alex K.',
+                  avatar: 'AK',
+                  role: 'Verified Buyer',
+                  title: 'Great flavor selection & support',
+                  review: "Their premium collection is always in stock with fresh batches. Smooth checkout, great customer care, and unbeatable prices."
+                },
+                {
+                  name: 'Mohammed Al-Nuaimi',
+                  avatar: 'MN',
+                  role: 'Verified Buyer',
+                  title: 'Always fresh stock & fast WhatsApp response',
+                  review: "Ordered TEREA and disposable kits multiple times. Delivery always on time and verified original seal. Customer service is 10/10."
+                },
+                {
+                  name: 'Elena Rostova',
+                  avatar: 'ER',
+                  role: 'Verified Buyer',
+                  title: 'Best disposable vape deals in UAE',
+                  review: "Authentic devices with authentic QR codes. Super responsive team, discreet delivery, and prices are better than physical shops."
+                },
+                {
+                  name: 'Tariq Farooq',
+                  avatar: 'TF',
+                  role: 'Verified Buyer',
+                  title: 'Flawless experience every single order',
+                  review: "Top quality pod devices and pods. Packaging is tamper-proof with cold ice packs. Recommended to all my friends!"
+                }
+              ].map((rev, i) => (
+                <div
+                  key={i}
+                  className="w-[300px] sm:w-[360px] md:w-[390px] shrink-0 bg-white/[0.06] hover:bg-white/[0.12] backdrop-blur-xl border border-white/10 hover:border-emerald-400/40 rounded-2xl p-5 sm:p-6 transition-all duration-300 shadow-lg flex flex-col justify-between select-none"
+                >
+                  <div>
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex gap-3 items-center">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center font-bold text-sm text-white shadow-inner border border-white/20">
+                          {rev.avatar}
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-white text-sm">{rev.name}</h4>
+                          <span className="text-emerald-400 text-[10px] font-bold flex items-center gap-1 uppercase tracking-wider">
+                            <CheckCircle size={11} /> {rev.role}
+                          </span>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="font-bold text-white text-sm">{rev.name}</h4>
-                        <span className="text-emerald-400 text-[10px] font-bold flex items-center gap-1 uppercase tracking-wider">
-                          <CheckCircle size={11} /> {rev.role}
-                        </span>
+                      <div className="flex gap-0.5">
+                        {[1, 2, 3, 4, 5].map(starIdx => (
+                          <Star key={starIdx} size={12} fill="#fbbf24" color="#fbbf24" />
+                        ))}
                       </div>
                     </div>
-                    <div className="flex gap-0.5">
-                      {[1, 2, 3, 4, 5].map(starIdx => (
-                        <Star key={starIdx} size={12} fill="#fbbf24" color="#fbbf24" />
-                      ))}
-                    </div>
+                    <h5 className="font-semibold text-white/95 text-sm mb-1.5">{rev.title}</h5>
+                    <p className="text-emerald-100/75 text-xs leading-relaxed italic">
+                      &quot;{rev.review}&quot;
+                    </p>
                   </div>
-                  <h5 className="font-semibold text-white/95 text-sm mb-1.5">{rev.title}</h5>
-                  <p className="text-emerald-100/75 text-xs leading-relaxed italic">
-                    &quot;{rev.review}&quot;
-                  </p>
                 </div>
-              </motion.div>
-            ))}
-          </motion.div>
+              ))}
+            </div>
+          </div>
 
           {/* Compact Trust Badges Strip */}
           <motion.div

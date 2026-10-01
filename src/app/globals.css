@@ -218,6 +218,28 @@ body {
   }
 }
 
+/* REVIEWS CONTINUOUS MARQUEE */
+@keyframes reviewsMarquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.reviews-marquee-track {
+  display: flex;
+  gap: 20px;
+  width: max-content;
+  animation: reviewsMarquee 34s linear infinite;
+  will-change: transform;
+}
+
+.reviews-marquee-track:hover {
+  animation-play-state: paused;
+}
+
 .marquee-container span {
   display: flex;
   align-items: center;
