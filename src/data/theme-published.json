@@ -1,5 +1,360 @@
 {
   "storeName": "Vape Mart",
+  "header": {
+    "topBar": {
+      "enabled": true,
+      "announcements": [
+        "Secure Payment | COD Available",
+        "Exclusive offer up to 10% OFF",
+        "100% Authentic Products - Original Brands Guaranteed",
+        "Free Delivery on Orders Above AED 350",
+        "20,000+ Happy Customers"
+      ],
+      "phone": "+971 55 168 8299",
+      "phoneHref": "tel:+971551688299",
+      "links": [
+        {
+          "label": "About Us",
+          "href": "#"
+        },
+        {
+          "label": "Contact Us",
+          "href": "#"
+        }
+      ]
+    },
+    "logo": {
+      "src": "/Vape mart 4.png",
+      "alt": "Vape Mart Logo",
+      "width": 280,
+      "height": 85
+    },
+    "search": {
+      "placeholder": "Search for vapes, e-liquids, brands..."
+    },
+    "navItems": [
+      {
+        "label": "HOME",
+        "href": "/",
+        "badge": "",
+        "hasDropdown": false,
+        "columns": [
+          {
+            "heading": "Popular Categories",
+            "items": [
+              {
+                "title": "Best Sellers",
+                "href": "#",
+                "badge": ""
+              },
+              {
+                "title": "New Arrivals",
+                "href": "#"
+              }
+            ]
+          },
+          {
+            "heading": "Shop By Type",
+            "items": [
+              {
+                "title": "Premium Series",
+                "href": "#"
+              },
+              {
+                "title": "Standard Kits",
+                "href": "#"
+              }
+            ]
+          }
+        ],
+        "featuredBanner": {
+          "title": "HOME Special",
+          "subtitle": "Exclusive deals with same-day delivery in UAE",
+          "badge": "SALE",
+          "image": "/images/disposable_vape.png",
+          "href": "#"
+        }
+      },
+      {
+        "label": "SHOP",
+        "href": "/collections",
+        "badge": ""
+      },
+      {
+        "label": "DISPOSABLE VAPE",
+        "href": "/collections/disposable-vape",
+        "badge": "",
+        "hasDropdown": false,
+        "columns": [
+          {
+            "heading": "Top Brands",
+            "items": [
+              {
+                "title": "Elf Bar (BC10000 & Raya)",
+                "href": "#",
+                "badge": "HOT"
+              },
+              {
+                "title": "Yuoto (Thanos 5000)",
+                "href": "#"
+              },
+              {
+                "title": "Tugboat (Super 24000)",
+                "href": "#",
+                "badge": "NEW"
+              },
+              {
+                "title": "Vozol (Star 12000)",
+                "href": "#"
+              },
+              {
+                "title": "Myle Drip & Meta",
+                "href": "#"
+              }
+            ]
+          },
+          {
+            "heading": "By Puff Count",
+            "items": [
+              {
+                "title": "2,500 – 5,000 Puffs",
+                "href": "#"
+              },
+              {
+                "title": "6,000 – 10,000 Puffs",
+                "href": "#",
+                "badge": "POPULAR"
+              },
+              {
+                "title": "12,000 – 25,000 Puffs",
+                "href": "#",
+                "badge": "MAX"
+              },
+              {
+                "title": "Rechargeable Disposables",
+                "href": "#"
+              }
+            ]
+          },
+          {
+            "heading": "Best-Selling Flavors",
+            "items": [
+              {
+                "title": "Double Apple Ice",
+                "href": "#"
+              },
+              {
+                "title": "Lush Watermelon",
+                "href": "#"
+              },
+              {
+                "title": "Blue Razz Lemonade",
+                "href": "#"
+              },
+              {
+                "title": "Cool Mint & Spearmint",
+                "href": "#"
+              }
+            ]
+          }
+        ],
+        "featuredBanner": {
+          "title": "Tugboat Super 24K",
+          "subtitle": "24,000 Puffs with Smart Screen Display",
+          "image": "/images/disposable_vape.png",
+          "badge": "SPECIAL OFFER",
+          "href": "#"
+        }
+      },
+      {
+        "label": "SHISHA/HOOKAH",
+        "href": "/collections/shisha-hookah",
+        "badge": "",
+        "hasDropdown": true,
+        "columns": [
+          {
+            "heading": "Electronic Shisha",
+            "items": [
+              {
+                "title": "Ooka E-Shisha Devices",
+                "href": "#",
+                "badge": "HOT"
+              },
+              {
+                "title": "Portable Hookah Pods",
+                "href": "#"
+              },
+              {
+                "title": "Zero Charcoal E-Heads",
+                "href": "#"
+              }
+            ]
+          },
+          {
+            "heading": "Flavors & Mixes",
+            "items": [
+              {
+                "title": "Two Apples (Al Fakher)",
+                "href": "#"
+              },
+              {
+                "title": "Grape with Mint",
+                "href": "#"
+              },
+              {
+                "title": "Gum & Fresh Berries",
+                "href": "#"
+              }
+            ]
+          },
+          {
+            "heading": "Accessories",
+            "items": [
+              {
+                "title": "Coconut Charcoal Briquettes",
+                "href": "#"
+              },
+              {
+                "title": "Silicone Hoses & Mouthpieces",
+                "href": "#"
+              },
+              {
+                "title": "Bowls & Heat Managers",
+                "href": "#"
+              }
+            ]
+          }
+        ],
+        "featuredBanner": {
+          "title": "Smart E-Shisha Kit",
+          "subtitle": "No coal, no mess. Clean cloud delivery.",
+          "image": "/images/hero_slide_2.jpg",
+          "badge": "LUXURY",
+          "href": "#"
+        }
+      },
+      {
+        "label": "PODS SYSTEM",
+        "href": "/collections/pods-system",
+        "badge": "",
+        "hasDropdown": true,
+        "columns": [
+          {
+            "heading": "Pod Kits",
+            "items": [
+              {
+                "title": "JUUL2 Starter Kit",
+                "href": "/product/juul2-starter-kit-slate-grey",
+                "badge": ""
+              },
+              {
+                "title": "IQOS ILUMA Prime",
+                "href": "/product/iqos-terea-amber-indonesian-uae",
+                "badge": ""
+              },
+              {
+                "title": "Uwell Caliburn G2 & G3",
+                "href": "/product/uwell-caliburn-g2-pod-system"
+              },
+              {
+                "title": "Myle Meta Pod Device",
+                "href": "/product/myle-meta-max-18000-disposable"
+              }
+            ]
+          },
+          {
+            "heading": "Replacement Pods",
+            "items": [
+              {
+                "title": "JUUL2 Crisp Menthol & Tobacco",
+                "href": "/product/juul2-starter-kit-slate-grey"
+              },
+              {
+                "title": "TEREA Indonesian & Italian Sticks",
+                "href": "/product/iqos-terea-amber-indonesian-uae"
+              }
+            ]
+          }
+        ],
+        "featuredBanner": {
+          "title": "IQOS ILUMA & TEREA",
+          "subtitle": "Authentic induction heated tobacco in UAE",
+          "image": "/images/terea_heets.jpg",
+          "badge": "OFFICIAL",
+          "href": "/collections/heated-tobacco"
+        }
+      },
+      {
+        "label": "E-LIQUID",
+        "href": "/collections/e-liquid",
+        "badge": "",
+        "hasDropdown": true,
+        "columns": [
+          {
+            "heading": "Nicotine Types",
+            "items": [
+              {
+                "title": "Salt Nicotine (20mg – 50mg)",
+                "href": "/collections/e-liquid",
+                "badge": ""
+              },
+              {
+                "title": "Freebase E-Juice (3mg – 18mg)",
+                "href": "/collections/e-liquid"
+              }
+            ]
+          },
+          {
+            "heading": "Top Brands",
+            "items": [
+              {
+                "title": "Nasty Juice Worldwide",
+                "href": "/product/nasty-juice-asap-grape-60ml",
+                "badge": ""
+              },
+              {
+                "title": "Juice Head California",
+                "href": "/product/juice-head-blueberry-lemon-100ml"
+              }
+            ]
+          }
+        ],
+        "featuredBanner": {
+          "title": "Premium Vape E-Juice",
+          "subtitle": "100% Original imported American & UK blends.",
+          "image": "/images/hero_slide_3.jpg",
+          "badge": "FLAVOR LAB",
+          "href": "/collections/e-liquid"
+        }
+      },
+      {
+        "label": "JUUL",
+        "href": "/collections",
+        "badge": ""
+      },
+      {
+        "label": "Myle",
+        "href": "#",
+        "badge": "",
+        "hasDropdown": false
+      },
+      {
+        "label": "VAPE KIT",
+        "href": "/collections/vape-kits",
+        "badge": ""
+      },
+      {
+        "label": "BRANDS",
+        "href": "/collections",
+        "badge": ""
+      }
+    ],
+    "actions": {
+      "showWishlist": true,
+      "showAccount": true,
+      "showCart": true
+    }
+  },
   "hero": {
     "title": "Elevate Your Experience",
     "subtitle": "Discover premium vapes, exclusive e-liquids, and next-gen hardware. Designed for those who demand the best.",
@@ -40,14 +395,70 @@
     "subtitle": "Authentic heated tobacco sticks for IQOS ILUMA & IQOS 3 Duo in UAE",
     "badgeText": "HEATED TOBACCO",
     "products": [
-      { "title": "IQOS Terea Amber Selection Indonesian in UAE", "price": "125.00", "revs": 84, "badge": "BEST SELLER", "brand": "TEREA INDO", "img": "/images/terea_heets.jpg" },
-      { "title": "IQOS Terea Bronze Selection Indonesian Sticks", "price": "125.00", "revs": 67, "badge": "POPULAR", "brand": "TEREA INDO", "img": "/images/terea_heets.jpg" },
-      { "title": "IQOS Terea Purple Wave Menthol Heated Sticks", "price": "130.00", "revs": 92, "badge": "COOL", "brand": "TEREA INDO", "img": "/images/terea_heets.jpg" },
-      { "title": "IQOS Terea Sienna Balanced Warm Tobacco", "price": "125.00", "revs": 48, "badge": "", "brand": "TEREA ILUMA", "img": "/images/terea_heets.jpg" },
-      { "title": "IQOS Terea Green Zing Crisp Herbal Menthol", "price": "130.00", "revs": 53, "badge": "FRESH", "brand": "TEREA ILUMA", "img": "/images/terea_heets.jpg" },
-      { "title": "IQOS Heets Bronze Selection Arabic Version", "price": "115.00", "revs": 76, "badge": "CLASSIC", "brand": "HEETS DUO", "img": "/images/terea_heets.jpg" },
-      { "title": "IQOS Heets Amber Selection Smooth Rich Flavor", "price": "115.00", "revs": 61, "badge": "", "brand": "HEETS DUO", "img": "/images/terea_heets.jpg" },
-      { "title": "IQOS Heets Silver Selection Subtle Refined Tobacco", "price": "115.00", "revs": 39, "badge": "", "brand": "HEETS DUO", "img": "/images/terea_heets.jpg" }
+      {
+        "title": "IQOS Terea Amber Selection Indonesian in UAE",
+        "price": "125.00",
+        "revs": 84,
+        "badge": "BEST SELLER",
+        "brand": "TEREA INDO",
+        "img": "/images/terea_heets.jpg"
+      },
+      {
+        "title": "IQOS Terea Bronze Selection Indonesian Sticks",
+        "price": "125.00",
+        "revs": 67,
+        "badge": "POPULAR",
+        "brand": "TEREA INDO",
+        "img": "/images/terea_heets.jpg"
+      },
+      {
+        "title": "IQOS Terea Purple Wave Menthol Heated Sticks",
+        "price": "130.00",
+        "revs": 92,
+        "badge": "COOL",
+        "brand": "TEREA INDO",
+        "img": "/images/terea_heets.jpg"
+      },
+      {
+        "title": "IQOS Terea Sienna Balanced Warm Tobacco",
+        "price": "125.00",
+        "revs": 48,
+        "badge": "",
+        "brand": "TEREA ILUMA",
+        "img": "/images/terea_heets.jpg"
+      },
+      {
+        "title": "IQOS Terea Green Zing Crisp Herbal Menthol",
+        "price": "130.00",
+        "revs": 53,
+        "badge": "FRESH",
+        "brand": "TEREA ILUMA",
+        "img": "/images/terea_heets.jpg"
+      },
+      {
+        "title": "IQOS Heets Bronze Selection Arabic Version",
+        "price": "115.00",
+        "revs": 76,
+        "badge": "CLASSIC",
+        "brand": "HEETS DUO",
+        "img": "/images/terea_heets.jpg"
+      },
+      {
+        "title": "IQOS Heets Amber Selection Smooth Rich Flavor",
+        "price": "115.00",
+        "revs": 61,
+        "badge": "",
+        "brand": "HEETS DUO",
+        "img": "/images/terea_heets.jpg"
+      },
+      {
+        "title": "IQOS Heets Silver Selection Subtle Refined Tobacco",
+        "price": "115.00",
+        "revs": 39,
+        "badge": "",
+        "brand": "HEETS DUO",
+        "img": "/images/terea_heets.jpg"
+      }
     ]
   },
   "juulProducts": {
@@ -55,14 +466,70 @@
     "subtitle": "Original JUUL2 starter kits, replacement pods & accessories with rapid delivery",
     "badgeText": "PREMIUM PODS",
     "products": [
-      { "title": "JUUL 2 Starter Kit with Slate Grey Device & 2 Pods", "price": "145.00", "revs": 110, "badge": "STARTER KIT", "brand": "JUUL OFFICIAL", "img": "/images/juul_product.jpg" },
-      { "title": "JUUL 2 Device with USB Magnetic Charging Dock", "price": "95.00", "revs": 88, "badge": "DEVICE ONLY", "brand": "JUUL OFFICIAL", "img": "/images/juul_product.jpg" },
-      { "title": "JUUL 2 Virginia Tobacco Pods 18mg (Pack of 2)", "price": "45.00", "revs": 142, "badge": "TOP RATED", "brand": "JUUL2 PODS", "img": "/images/juul_product.jpg" },
-      { "title": "JUUL 2 Crisp Menthol Pods 18mg Nicotine 2-Pack", "price": "45.00", "revs": 96, "badge": "ICE", "brand": "JUUL2 PODS", "img": "/images/juul_product.jpg" },
-      { "title": "JUUL 2 Polar Menthol Pods 18mg Extra Fresh", "price": "45.00", "revs": 74, "badge": "POPULAR", "brand": "JUUL2 PODS", "img": "/images/juul_product.jpg" },
-      { "title": "JUUL 2 Ruby Menthol Wild Berry Pods 2-Pack", "price": "48.00", "revs": 81, "badge": "NEW", "brand": "JUUL2 PODS", "img": "/images/juul_product.jpg" },
-      { "title": "JUUL 2 Autumn Tobacco Rich Blend Pods 2-Pack", "price": "45.00", "revs": 58, "badge": "", "brand": "JUUL2 PODS", "img": "/images/juul_product.jpg" },
-      { "title": "JUUL USB Magnetic Rapid Charging Cable", "price": "35.00", "revs": 43, "badge": "ACCESSORY", "brand": "JUUL GEAR", "img": "/images/juul_product.jpg" }
+      {
+        "title": "JUUL 2 Starter Kit with Slate Grey Device & 2 Pods",
+        "price": "145.00",
+        "revs": 110,
+        "badge": "STARTER KIT",
+        "brand": "JUUL OFFICIAL",
+        "img": "/images/juul_product.jpg"
+      },
+      {
+        "title": "JUUL 2 Device with USB Magnetic Charging Dock",
+        "price": "95.00",
+        "revs": 88,
+        "badge": "DEVICE ONLY",
+        "brand": "JUUL OFFICIAL",
+        "img": "/images/juul_product.jpg"
+      },
+      {
+        "title": "JUUL 2 Virginia Tobacco Pods 18mg (Pack of 2)",
+        "price": "45.00",
+        "revs": 142,
+        "badge": "TOP RATED",
+        "brand": "JUUL2 PODS",
+        "img": "/images/juul_product.jpg"
+      },
+      {
+        "title": "JUUL 2 Crisp Menthol Pods 18mg Nicotine 2-Pack",
+        "price": "45.00",
+        "revs": 96,
+        "badge": "ICE",
+        "brand": "JUUL2 PODS",
+        "img": "/images/juul_product.jpg"
+      },
+      {
+        "title": "JUUL 2 Polar Menthol Pods 18mg Extra Fresh",
+        "price": "45.00",
+        "revs": 74,
+        "badge": "POPULAR",
+        "brand": "JUUL2 PODS",
+        "img": "/images/juul_product.jpg"
+      },
+      {
+        "title": "JUUL 2 Ruby Menthol Wild Berry Pods 2-Pack",
+        "price": "48.00",
+        "revs": 81,
+        "badge": "NEW",
+        "brand": "JUUL2 PODS",
+        "img": "/images/juul_product.jpg"
+      },
+      {
+        "title": "JUUL 2 Autumn Tobacco Rich Blend Pods 2-Pack",
+        "price": "45.00",
+        "revs": 58,
+        "badge": "",
+        "brand": "JUUL2 PODS",
+        "img": "/images/juul_product.jpg"
+      },
+      {
+        "title": "JUUL USB Magnetic Rapid Charging Cable",
+        "price": "35.00",
+        "revs": 43,
+        "badge": "ACCESSORY",
+        "brand": "JUUL GEAR",
+        "img": "/images/juul_product.jpg"
+      }
     ]
   }
 }

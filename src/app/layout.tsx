@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Outfit, Playfair_Display, Cinzel } from "next/font/google";
+import { Inter, Outfit, Playfair_Display } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -9,11 +9,6 @@ const playfair = Playfair_Display({
   variable: "--font-playfair",
   weight: ["500", "600", "700", "800", "900"],
   style: ["normal", "italic"],
-});
-const cinzel = Cinzel({
-  subsets: ["latin"],
-  variable: "--font-cinzel",
-  weight: ["600", "700", "800", "900"],
 });
 
 export const metadata: Metadata = {
@@ -28,7 +23,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${outfit.variable} ${playfair.variable} ${cinzel.variable}`}>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&display=swap"
+        />
+      </head>
+      <body className={`${inter.variable} ${outfit.variable} ${playfair.variable}`}>
         {children}
       </body>
     </html>

@@ -2,12 +2,14 @@
 /* eslint-disable react/no-unescaped-entities, @next/next/no-img-element */
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { motion, useScroll, useSpring, AnimatePresence } from "framer-motion";
 import { Search, Heart, User, ShoppingBag, ChevronLeft, ChevronRight, Phone, ArrowRight, Truck, Headset, RotateCcw, CreditCard, Star, ShoppingCart, Plus, ArrowUpRight, HelpCircle, ChevronDown, ShieldCheck, CheckCircle, Shield, Lock, Tag, Send, Calendar, Mail, MapPin, Flame, Zap, Droplets, Clock, Check, ArrowUp, Menu, X, Home as HomeIcon, Layers, Play, Pause } from "lucide-react";
 import { SfButton, SfRating } from "@storefront-ui/react";
 import Lenis from "lenis";
 import "lenis/dist/lenis.css";
 import themePublished from "@/data/theme-published.json";
+import { Header } from "@/components/Header";
 
 interface Product {
   title: string;
@@ -25,8 +27,64 @@ interface ThemeSectionData {
   products: Product[];
 }
 
+interface SubMenuItem {
+  title: string;
+  href: string;
+  badge?: string;
+  desc?: string;
+}
+
+interface MegaMenuColumn {
+  heading: string;
+  items: SubMenuItem[];
+}
+
+interface MegaMenuBanner {
+  title: string;
+  subtitle?: string;
+  image?: string;
+  badge?: string;
+  href?: string;
+  buttonText?: string;
+}
+
+interface HeaderNavItem {
+  label: string;
+  href: string;
+  badge?: string;
+  hasDropdown?: boolean;
+  columns?: MegaMenuColumn[];
+  featuredBanner?: MegaMenuBanner;
+}
+
+interface ThemeHeaderConfig {
+  topBar?: {
+    enabled?: boolean;
+    announcements: string[];
+    phone: string;
+    phoneHref?: string;
+    links: { label: string; href: string }[];
+  };
+  logo?: {
+    src: string;
+    alt: string;
+    width?: number;
+    height?: number;
+  };
+  search?: {
+    placeholder: string;
+  };
+  navItems: HeaderNavItem[];
+  actions?: {
+    showWishlist?: boolean;
+    showAccount?: boolean;
+    showCart?: boolean;
+  };
+}
+
 interface ThemeConfig {
   storeName?: string;
+  header?: ThemeHeaderConfig;
   hero?: {
     title: string;
     subtitle: string;
@@ -145,8 +203,24 @@ const staggerContainer = {
   }
 };
 
+function getProductHref(title: string): string {
+  const t = title.toLowerCase();
+  if (t.includes("kief")) return "/product/kief-king-35000-disposable-vape";
+  if (t.includes("vozol")) return "/product/vozol-star-40000-nicotine-vape";
+  if (t.includes("myle")) return "/product/myle-meta-max-18000-disposable";
+  if (t.includes("elf bar") || t.includes("joinone")) return "/product/elf-bar-joinone-25000-pod-kit";
+  if (t.includes("juul")) return "/product/juul2-starter-kit-slate-grey";
+  if (t.includes("terea") || t.includes("heets")) return "/product/iqos-terea-amber-indonesian-uae";
+  if (t.includes("caliburn")) return "/product/uwell-caliburn-g2-pod-system";
+  if (t.includes("juice head")) return "/product/juice-head-blueberry-lemon-100ml";
+  if (t.includes("nasty")) return "/product/nasty-juice-asap-grape-60ml";
+  if (t.includes("crown bar") || t.includes("fakher")) return "/product/al-fakher-crown-bar-8000-shisha";
+  return "/product/kief-king-35000-disposable-vape";
+}
+
 function ProductCard({ prod }: { prod: Product }) {
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const href = getProductHref(prod.title);
 
   return (
     <motion.div
@@ -175,7 +249,7 @@ function ProductCard({ prod }: { prod: Product }) {
       </div>
 
       {/* Product Image Area - Clean White Presentation */}
-      <div className="relative w-full aspect-square max-h-[235px] md:max-h-[255px] mx-auto flex items-center justify-center p-2 my-0.5 sm:my-1 overflow-hidden">
+      <Link href={href} className="relative w-full aspect-square max-h-[235px] md:max-h-[255px] mx-auto flex items-center justify-center p-2 my-0.5 sm:my-1 overflow-hidden block">
         <div className="relative w-full h-full transform group-hover:scale-108 transition-transform duration-500 ease-out">
           <Image
             src={prod.img}
@@ -185,7 +259,7 @@ function ProductCard({ prod }: { prod: Product }) {
             className="object-contain"
           />
         </div>
-      </div>
+      </Link>
 
       {/* Brand Series Tag (Like Reference Image) */}
       <div className="w-full bg-neutral-900 text-white text-[8px] sm:text-[9px] font-black uppercase tracking-wider py-1 px-2 text-center rounded-sm my-0.5 sm:my-1 truncate">
@@ -193,12 +267,12 @@ function ProductCard({ prod }: { prod: Product }) {
       </div>
 
       {/* Product Title */}
-      <a
-        href="#"
+      <Link
+        href={href}
         className="font-bold text-neutral-900 text-[12.5px] sm:text-[13.5px] md:text-[14px] leading-snug line-clamp-2 text-center my-0.5 sm:my-1 hover:text-[#064e3b] transition-colors min-h-[36px] sm:min-h-[38px] flex items-center justify-center no-underline"
       >
         {prod.title}
-      </a>
+      </Link>
 
       {/* Star Rating */}
       <div className="flex items-center justify-center gap-0.5 my-0.5 sm:my-1 text-amber-400">
@@ -820,9 +894,6 @@ export default function Home() {
 
   const lenisRef = useRef<Lenis | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
   // Option 2: Luxury 3D Arc Dial State
   const [activeArcIdx, setActiveArcIdx] = useState<number>(0);
@@ -868,7 +939,6 @@ export default function Home() {
     const handleScroll = () => {
       const scrollY = window.scrollY || document.documentElement.scrollTop;
       setShowScrollTop(scrollY > 450);
-      setIsScrolled(scrollY > 80);
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -931,251 +1001,8 @@ export default function Home() {
         style={{ scaleX }}
       />
 
-      {/* Premium Top Strip */}
-      <div className="bg-[#022c22] text-white text-[11px] font-medium tracking-wide py-2.5 px-6 flex justify-between items-center relative overflow-hidden">
-        <div className="flex-1 overflow-hidden relative flex items-center h-full">
-          <div className="flex gap-8 whitespace-nowrap animate-[marquee_25s_linear_infinite] hover:![animation-play-state:paused] cursor-default w-max">
-            <span className="flex items-center gap-1.5 opacity-90"><Lock size={12} className="text-amber-400" /> Secure Payment | COD Available</span>
-            <span className="flex items-center gap-1.5 opacity-90"><Tag size={12} className="text-amber-400" /> Exclusive offer up to 10% OFF</span>
-            <span className="flex items-center gap-1.5 opacity-90"><ShieldCheck size={12} className="text-amber-400" /> 100% Authentic Products - Original Brands Guaranteed</span>
-            <span className="flex items-center gap-1.5 opacity-90"><Truck size={12} className="text-amber-400" /> Free Delivery on Orders Above AED 350</span>
-            <span className="flex items-center gap-1.5 opacity-90"><Star size={12} className="text-amber-400" /> 20,000+ Happy Customers</span>
-            {/* Duplicated for smooth infinite scroll */}
-            <span className="flex items-center gap-1.5 opacity-90"><Lock size={12} className="text-amber-400" /> Secure Payment | COD Available</span>
-            <span className="flex items-center gap-1.5 opacity-90"><Tag size={12} className="text-amber-400" /> Exclusive offer up to 10% OFF</span>
-            <span className="flex items-center gap-1.5 opacity-90"><ShieldCheck size={12} className="text-amber-400" /> 100% Authentic Products - Original Brands Guaranteed</span>
-            <span className="flex items-center gap-1.5 opacity-90"><Truck size={12} className="text-amber-400" /> Free Delivery on Orders Above AED 350</span>
-            <span className="flex items-center gap-1.5 opacity-90"><Star size={12} className="text-amber-400" /> 20,000+ Happy Customers</span>
-          </div>
-        </div>
-        <div className="hidden lg:flex items-center gap-6 ml-6 border-l border-white/10 pl-6 z-10 bg-[#022c22]">
-          <span className="flex items-center gap-1.5 opacity-90 hover:opacity-100 transition-opacity"><Phone size={12} /> +971 55 168 8299</span>
-          <a href="#" className="text-white opacity-70 hover:opacity-100 transition-opacity">About Us</a>
-          <a href="#" className="text-white opacity-70 hover:opacity-100 transition-opacity">Contact Us</a>
-        </div>
-      </div>
-
-      {/* Ultra-Premium Main Header */}
-      <header className={`sticky top-0 z-50 bg-[#064e3b] border-b border-emerald-800 transition-all duration-300 ${isScrolled ? 'shadow-[0_12px_40px_rgba(0,0,0,0.3)] bg-[#064e3b]/95 backdrop-blur-xl' : 'shadow-[0_10px_40px_-15px_rgba(6,78,59,0.3)]'}`}>
-        <div className={`max-w-[1400px] mx-auto px-4 sm:px-6 flex items-center justify-between gap-3 sm:gap-6 md:gap-10 transition-all duration-300 ${isScrolled ? 'h-[58px] sm:h-[66px]' : 'h-[64px] sm:h-[72px]'}`}>
-
-          {/* Left: Mobile Menu Toggle + Brand Logo */}
-          <div className="flex items-center gap-2.5 sm:gap-4">
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden w-10 h-10 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors cursor-pointer"
-              aria-label="Toggle navigation menu"
-            >
-              {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
-            </button>
-
-            {/* Standard Brand Logo */}
-            <a href="#" className="flex-shrink-0 group cursor-pointer block py-1">
-              <Image
-                src="/vape-mart-text-logo-white.png"
-                alt="Vape Mart Logo"
-                width={170}
-                height={40}
-                className="h-6 sm:h-7 md:h-8 w-auto max-w-[150px] sm:max-w-[185px] md:max-w-[210px] object-contain transition-transform duration-300 group-hover:scale-105"
-                priority
-              />
-            </a>
-          </div>
-
-          {/* Desktop Search Bar */}
-          <div className="hidden sm:block flex-1 max-w-2xl relative group">
-            <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none text-emerald-100/50 group-focus-within:text-white transition-colors">
-              <Search size={18} strokeWidth={2.5} />
-            </div>
-            <input
-              type="text"
-              placeholder="Search for vapes, e-liquids, brands..."
-              className="w-full h-11 md:h-12 bg-white/10 hover:bg-white/15 focus:bg-white/20 border border-transparent focus:border-emerald-400 focus:ring-4 focus:ring-emerald-400/20 rounded-full pl-12 pr-14 text-sm md:text-[15px] font-medium text-white placeholder-emerald-100/50 outline-none transition-all duration-300 backdrop-blur-md"
-            />
-            <motion.button
-              whileHover={{ scale: 1.12 }}
-              whileTap={{ scale: 0.9 }}
-              className="absolute inset-y-1 right-1 md:inset-y-1.5 md:right-1.5 w-9 h-9 flex items-center justify-center bg-white hover:bg-emerald-50 text-[#064e3b] rounded-full shadow-[0_4px_15px_rgba(0,0,0,0.1)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.2)] transition-all cursor-pointer"
-            >
-              <ArrowRight size={16} strokeWidth={2.5} />
-            </motion.button>
-          </div>
-
-          {/* Action Icons */}
-          <div className="flex items-center gap-1.5 sm:gap-3">
-            {/* Mobile Search Toggle */}
-            <button
-              onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
-              className="sm:hidden w-10 h-10 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors cursor-pointer"
-              aria-label="Open search bar"
-            >
-              <Search size={20} strokeWidth={2} />
-            </button>
-
-            <motion.button
-              whileHover={{ scale: 1.12, y: -2 }}
-              whileTap={{ scale: 0.9 }}
-              className="hidden md:flex w-10 h-10 md:w-11 md:h-11 items-center justify-center rounded-full bg-white/10 text-white hover:text-[#064e3b] hover:bg-white transition-colors duration-300 backdrop-blur-md cursor-pointer"
-              aria-label="Wishlist"
-            >
-              <Heart size={20} strokeWidth={2} />
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.12, y: -2 }}
-              whileTap={{ scale: 0.9 }}
-              className="hidden sm:flex w-10 h-10 md:w-11 md:h-11 items-center justify-center rounded-full bg-white/10 text-white hover:text-[#064e3b] hover:bg-white transition-colors duration-300 backdrop-blur-md cursor-pointer"
-              aria-label="My Account"
-            >
-              <User size={20} strokeWidth={2} />
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.12, y: -2 }}
-              whileTap={{ scale: 0.9 }}
-              className="w-10 h-10 md:w-11 md:h-11 flex items-center justify-center rounded-full bg-white/10 text-white hover:text-[#064e3b] hover:bg-white transition-colors duration-300 relative group backdrop-blur-md cursor-pointer"
-              aria-label="Cart"
-            >
-              <ShoppingBag size={20} strokeWidth={2} />
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-amber-400 text-neutral-900 text-[11px] font-bold flex items-center justify-center rounded-full shadow-sm group-hover:scale-110 transition-transform">0</span>
-            </motion.button>
-          </div>
-        </div>
-
-        {/* Mobile Expandable Search Bar */}
-        <AnimatePresence>
-          {isMobileSearchOpen && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              className="sm:hidden px-4 pb-3 border-t border-emerald-800/60 overflow-hidden bg-[#064e3b]"
-            >
-              <div className="relative mt-2">
-                <input
-                  type="text"
-                  placeholder="Search for vapes, e-liquids..."
-                  className="w-full h-11 bg-white/15 border border-white/20 rounded-full pl-11 pr-12 text-sm text-white placeholder-emerald-100/60 focus:outline-none focus:border-amber-400"
-                  autoFocus
-                />
-                <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/60" />
-                <button
-                  onClick={() => setIsMobileSearchOpen(false)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-white cursor-pointer"
-                >
-                  <X size={14} />
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Desktop Navigation (Hidden on Mobile) */}
-        <nav className="hidden lg:block border-t border-emerald-800 bg-[#064e3b]">
-          <ul className="max-w-[1400px] mx-auto px-6 h-[50px] flex items-center justify-center gap-8 text-[13px] font-bold tracking-wider">
-            {['HOME', 'SHOP', 'DISPOSABLE VAPE', 'NICOTINE POUCHES', 'SHISHA/HOOKAH', 'PODS SYSTEM', 'E-LIQUID', 'VAPE KIT', 'BRANDS', 'OFFERS'].map((item, i) => (
-              <li key={i} className="h-full flex items-center relative group cursor-pointer">
-                <a href="#" className={`flex items-center gap-1 hover:text-amber-400 transition-colors ${i === 0 ? 'text-amber-400' : 'text-white'}`}>
-                  {item}
-                  {(i === 2 || i === 4 || i === 6) && <ChevronDown size={14} strokeWidth={2.5} className="group-hover:rotate-180 transition-transform duration-300" />}
-                </a>
-                <div className={`absolute bottom-0 left-0 right-0 h-[3px] rounded-t-full bg-amber-400 transform origin-left transition-transform duration-300 ${i === 0 ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`}></div>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </header>
-
-      {/* Mobile Navigation Drawer / Slide-Over */}
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="lg:hidden fixed inset-0 z-[80] bg-black/70 backdrop-blur-sm"
-            />
-            {/* Drawer */}
-            <motion.aside
-              initial={{ x: "-100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 240 }}
-              className="lg:hidden fixed top-0 left-0 bottom-0 z-[90] w-[85%] max-w-[340px] bg-[#022c22] border-r border-emerald-800 text-white flex flex-col shadow-2xl overflow-y-auto"
-            >
-              {/* Drawer Header */}
-              <div className="p-5 border-b border-emerald-800 flex items-center justify-between bg-[#064e3b]">
-                <div className="flex items-center">
-                  <Image
-                    src="/vape-mart-text-logo-white.png"
-                    alt="Vape Mart Logo"
-                    width={140}
-                    height={48}
-                    className="h-7 sm:h-8 w-auto object-contain"
-                  />
-                </div>
-                <button
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors cursor-pointer"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-
-              {/* Drawer Links */}
-              <div className="p-4 flex-1">
-                <span className="font-cinzel text-[10px] tracking-[0.2em] text-emerald-400 font-extrabold uppercase px-3 mb-2 block">Categories & Shop</span>
-                <ul className="flex flex-col gap-1">
-                  {[
-                    { name: 'Home', badge: 'Main' },
-                    { name: 'Shop All', badge: 'Hot' },
-                    { name: 'Disposable Vapes', badge: 'Popular' },
-                    { name: 'Nicotine Pouches', badge: 'Fresh' },
-                    { name: 'Shisha / Hookah', badge: '' },
-                    { name: 'Pod Systems', badge: 'Sale' },
-                    { name: 'E-Liquids', badge: 'Top' },
-                    { name: 'Vape Kits', badge: '' },
-                    { name: 'Brands', badge: '' },
-                    { name: 'Exclusive Offers', badge: '10% OFF' },
-                  ].map((item, idx) => (
-                    <li key={idx}>
-                      <a
-                        href="#"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className="flex items-center justify-between px-3 py-3 rounded-xl hover:bg-white/10 transition-colors text-sm font-semibold text-emerald-50 hover:text-white"
-                      >
-                        <span>{item.name}</span>
-                        <div className="flex items-center gap-2">
-                          {item.badge && (
-                            <span className="text-[10px] font-black tracking-wider uppercase px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
-                              {item.badge}
-                            </span>
-                          )}
-                          <ChevronRight size={15} className="text-emerald-400/60" />
-                        </div>
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-
-                {/* Quick Info inside Drawer */}
-                <div className="mt-6 pt-5 border-t border-emerald-800/60 px-3 flex flex-col gap-3">
-                  <div className="flex items-center gap-2.5 text-xs text-emerald-200/80">
-                    <Truck size={14} className="text-amber-400" />
-                    <span>Free UAE Delivery over AED 350</span>
-                  </div>
-                  <div className="flex items-center gap-2.5 text-xs text-emerald-200/80">
-                    <Phone size={14} className="text-emerald-400" />
-                    <span>Support: +971 55 168 8299</span>
-                  </div>
-                </div>
-              </div>
-            </motion.aside>
-          </>
-        )}
-      </AnimatePresence>
+      {/* Global Unified Header Component */}
+      <Header />
 
       {/* Hero Section */}
       <section
@@ -2493,37 +2320,35 @@ export default function Home() {
 
       {/* Mobile Sticky Bottom Navigation */}
       <nav aria-label="Mobile Bottom Navigation" className="lg:hidden fixed bottom-0 left-0 right-0 z-[70] bg-[#064e3b] border-t border-emerald-600/40 shadow-[0_-8px_25px_rgba(0,0,0,0.35)] px-2 py-2 flex items-center justify-between safe-bottom">
-        <a href="#" className="flex-1 flex flex-col items-center justify-center gap-1 text-amber-400 py-1.5 px-1 rounded-xl active:scale-95 transition-all text-center no-underline">
+        <Link href="/" className="flex-1 flex flex-col items-center justify-center gap-1 text-amber-400 py-1.5 px-1 rounded-xl active:scale-95 transition-all text-center no-underline">
           <HomeIcon size={20} className="stroke-[2.2]" />
           <span className="text-[11px] font-bold tracking-tight">Home</span>
-        </a>
-        <button 
-          type="button"
-          onClick={() => setIsMobileMenuOpen(true)} 
-          className="flex-1 flex flex-col items-center justify-center gap-1 text-emerald-100/75 hover:text-white py-1.5 px-1 rounded-xl active:scale-95 transition-all !bg-transparent !border-0 outline-none cursor-pointer text-center"
+        </Link>
+        <Link 
+          href="/collections" 
+          className="flex-1 flex flex-col items-center justify-center gap-1 text-emerald-100/75 hover:text-white py-1.5 px-1 rounded-xl active:scale-95 transition-all text-center no-underline"
         >
           <Layers size={20} className="stroke-[2.2]" />
-          <span className="text-[11px] font-semibold tracking-tight">Menu</span>
-        </button>
-        <button 
-          type="button"
-          onClick={() => { setIsMobileSearchOpen(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} 
-          className="flex-1 flex flex-col items-center justify-center gap-1 text-emerald-100/75 hover:text-white py-1.5 px-1 rounded-xl active:scale-95 transition-all !bg-transparent !border-0 outline-none cursor-pointer text-center"
+          <span className="text-[11px] font-semibold tracking-tight">Shop</span>
+        </Link>
+        <Link 
+          href="/collections" 
+          className="flex-1 flex flex-col items-center justify-center gap-1 text-emerald-100/75 hover:text-white py-1.5 px-1 rounded-xl active:scale-95 transition-all !bg-transparent !border-0 outline-none cursor-pointer text-center no-underline"
         >
           <Search size={20} className="stroke-[2.2]" />
           <span className="text-[11px] font-semibold tracking-tight">Search</span>
-        </button>
-        <a href="#flavors" className="flex-1 flex flex-col items-center justify-center gap-1 text-emerald-100/75 hover:text-white py-1.5 px-1 rounded-xl active:scale-95 transition-all text-center no-underline">
+        </Link>
+        <Link href="/collections/disposable-vape" className="flex-1 flex flex-col items-center justify-center gap-1 text-emerald-100/75 hover:text-white py-1.5 px-1 rounded-xl active:scale-95 transition-all text-center no-underline">
           <Droplets size={20} className="stroke-[2.2]" />
-          <span className="text-[11px] font-semibold tracking-tight">Flavors</span>
-        </a>
-        <a href="#" className="flex-1 flex flex-col items-center justify-center gap-1 text-emerald-100/75 hover:text-white py-1.5 px-1 rounded-xl active:scale-95 transition-all relative text-center no-underline">
+          <span className="text-[11px] font-semibold tracking-tight">Disposables</span>
+        </Link>
+        <Link href="/collections" className="flex-1 flex flex-col items-center justify-center gap-1 text-emerald-100/75 hover:text-white py-1.5 px-1 rounded-xl active:scale-95 transition-all relative text-center no-underline">
           <div className="relative">
             <ShoppingBag size={20} className="stroke-[2.2]" />
             <span className="absolute -top-1 -right-2 w-4 h-4 bg-amber-400 text-neutral-900 text-[10px] font-black flex items-center justify-center rounded-full shadow-sm">0</span>
           </div>
           <span className="text-[11px] font-semibold tracking-tight">Cart</span>
-        </a>
+        </Link>
       </nav>
     </main>
   );
