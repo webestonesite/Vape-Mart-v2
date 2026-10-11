@@ -205,7 +205,7 @@ export function Header({ onCartClick, cartCount = 0 }: HeaderProps) {
       >
         <div
           className={`max-w-[1400px] mx-auto px-4 sm:px-6 flex items-center justify-between gap-3 sm:gap-6 md:gap-10 transition-all duration-300 ${
-            isScrolled ? "h-[64px] sm:h-[72px]" : "h-[72px] sm:h-[82px]"
+            isScrolled ? "h-[68px] sm:h-[76px] lg:h-[82px]" : "h-[82px] sm:h-[94px] lg:h-[104px]"
           }`}
         >
           {/* Left: Mobile Menu Toggle + Brand Logo */}
@@ -219,13 +219,13 @@ export function Header({ onCartClick, cartCount = 0 }: HeaderProps) {
             </button>
 
             {/* Standard Brand Logo */}
-            <Link href="/" className="flex-shrink-0 group cursor-pointer block py-0">
+            <Link href="/" className="flex-shrink-0 group cursor-pointer block py-1">
               <Image
-                src={headerData?.logo?.src || "/Vape Mart 3 (2).png"}
+                src={headerData?.logo?.src || "/Vape mart 4.png"}
                 alt={headerData?.logo?.alt || "Vape Mart Logo"}
-                width={headerData?.logo?.width || 280}
-                height={headerData?.logo?.height || 85}
-                className="h-12 sm:h-14 md:h-16 lg:h-[68px] w-auto max-w-[200px] sm:max-w-[250px] md:max-w-[300px] object-contain transition-transform duration-300 group-hover:scale-105 drop-shadow-sm"
+                width={headerData?.logo?.width || 360}
+                height={headerData?.logo?.height || 110}
+                className="h-14 sm:h-16 md:h-20 lg:h-[88px] xl:h-[94px] w-auto max-w-[220px] sm:max-w-[280px] md:max-w-[360px] lg:max-w-[420px] object-contain transition-transform duration-300 group-hover:scale-105 drop-shadow-md"
                 priority
                 unoptimized
               />
@@ -499,11 +499,11 @@ export function Header({ onCartClick, cartCount = 0 }: HeaderProps) {
               <div className="p-4 border-b border-emerald-800 flex items-center justify-between bg-[#064e3b]">
                 <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center">
                   <Image
-                    src={headerData?.logo?.src || "/Vape Mart 3 (2).png"}
+                    src={headerData?.logo?.src || "/Vape mart 4.png"}
                     alt={headerData?.logo?.alt || "Vape Mart Logo"}
-                    width={220}
-                    height={65}
-                    className="h-11 sm:h-12 w-auto object-contain"
+                    width={260}
+                    height={80}
+                    className="h-13 sm:h-14 w-auto object-contain drop-shadow-sm"
                     unoptimized
                   />
                 </Link>
