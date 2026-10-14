@@ -63,6 +63,19 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
   const [showSticky, setShowSticky] = useState(false);
   const [copied, setCopied] = useState(false);
   const [wished, setWished] = useState(false);
+  const [flavorDropOpen, setFlavorDropOpen] = useState(false);
+  const [nicotineDropOpen, setNicotineDropOpen] = useState(false);
+  const flavorDropRef = useRef<HTMLDivElement>(null);
+  const nicotineDropRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const close = (e: MouseEvent) => {
+      if (flavorDropRef.current && !flavorDropRef.current.contains(e.target as Node)) setFlavorDropOpen(false);
+      if (nicotineDropRef.current && !nicotineDropRef.current.contains(e.target as Node)) setNicotineDropOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, []);
 
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -236,44 +249,78 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
               </div>
             </div>
 
-            {/* flavors */}
+            {/* flavors — premium dropdown */}
             {product.flavors.length > 0 && (
-              <div className="mt-5">
-                <p className="text-xs font-extrabold tracking-wider text-emerald-950 mb-2.5">
-                  FLAVOR <span className="text-neutral-400 font-semibold">— {product.flavors.find((f) => f.id === flavorId)?.name}</span>
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {product.flavors.map((f) => (
-                    <button
-                      key={f.id}
-                      onClick={() => f.inStock && setFlavorId(f.id)}
-                      disabled={!f.inStock}
-                      className={`min-h-[44px] px-4 rounded-full text-[13px] font-semibold border-2 transition-all flex items-center gap-2 ${flavorId === f.id ? "border-amber-500 bg-amber-50 text-emerald-950 shadow-sm" : "border-emerald-900/15 bg-white text-emerald-900 hover:border-emerald-700"} ${!f.inStock ? "opacity-40 cursor-not-allowed" : ""}`}
+              <div className="mt-5 relative" ref={flavorDropRef}>
+                <p className="text-xs font-extrabold tracking-wider text-emerald-950 mb-2.5">FLAVOR</p>
+                <button
+                  onClick={() => { setFlavorDropOpen(!flavorDropOpen); setNicotineDropOpen(false); }}
+                  className={`w-full h-[52px] rounded-2xl border-2 bg-white px-4 flex items-center gap-3 text-left transition-all ${flavorDropOpen ? "border-amber-500 shadow-[0_8px_24px_-8px_rgba(245,158,11,0.4)]" : "border-emerald-900/15 hover:border-emerald-700"}`}
+                >
+                  <span className="w-5 h-5 rounded-full border border-black/15 shrink-0" style={{ backgroundColor: product.flavors.find((f) => f.id === flavorId)?.color }} />
+                  <span className="flex-1 text-sm font-bold text-emerald-950 truncate">
+                    {product.flavors.find((f) => f.id === flavorId)?.name}
+                  </span>
+                  <ChevronDown size={18} className={`shrink-0 text-amber-600 transition-transform duration-300 ${flavorDropOpen ? "rotate-180" : ""}`} />
+                </button>
+                <AnimatePresence>
+                  {flavorDropOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -6, scale: 0.99 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.99 }}
+                      transition={{ duration: 0.18 }}
+                      className="absolute z-30 left-0 right-0 mt-2 rounded-2xl border border-emerald-900/10 bg-white shadow-[0_24px_50px_-12px_rgba(6,78,59,0.35)] overflow-hidden max-h-[280px] overflow-y-auto"
                     >
-                      <span className="w-3.5 h-3.5 rounded-full border border-black/15 shrink-0" style={{ backgroundColor: f.color }} />
-                      {f.name}
-                      {!f.inStock && <span className="text-[10px] font-bold">(OUT)</span>}
-                    </button>
-                  ))}
-                </div>
+                      {product.flavors.map((f) => (
+                        <button
+                          key={f.id}
+                          onClick={() => { if (f.inStock) { setFlavorId(f.id); setFlavorDropOpen(false); } }}
+                          disabled={!f.inStock}
+                          className={`w-full px-4 py-3.5 flex items-center gap-3 text-left transition-colors ${flavorId === f.id ? "bg-amber-50" : "hover:bg-emerald-50/60"} ${!f.inStock ? "opacity-40 cursor-not-allowed" : ""}`}
+                        >
+                          <span className="w-5 h-5 rounded-full border border-black/15 shrink-0" style={{ backgroundColor: f.color }} />
+                          <span className={`flex-1 text-sm font-semibold ${flavorId === f.id ? "text-emerald-950" : "text-neutral-700"}`}>{f.name}</span>
+                          {!f.inStock && <span className="text-[10px] font-bold text-neutral-400">OUT OF STOCK</span>}
+                          {flavorId === f.id && <Check size={16} className="text-amber-600 shrink-0" />}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             )}
 
-            {/* nicotine */}
+            {/* nicotine — premium dropdown */}
             {product.nicotineOptions.length > 1 && (
-              <div className="mt-4">
+              <div className="mt-4 relative" ref={nicotineDropRef}>
                 <p className="text-xs font-extrabold tracking-wider text-emerald-950 mb-2.5">NICOTINE STRENGTH</p>
-                <div className="flex flex-wrap gap-2">
-                  {product.nicotineOptions.map((n) => (
-                    <button
-                      key={n}
-                      onClick={() => setNicotine(n)}
-                      className={`min-h-[44px] px-5 rounded-full text-[13px] font-bold border-2 transition-all ${nicotine === n ? "border-emerald-800 bg-emerald-800 text-white" : "border-emerald-900/15 bg-white text-emerald-900 hover:border-emerald-700"}`}
+                <button
+                  onClick={() => { setNicotineDropOpen(!nicotineDropOpen); setFlavorDropOpen(false); }}
+                  className={`w-full h-[52px] rounded-2xl border-2 bg-white px-4 flex items-center gap-3 text-left transition-all ${nicotineDropOpen ? "border-amber-500 shadow-[0_8px_24px_-8px_rgba(245,158,11,0.4)]" : "border-emerald-900/15 hover:border-emerald-700"}`}
+                >
+                  <span className="flex-1 text-sm font-bold text-emerald-950">{nicotine}</span>
+                  <span className="text-[11px] font-semibold text-neutral-400">nicotine salt</span>
+                  <ChevronDown size={18} className={`shrink-0 text-amber-600 transition-transform duration-300 ${nicotineDropOpen ? "rotate-180" : ""}`} />
+                </button>
+                <AnimatePresence>
+                  {nicotineDropOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -6, scale: 0.99 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.99 }}
+                      transition={{ duration: 0.18 }}
+                      className="absolute z-30 left-0 right-0 mt-2 rounded-2xl border border-emerald-900/10 bg-white shadow-[0_24px_50px_-12px_rgba(6,78,59,0.35)] overflow-hidden"
                     >
-                      {n}
-                    </button>
-                  ))}
-                </div>
+                      {product.nicotineOptions.map((n) => (
+                        <button
+                          key={n}
+                          onClick={() => { setNicotine(n); setNicotineDropOpen(false); }}
+                          className={`w-full px-4 py-3.5 flex items-center gap-3 text-left transition-colors ${nicotine === n ? "bg-amber-50" : "hover:bg-emerald-50/60"}`}
+                        >
+                          <span className={`flex-1 text-sm font-bold ${nicotine === n ? "text-emerald-950" : "text-neutral-700"}`}>{n}</span>
+                          {nicotine === n && <Check size={16} className="text-amber-600 shrink-0" />}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             )}
 
