@@ -972,7 +972,15 @@ export function CollectionPageView({ category, allCategories, products }: Collec
             </div>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
-            {flavorFamilies.map((f, i) => (
+            {flavorFamilies.map((f, i) => {
+              const themes: Record<string, { bg: string; glow: string; accent: string }> = {
+                "fruit-ice": { bg: "from-sky-600 via-cyan-700 to-blue-900", glow: "bg-cyan-300/30", accent: "text-cyan-200" },
+                "menthol-mint": { bg: "from-emerald-600 via-teal-700 to-emerald-900", glow: "bg-emerald-300/30", accent: "text-emerald-200" },
+                "tobacco": { bg: "from-amber-700 via-yellow-800 to-stone-900", glow: "bg-amber-300/30", accent: "text-amber-200" },
+                "dessert-sweet": { bg: "from-rose-600 via-pink-700 to-purple-900", glow: "bg-rose-300/30", accent: "text-rose-200" },
+              };
+              const t = themes[f.id] || { bg: "from-emerald-700 via-emerald-800 to-[#022c22]", glow: "bg-emerald-300/30", accent: "text-emerald-200" };
+              return (
               <motion.button
                 key={f.id}
                 initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
@@ -981,28 +989,31 @@ export function CollectionPageView({ category, allCategories, products }: Collec
                   setSelectedFlavorFamilies([f.id]);
                   document.getElementById("collection-grid-top")?.scrollIntoView({ behavior: "smooth", block: "start" });
                 }}
-                className="group relative rounded-2xl overflow-hidden border border-emerald-900/10 bg-white text-left hover:border-amber-400/60 hover:shadow-[0_18px_40px_-16px_rgba(6,78,59,0.35)] transition-all duration-300 active:scale-[0.98]"
+                className={`group relative rounded-3xl overflow-hidden bg-gradient-to-br ${t.bg} text-left shadow-[0_16px_36px_-14px_rgba(0,0,0,0.4)] hover:shadow-[0_24px_50px_-14px_rgba(0,0,0,0.5)] hover:-translate-y-1.5 transition-all duration-300 active:scale-[0.98]`}
               >
-                <div className="relative h-40 sm:h-52 bg-gradient-to-br from-emerald-50 via-white to-amber-50/60 overflow-hidden">
+                <div className={`absolute -top-10 -right-10 h-36 w-36 rounded-full ${t.glow} blur-[50px] pointer-events-none`} />
+                <div className="relative h-44 sm:h-56 overflow-hidden">
                   {f.image ? (
-                    <Image src={f.image} alt={f.name} fill className="object-contain p-5 transition-transform duration-700 group-hover:scale-110 group-hover:rotate-1" sizes="300px" />
+                    <Image src={f.image} alt={f.name} fill className="object-cover transition-transform duration-700 group-hover:scale-110" sizes="320px" />
                   ) : null}
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#022c22]/85 via-[#022c22]/20 to-transparent" />
-                  <div className="absolute top-3 right-3 rounded-full bg-white/95 backdrop-blur px-2.5 py-1 text-[11px] font-extrabold text-emerald-900 shadow">
-                    {flavorFamilyCounts[f.id] || 0}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
+                  <div className="absolute top-3 right-3 rounded-full bg-white/95 backdrop-blur px-3 py-1 text-[11px] font-extrabold text-emerald-950 shadow-lg">
+                    {flavorFamilyCounts[f.id] || 0} products
                   </div>
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <p className="font-luxury text-lg sm:text-xl font-bold text-white leading-tight">{f.name}</p>
-                    <p className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold text-amber-300 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all">
-                      Shop flavours <ArrowRight size={12} />
-                    </p>
+                  <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5">
+                    <p className={`font-cinzel text-[10px] tracking-[0.22em] font-bold ${t.accent} mb-1`}>TASTE PROFILE</p>
+                    <p className="font-luxury text-xl sm:text-2xl font-bold text-white leading-tight">{f.name}</p>
                   </div>
                 </div>
-                <div className="p-4">
-                  <p className="text-xs sm:text-sm text-neutral-500 leading-relaxed line-clamp-2 min-h-[2.5em]">{f.desc}</p>
+                <div className="relative p-4 sm:p-5 bg-black/25 backdrop-blur-[2px]">
+                  <p className="text-xs sm:text-sm text-white/85 leading-relaxed line-clamp-2 min-h-[2.5em]">{f.desc}</p>
+                  <p className="mt-3 inline-flex items-center gap-1.5 text-xs font-extrabold text-white bg-white/15 border border-white/25 rounded-full px-3.5 py-2 group-hover:bg-amber-400 group-hover:text-emerald-950 group-hover:border-amber-400 transition-all">
+                    Shop flavours <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
+                  </p>
                 </div>
               </motion.button>
-            ))}
+              );
+            })}
           </div>
         </section>
 
