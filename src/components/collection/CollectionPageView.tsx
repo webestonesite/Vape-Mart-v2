@@ -868,8 +868,8 @@ export function CollectionPageView({ category, allCategories, products }: Collec
           </div>
         </div>
 
-        {/* ============ FLASH DEALS ============ */}
-        {flashDeals.length > 0 && (
+        {/* ============ FLASH DEALS (main collections page only, not category pages) ============ */}
+        {!category && flashDeals.length > 0 && (
           <section className="mt-12 sm:mt-16 rounded-3xl bg-gradient-to-br from-[#022c22] via-[#043e2e] to-[#064e3b] p-5 sm:p-8 relative overflow-hidden">
             <div className="absolute -top-20 -right-20 w-72 h-72 bg-amber-400/15 rounded-full blur-[80px] pointer-events-none" />
             <div className="relative z-10 flex flex-wrap items-center gap-3 sm:gap-4 mb-6">
