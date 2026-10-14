@@ -558,7 +558,7 @@ export function CollectionPageView({ category, allCategories, products }: Collec
         transition={{ duration: 0.45, delay: (i % 6) * 0.05 }}
         className="group relative flex flex-col rounded-2xl bg-white border border-emerald-900/15 shadow-[0_4px_18px_-8px_rgba(6,78,59,0.18)] overflow-hidden hover:shadow-[0_20px_50px_-16px_rgba(6,78,59,0.35)] hover:border-amber-400/50 hover:-translate-y-1 transition-all duration-300"
       >
-        <div className="relative aspect-square bg-gradient-to-br from-[#f8fafc] to-emerald-50/60 overflow-hidden">
+        <div className="relative aspect-[4/3] sm:aspect-square bg-gradient-to-br from-[#f8fafc] to-emerald-50/60 overflow-hidden">
           <Link href={`/product/${p.slug}`} aria-label={p.title} className="block w-full h-full" onClick={() => saveRecent(p)}>
             <Image
               src={p.primaryImage} alt={p.title} fill sizes="(max-width: 640px) 50vw, 33vw"
@@ -629,20 +629,20 @@ export function CollectionPageView({ category, allCategories, products }: Collec
               </>
             )}
           </div>
-          <div className="mt-3 flex items-center gap-1.5 sm:gap-2">
+          <div className="mt-2.5 sm:mt-3 flex items-center gap-1.5">
             <button
               onClick={(e) => startFlyToCart(p, e.currentTarget)}
               disabled={!p.inStock}
-              className="flex-1 min-w-0 h-10 sm:h-11 rounded-xl bg-emerald-800 text-white text-[10px] sm:text-sm font-bold tracking-normal sm:tracking-wide hover:bg-emerald-700 active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap px-1.5 sm:px-3"
+              className="flex-1 min-w-0 h-9 sm:h-11 rounded-xl bg-emerald-800 text-white text-[10px] sm:text-sm font-bold tracking-normal sm:tracking-wide hover:bg-emerald-700 active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap px-1.5 sm:px-3"
             >
-              <ShoppingBag size={14} className="shrink-0 sm:w-4 sm:h-4" /> ADD TO CART
+              <ShoppingBag size={13} className="shrink-0 sm:w-4 sm:h-4" /> ADD TO CART
             </button>
             <Link
               href={`/product/${p.slug}`}
               aria-label={`View ${p.title}`}
-              className="w-10 h-10 sm:w-11 sm:h-11 shrink-0 rounded-xl border-2 border-amber-500/60 text-amber-600 flex items-center justify-center hover:bg-amber-500 hover:text-white transition-colors"
+              className="w-9 h-9 sm:w-11 sm:h-11 shrink-0 rounded-xl border-2 border-amber-500/60 text-amber-600 flex items-center justify-center hover:bg-amber-500 hover:text-white transition-colors"
             >
-              <ArrowRight size={16} className="sm:w-[18px] sm:h-[18px]" />
+              <ArrowRight size={15} className="sm:w-[18px] sm:h-[18px]" />
             </Link>
           </div>
         </div>
