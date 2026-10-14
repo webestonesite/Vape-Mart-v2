@@ -912,11 +912,14 @@ export function CollectionPageView({ category, allCategories, products }: Collec
 
         {/* ============ SHOP BY BRAND ============ */}
         <section className="mt-12 sm:mt-16">
-          <div className="mb-5">
-            <p className="font-cinzel text-[11px] tracking-[0.24em] text-amber-600 font-bold mb-2">TOP BRANDS</p>
-            <h2 className="font-luxury text-2xl sm:text-3xl font-bold text-emerald-950">Shop by Brand</h2>
+          <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="font-cinzel text-[11px] tracking-[0.24em] text-amber-600 font-bold mb-2">TOP BRANDS</p>
+              <h2 className="font-luxury text-2xl sm:text-3xl font-bold text-emerald-950">Shop by Brand</h2>
+              <p className="mt-2 text-sm text-neutral-500 max-w-xl">Only 100% authentic stock from the world's most trusted vape manufacturers — every unit sourced through licensed UAE importers.</p>
+            </div>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-5">
             {brands.map((b, i) => (
               <motion.button
                 key={b}
@@ -926,12 +929,20 @@ export function CollectionPageView({ category, allCategories, products }: Collec
                   setSelectedBrands([b]);
                   document.getElementById("collection-grid-top")?.scrollIntoView({ behavior: "smooth", block: "start" });
                 }}
-                className="group rounded-2xl bg-gradient-to-br from-[#064e3b] to-[#022c22] p-4 sm:p-5 text-left border border-emerald-800/40 hover:border-amber-400/60 hover:shadow-[0_12px_30px_-12px_rgba(245,158,11,0.45)] transition-all active:scale-[0.98]"
+                className="group relative rounded-2xl bg-white border border-emerald-900/10 p-5 sm:p-6 text-left overflow-hidden hover:border-amber-400/70 hover:shadow-[0_18px_40px_-16px_rgba(6,78,59,0.35)] transition-all duration-300 active:scale-[0.98]"
               >
-                <p className="font-cinzel text-sm sm:text-base font-bold tracking-[0.08em] text-white group-hover:text-amber-300 transition-colors truncate">{b}</p>
-                <p className="mt-1 text-xs text-emerald-100/70">{brandCounts[b]} product{brandCounts[b] === 1 ? "" : "s"}</p>
-                <p className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                  Shop now <ArrowRight size={12} />
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-400 scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-500" />
+                <div className="flex items-center gap-3.5">
+                  <span className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#064e3b] to-[#022c22] font-luxury text-xl sm:text-2xl font-bold text-amber-300 shadow-[0_8px_20px_-8px_rgba(6,78,59,0.6)] group-hover:scale-105 transition-transform">
+                    {b.charAt(0)}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="font-luxury text-base sm:text-lg font-bold text-emerald-950 leading-tight truncate">{b}</p>
+                    <p className="mt-0.5 text-xs text-neutral-500">{brandCounts[b]} product{brandCounts[b] === 1 ? "" : "s"}</p>
+                  </div>
+                </div>
+                <p className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 group-hover:text-amber-600 transition-colors">
+                  Explore collection <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
                 </p>
               </motion.button>
             ))}
@@ -940,30 +951,44 @@ export function CollectionPageView({ category, allCategories, products }: Collec
 
         {/* ============ FLAVOUR HIGHLIGHTS ============ */}
         <section className="mt-12 sm:mt-16">
-          <div className="mb-5">
-            <p className="font-cinzel text-[11px] tracking-[0.24em] text-amber-600 font-bold mb-2">TASTE PROFILES</p>
-            <h2 className="font-luxury text-2xl sm:text-3xl font-bold text-emerald-950">Explore Flavours</h2>
+          <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="font-cinzel text-[11px] tracking-[0.24em] text-amber-600 font-bold mb-2">TASTE PROFILES</p>
+              <h2 className="font-luxury text-2xl sm:text-3xl font-bold text-emerald-950">Explore Flavours</h2>
+              <p className="mt-2 text-sm text-neutral-500 max-w-xl">From icy fruit blends to rich tobacco — find the taste profile that becomes your all-day vape.</p>
+            </div>
           </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
             {flavorFamilies.map((f, i) => (
-              <motion.div
+              <motion.button
                 key={f.id}
                 initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
                 transition={{ duration: 0.35, delay: Math.min(i * 0.05, 0.3) }}
-                className="group relative rounded-2xl overflow-hidden border border-emerald-900/10 bg-white"
+                onClick={() => {
+                  setSelectedFlavorFamilies([f.id]);
+                  document.getElementById("collection-grid-top")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
+                className="group relative rounded-2xl overflow-hidden border border-emerald-900/10 bg-white text-left hover:border-amber-400/60 hover:shadow-[0_18px_40px_-16px_rgba(6,78,59,0.35)] transition-all duration-300 active:scale-[0.98]"
               >
-                <div className="relative h-36 sm:h-44 bg-gradient-to-br from-emerald-50 to-white">
+                <div className="relative h-40 sm:h-52 bg-gradient-to-br from-emerald-50 via-white to-amber-50/60 overflow-hidden">
                   {f.image ? (
-                    <Image src={f.image} alt={f.name} fill className="object-contain p-4 transition-transform duration-500 group-hover:scale-110" sizes="300px" />
+                    <Image src={f.image} alt={f.name} fill className="object-contain p-5 transition-transform duration-700 group-hover:scale-110 group-hover:rotate-1" sizes="300px" />
                   ) : null}
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#022c22]/70 via-transparent to-transparent" />
-                  <p className="absolute bottom-3 left-4 right-4 font-luxury text-base sm:text-lg font-bold text-white leading-tight">{f.name}</p>
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#022c22]/85 via-[#022c22]/20 to-transparent" />
+                  <div className="absolute top-3 right-3 rounded-full bg-white/95 backdrop-blur px-2.5 py-1 text-[11px] font-extrabold text-emerald-900 shadow">
+                    {flavorFamilyCounts[f.id] || 0}
+                  </div>
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <p className="font-luxury text-lg sm:text-xl font-bold text-white leading-tight">{f.name}</p>
+                    <p className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold text-amber-300 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all">
+                      Shop flavours <ArrowRight size={12} />
+                    </p>
+                  </div>
                 </div>
                 <div className="p-4">
-                  <p className="text-xs sm:text-sm text-neutral-500 leading-relaxed line-clamp-2">{f.desc}</p>
-                  <p className="mt-2 text-xs font-bold text-emerald-700">{flavorFamilyCounts[f.id] || 0} products →</p>
+                  <p className="text-xs sm:text-sm text-neutral-500 leading-relaxed line-clamp-2 min-h-[2.5em]">{f.desc}</p>
                 </div>
-              </motion.div>
+              </motion.button>
             ))}
           </div>
         </section>
@@ -981,6 +1006,75 @@ export function CollectionPageView({ category, allCategories, products }: Collec
             <p>
               Whether you are switching from cigarettes or upgrading your setup, choose by puff count first (5,000–10,000 for casual use, 20,000+ for heavy daily vaping), then match your nicotine strength — 20mg (2%) for a balanced throat hit or 50mg (5%) for maximum satisfaction. All orders placed before 9pm qualify for same-day dispatch in Dubai, Sharjah and Ajman, with cash on delivery available across the UAE.
             </p>
+          </div>
+
+          <div className="mt-8 grid md:grid-cols-2 gap-x-10 gap-y-8 max-w-5xl">
+            <div>
+              <h3 className="font-luxury text-lg sm:text-xl font-bold text-emerald-950">Understanding Puff Counts: How Long Will Your Vape Last?</h3>
+              <div className="mt-3 space-y-3 text-sm sm:text-[15px] leading-relaxed text-neutral-600">
+                <p>
+                  Puff count is the single most useful number when comparing {category ? category.name.toLowerCase() : "vapes"}. It tells you roughly how many draws you get before the e-liquid or battery runs out. A 600-puff device suits a weekend trial, while 10,000–15,000 puffs comfortably cover one to two weeks of moderate daily use. Heavy vapers who switched from a pack-a-day habit usually land happiest in the 20,000–40,000 puff range, where the cost per puff drops dramatically.
+                </p>
+                <p>
+                  Treat manufacturer puff counts as estimates — your real-world total depends on draw length. Short mouth-to-lung puffs stretch a device further, while long direct-lung draws consume e-liquid faster. As a rule of thumb, divide the advertised puffs by your daily cigarette count times ten to estimate days of use.
+                </p>
+              </div>
+            </div>
+            <div>
+              <h3 className="font-luxury text-lg sm:text-xl font-bold text-emerald-950">Nicotine Strengths Explained: 20mg vs 50mg</h3>
+              <div className="mt-3 space-y-3 text-sm sm:text-[15px] leading-relaxed text-neutral-600">
+                <p>
+                  In the UAE, disposable and pod devices typically come in 20mg (2%) or 50mg (5%) nicotine salt formulations. If you smoked up to half a pack a day, 20mg delivers a smooth, cigarette-like throat hit without harshness — it is the strength most ex-smokers settle on. Former pack-a-day (or heavier) smokers usually prefer 50mg, which satisfies cravings faster with fewer puffs.
+                </p>
+                <p>
+                  Nicotine salts (the "mg" on your device) absorb faster and feel smoother than the freebase nicotine in older e-liquids, which is why even 50mg vapes surprisingly gentle. If you ever feel dizzy or nauseous, you are vaping too much too fast — put the device down, drink water, and consider stepping down to 20mg.
+                </p>
+              </div>
+            </div>
+            <div>
+              <h3 className="font-luxury text-lg sm:text-xl font-bold text-emerald-950">Disposable vs Pod vs Mod: Which Device Type Suits You?</h3>
+              <div className="mt-3 space-y-3 text-sm sm:text-[15px] leading-relaxed text-neutral-600">
+                <p>
+                  <strong className="text-emerald-900">Disposables</strong> are draw-activated, pre-filled and pre-charged — zero setup, zero maintenance. They dominate the UAE market because they are perfect for beginners, travellers, and anyone who wants flavour variety without commitment. When the puffs run out, you responsibly recycle the unit and open a fresh one.
+                </p>
+                <p>
+                  <strong className="text-emerald-900">Pod systems</strong> (like JUUL, XROS or Nord) use a rechargeable battery with replaceable or refillable pods. The upfront cost is higher, but the long-term cost per puff is far lower, and you get tighter draw control plus refillable freedom. <strong className="text-emerald-900">Mods and kits</strong> are for enthusiasts who want adjustable wattage, rebuildable coils and maximum vapour — overkill for most switchers, heaven for hobbyists.
+                </p>
+              </div>
+            </div>
+            <div>
+              <h3 className="font-luxury text-lg sm:text-xl font-bold text-emerald-950">Flavour Families: Finding Your All-Day Vape</h3>
+              <div className="mt-3 space-y-3 text-sm sm:text-[15px] leading-relaxed text-neutral-600">
+                <p>
+                  <strong className="text-emerald-900">Fruit ice</strong> (mango ice, blue razz, watermelon chill) is the UAE's best-selling profile — sweet fruit finished with a cool menthol exhale that stays refreshing in the heat. <strong className="text-emerald-900">Menthol &amp; mint</strong> strips it back to pure coolness for ex-menthol cigarette smokers. <strong className="text-emerald-900">Tobacco</strong> blends mimic the earthy richness of cigarettes and help traditional smokers transition without flavour shock.
+                </p>
+                <p>
+                  <strong className="text-emerald-900">Dessert &amp; sweet</strong> (vanilla custard, candy, bakery) suits evening vaping when you want something indulgent. Pro tip: buy two flavour families at once — flavour fatigue is real, and rotating between a fruit ice and a menthol keeps every puff tasting fresh.
+                </p>
+              </div>
+            </div>
+            <div>
+              <h3 className="font-luxury text-lg sm:text-xl font-bold text-emerald-950">100% Authentic, ESMA-Compliant Stock</h3>
+              <div className="mt-3 space-y-3 text-sm sm:text-[15px] leading-relaxed text-neutral-600">
+                <p>
+                  Every product at Vape Mart UAE is imported through licensed UAE distributors and complies with Emirates Authority for Standardization and Metrology (ESMA) requirements, including Arabic/English labelling and child-resistant packaging. Each unit carries verifiable authenticity markings — scratch codes, holograms or QR verification depending on the brand.
+                </p>
+                <p>
+                  Why does this matter? Counterfeit vapes are the industry's biggest safety problem: unknown e-liquid ingredients, overstated puff counts, and batteries without protection circuits. Our authenticity guarantee means the flavour, nicotine strength and puff count printed on the box are exactly what is inside it.
+                </p>
+              </div>
+            </div>
+            <div>
+              <h3 className="font-luxury text-lg sm:text-xl font-bold text-emerald-950">Delivery, Payment &amp; Support Across the UAE</h3>
+              <div className="mt-3 space-y-3 text-sm sm:text-[15px] leading-relaxed text-neutral-600">
+                <p>
+                  Order before 9pm and your {category ? category.name.toLowerCase() : "vape"} ships the same day. Dubai customers get express 2–3 hour delivery in most areas; Sharjah, Ajman and Abu Dhabi are next-day; the Northern Emirates follow within 48 hours. Every parcel is discreetly packed with no product branding on the outside.
+                </p>
+                <p>
+                  Pay your way: cash on delivery, card on delivery, or a secure online payment link sent to your WhatsApp. And if you are ever unsure which device or flavour to pick, our vape experts reply on WhatsApp around the clock — real humans, not bots, who actually vape and know the catalog.
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* comparison table */}
@@ -1014,14 +1108,18 @@ export function CollectionPageView({ category, allCategories, products }: Collec
           )}
 
           {/* FAQ */}
-          <div className="mt-8">
+          <div className="mt-10">
             <h3 className="font-luxury text-xl font-bold text-emerald-950 mb-4">Frequently Asked Questions</h3>
             <div className="divide-y divide-emerald-900/10 rounded-2xl border border-emerald-900/10 overflow-hidden">
               {[
-                { q: "Are your vapes 100% authentic?", a: "Yes. Every product at Vape Mart UAE is sourced from licensed UAE importers and carries verifiable authenticity packaging. We never sell clones or refills." },
-                { q: "How fast is delivery in the UAE?", a: "Dubai orders placed before 9pm are delivered same-day (express 2–3 hours in most areas). Sharjah, Ajman and Abu Dhabi are next-day. Cash on delivery is available everywhere." },
-                { q: "What nicotine strength should I choose?", a: "20mg (2%) suits most switchers from cigarettes with a smooth throat hit. 50mg (5%) is for heavy smokers wanting maximum satisfaction. 3mg options exist for sub-ohm kits." },
-                { q: "Do you offer cash on delivery?", a: "Yes — pay cash or by card when your order arrives. No prepayment needed, anywhere in the UAE." },
+                { q: "Are your vapes 100% authentic?", a: "Yes — without exception. Every product at Vape Mart UAE is sourced from licensed UAE importers and carries verifiable authenticity packaging: scratch-to-verify codes, holograms or QR checks depending on the brand. We never sell clones, refills or grey-market stock. If any unit ever fails a brand authenticity check, we replace it free and investigate the batch." },
+                { q: "How fast is delivery in the UAE?", a: "Dubai orders placed before 9pm are delivered the same day, with express 2–3 hour delivery available in most areas including Marina, JLT, Deira, Bur Dubai and Business Bay. Sharjah, Ajman and Abu Dhabi are next-day. Ras Al Khaimah, Fujairah and Umm Al Quwain arrive within 48 hours. Every parcel is packed discreetly with no product branding visible on the outside." },
+                { q: "What nicotine strength should I choose?", a: "20mg (2%) suits most people switching from up to half a pack a day — it gives a smooth, cigarette-like throat hit. 50mg (5%) is for heavier smokers (a pack or more daily) who want maximum satisfaction with fewer puffs. Both use nicotine salts, which feel smoother and absorb faster than old freebase e-liquids. If you feel dizzy, you are vaping too much too fast — pause, drink water, and consider dropping to 20mg." },
+                { q: "Do you offer cash on delivery?", a: "Yes — pay cash or by card when your order arrives, anywhere in the UAE. No prepayment needed and no account required. We also send secure online payment links via WhatsApp if you prefer to pay in advance by card or Apple Pay." },
+                { q: "How do I know which puff count I need?", a: "Match it to your smoking habit. A 600–5,000 puff device is ideal for trying vaping or as a backup. Moderate daily vapers (ex-half-pack smokers) are happiest at 10,000–15,000 puffs, roughly one to two weeks of use. Heavy vapers should look at 20,000–40,000 puff devices, where the cost per puff is lowest. Remember: long direct-lung draws use e-liquid faster than short mouth-to-lung puffs." },
+                { q: "What is the difference between disposable vapes and pod systems?", a: "Disposables are pre-filled, pre-charged and draw-activated — you open the pack and vape, with zero setup or maintenance. Pod systems (like JUUL, XROS or Nord) pair a rechargeable battery with replaceable or refillable pods: higher upfront cost, but much cheaper per puff over time and more control over your draw and flavours. Beginners usually start disposable; regular vapers often graduate to pods within a few months." },
+                { q: "Are vapes legal in the UAE?", a: "Yes. Since 2019, the UAE regulates e-cigarettes and vaping products through ESMA (Emirates Authority for Standardization and Metrology). Legal products must meet UAE standards for labelling, packaging and nicotine content — which is exactly what we stock. You must be 18 or older to purchase, and vaping is restricted in the same public places as smoking." },
+                { q: "What if my device arrives faulty or I get the wrong flavour?", a: "Contact us on WhatsApp within 48 hours with a short video of the issue and your order number. Faulty devices are replaced free — no need to return the unit in most cases. Wrong flavours or products are exchanged on the next delivery run. Our support team replies around the clock, seven days a week." },
               ].map((f, i) => (
                 <div key={i}>
                   <button
