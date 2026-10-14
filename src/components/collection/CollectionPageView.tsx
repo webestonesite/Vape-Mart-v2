@@ -1137,43 +1137,53 @@ export function CollectionPageView({ category, allCategories, products }: Collec
             </div>
           )}
 
-          {/* FAQ */}
-          <div className="px-6 sm:px-10 py-8 sm:py-10">
-            <div className="flex items-center gap-3 mb-5">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-900/10 text-emerald-800">
-                <MessageCircle size={18} />
-              </span>
-              <h3 className="font-luxury text-xl font-bold text-emerald-950">Frequently Asked Questions</h3>
-            </div>
-            <div className="divide-y divide-emerald-900/10 rounded-2xl border border-emerald-900/10 overflow-hidden">
-              {[
-                { q: "Are your vapes 100% authentic?", a: "Yes — without exception. Every product at Vape Mart UAE is sourced from licensed UAE importers and carries verifiable authenticity packaging: scratch-to-verify codes, holograms or QR checks depending on the brand. We never sell clones, refills or grey-market stock. If any unit ever fails a brand authenticity check, we replace it free and investigate the batch." },
-                { q: "How fast is delivery in the UAE?", a: "Dubai orders placed before 9pm are delivered the same day, with express 2–3 hour delivery available in most areas including Marina, JLT, Deira, Bur Dubai and Business Bay. Sharjah, Ajman and Abu Dhabi are next-day. Ras Al Khaimah, Fujairah and Umm Al Quwain arrive within 48 hours. Every parcel is packed discreetly with no product branding visible on the outside." },
-                { q: "What nicotine strength should I choose?", a: "20mg (2%) suits most people switching from up to half a pack a day — it gives a smooth, cigarette-like throat hit. 50mg (5%) is for heavier smokers (a pack or more daily) who want maximum satisfaction with fewer puffs. Both use nicotine salts, which feel smoother and absorb faster than old freebase e-liquids. If you feel dizzy, you are vaping too much too fast — pause, drink water, and consider dropping to 20mg." },
-                { q: "Do you offer cash on delivery?", a: "Yes — pay cash or by card when your order arrives, anywhere in the UAE. No prepayment needed and no account required. We also send secure online payment links via WhatsApp if you prefer to pay in advance by card or Apple Pay." },
-                { q: "How do I know which puff count I need?", a: "Match it to your smoking habit. A 600–5,000 puff device is ideal for trying vaping or as a backup. Moderate daily vapers (ex-half-pack smokers) are happiest at 10,000–15,000 puffs, roughly one to two weeks of use. Heavy vapers should look at 20,000–40,000 puff devices, where the cost per puff is lowest. Remember: long direct-lung draws use e-liquid faster than short mouth-to-lung puffs." },
-                { q: "What is the difference between disposable vapes and pod systems?", a: "Disposables are pre-filled, pre-charged and draw-activated — you open the pack and vape, with zero setup or maintenance. Pod systems (like JUUL, XROS or Nord) pair a rechargeable battery with replaceable or refillable pods: higher upfront cost, but much cheaper per puff over time and more control over your draw and flavours. Beginners usually start disposable; regular vapers often graduate to pods within a few months." },
-                { q: "Are vapes legal in the UAE?", a: "Yes. Since 2019, the UAE regulates e-cigarettes and vaping products through ESMA (Emirates Authority for Standardization and Metrology). Legal products must meet UAE standards for labelling, packaging and nicotine content — which is exactly what we stock. You must be 18 or older to purchase, and vaping is restricted in the same public places as smoking." },
-                { q: "What if my device arrives faulty or I get the wrong flavour?", a: "Contact us on WhatsApp within 48 hours with a short video of the issue and your order number. Faulty devices are replaced free — no need to return the unit in most cases. Wrong flavours or products are exchanged on the next delivery run. Our support team replies around the clock, seven days a week." },
-              ].map((f, i) => (
-                <div key={i}>
-                  <button
-                    onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                    className="w-full flex items-center justify-between gap-4 px-5 min-h-[56px] text-left hover:bg-emerald-50/60 transition-colors"
-                  >
+        </section>
+
+        {/* ============ FAQ (standalone section) ============ */}
+        <section className="mt-12 sm:mt-16">
+          <div className="mb-6 max-w-2xl">
+            <p className="font-cinzel text-[11px] tracking-[0.24em] text-amber-600 font-bold mb-2">NEED HELP?</p>
+            <h2 className="font-luxury text-2xl sm:text-3xl font-bold text-emerald-950">Frequently Asked Questions</h2>
+            <p className="mt-2 text-sm text-neutral-500">Everything you need to know about authenticity, delivery, nicotine strengths and more.</p>
+          </div>
+          <div className="grid lg:grid-cols-2 gap-3 sm:gap-4">
+            {[
+              { q: "Are your vapes 100% authentic?", a: "Yes — without exception. Every product at Vape Mart UAE is sourced from licensed UAE importers and carries verifiable authenticity packaging: scratch-to-verify codes, holograms or QR checks depending on the brand. We never sell clones, refills or grey-market stock. If any unit ever fails a brand authenticity check, we replace it free and investigate the batch." },
+              { q: "How fast is delivery in the UAE?", a: "Dubai orders placed before 9pm are delivered the same day, with express 2–3 hour delivery available in most areas including Marina, JLT, Deira, Bur Dubai and Business Bay. Sharjah, Ajman and Abu Dhabi are next-day. Ras Al Khaimah, Fujairah and Umm Al Quwain arrive within 48 hours. Every parcel is packed discreetly with no product branding visible on the outside." },
+              { q: "What nicotine strength should I choose?", a: "20mg (2%) suits most people switching from up to half a pack a day — it gives a smooth, cigarette-like throat hit. 50mg (5%) is for heavier smokers (a pack or more daily) who want maximum satisfaction with fewer puffs. Both use nicotine salts, which feel smoother and absorb faster than old freebase e-liquids. If you feel dizzy, you are vaping too much too fast — pause, drink water, and consider dropping to 20mg." },
+              { q: "Do you offer cash on delivery?", a: "Yes — pay cash or by card when your order arrives, anywhere in the UAE. No prepayment needed and no account required. We also send secure online payment links via WhatsApp if you prefer to pay in advance by card or Apple Pay." },
+              { q: "How do I know which puff count I need?", a: "Match it to your smoking habit. A 600–5,000 puff device is ideal for trying vaping or as a backup. Moderate daily vapers (ex-half-pack smokers) are happiest at 10,000–15,000 puffs, roughly one to two weeks of use. Heavy vapers should look at 20,000–40,000 puff devices, where the cost per puff is lowest. Remember: long direct-lung draws use e-liquid faster than short mouth-to-lung puffs." },
+              { q: "What is the difference between disposable vapes and pod systems?", a: "Disposables are pre-filled, pre-charged and draw-activated — you open the pack and vape, with zero setup or maintenance. Pod systems (like JUUL, XROS or Nord) pair a rechargeable battery with replaceable or refillable pods: higher upfront cost, but much cheaper per puff over time and more control over your draw and flavours. Beginners usually start disposable; regular vapers often graduate to pods within a few months." },
+              { q: "Are vapes legal in the UAE?", a: "Yes. Since 2019, the UAE regulates e-cigarettes and vaping products through ESMA (Emirates Authority for Standardization and Metrology). Legal products must meet UAE standards for labelling, packaging and nicotine content — which is exactly what we stock. You must be 18 or older to purchase, and vaping is restricted in the same public places as smoking." },
+              { q: "What if my device arrives faulty or I get the wrong flavour?", a: "Contact us on WhatsApp within 48 hours with a short video of the issue and your order number. Faulty devices are replaced free — no need to return the unit in most cases. Wrong flavours or products are exchanged on the next delivery run. Our support team replies around the clock, seven days a week." },
+            ].map((f, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                transition={{ duration: 0.3, delay: Math.min(i * 0.05, 0.3) }}
+                className={`rounded-2xl border bg-white overflow-hidden transition-all ${openFaq === i ? "border-amber-400/60 shadow-[0_14px_30px_-14px_rgba(6,78,59,0.3)]" : "border-emerald-900/10 hover:border-emerald-900/25"}`}
+              >
+                <button
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left"
+                >
+                  <span className="flex items-center gap-3 min-w-0">
+                    <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-extrabold transition-colors ${openFaq === i ? "bg-amber-400 text-emerald-950" : "bg-emerald-900/10 text-emerald-800"}`}>
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
                     <span className="text-sm sm:text-[15px] font-semibold text-emerald-950">{f.q}</span>
-                    <ChevronDown size={18} className={`shrink-0 text-amber-600 transition-transform ${openFaq === i ? "rotate-180" : ""}`} />
-                  </button>
-                  <AnimatePresence initial={false}>
-                    {openFaq === i && (
-                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25 }} className="overflow-hidden">
-                        <p className="px-5 pb-5 text-sm text-neutral-600 leading-relaxed">{f.a}</p>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              ))}
-            </div>
+                  </span>
+                  <ChevronDown size={18} className={`shrink-0 text-amber-600 transition-transform duration-300 ${openFaq === i ? "rotate-180" : ""}`} />
+                </button>
+                <AnimatePresence initial={false}>
+                  {openFaq === i && (
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25 }} className="overflow-hidden">
+                      <p className="px-5 pb-5 pl-[60px] text-sm text-neutral-600 leading-relaxed">{f.a}</p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            ))}
           </div>
         </section>
 
