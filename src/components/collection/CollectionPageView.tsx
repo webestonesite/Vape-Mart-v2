@@ -607,23 +607,23 @@ export function CollectionPageView({ category, allCategories, products }: Collec
             <Eye size={16} /> QUICK VIEW
           </button>
         </div>
-        <div className="flex flex-1 flex-col p-3.5 sm:p-4">
-          <p className="font-cinzel text-[10px] tracking-[0.2em] text-emerald-700/80 font-bold">{p.brand}</p>
+        <div className="flex flex-1 flex-col p-2.5 sm:p-4">
+          <p className="font-cinzel text-[9px] sm:text-[10px] tracking-[0.2em] text-emerald-700/80 font-bold truncate">{p.brand}</p>
           <Link href={`/product/${p.slug}`} onClick={() => saveRecent(p)}>
-            <h3 className="mt-1 text-[13px] sm:text-sm font-semibold text-emerald-950 leading-snug line-clamp-2 hover:text-amber-600 transition-colors min-h-[2.6em]">
+            <h3 className="mt-0.5 sm:mt-1 text-[12px] sm:text-sm font-semibold text-emerald-950 leading-tight line-clamp-2 hover:text-amber-600 transition-colors min-h-[2.4em]">
               {p.title}
             </h3>
           </Link>
-          <div className="mt-1.5 flex items-center gap-1.5">
-            <Stars rating={p.rating} />
-            <span className="text-xs text-neutral-500">({p.revs})</span>
+          <div className="mt-1 flex items-center gap-1">
+            <Stars rating={p.rating} size={11} />
+            <span className="text-[11px] text-neutral-500">({p.revs})</span>
           </div>
-          <div className="mt-2 flex items-baseline gap-2 flex-wrap">
-            <span className="text-base sm:text-lg font-extrabold text-emerald-900">{formatAED(p.price)}</span>
+          <div className="mt-1.5 flex items-baseline gap-1.5 whitespace-nowrap overflow-hidden">
+            <span className="text-[15px] sm:text-lg font-extrabold text-emerald-900">{formatAED(p.price)}</span>
             {p.originalPrice > p.price && (
               <>
-                <span className="text-xs sm:text-sm text-neutral-400 line-through">{formatAED(p.originalPrice)}</span>
-                <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 rounded-full px-2 py-0.5">
+                <span className="text-[11px] sm:text-sm text-neutral-400 line-through">{formatAED(p.originalPrice)}</span>
+                <span className="hidden sm:inline-block text-[11px] font-bold text-emerald-700 bg-emerald-50 rounded-full px-2 py-0.5">
                   Save {formatAED(p.originalPrice - p.price)}
                 </span>
               </>
