@@ -25,7 +25,6 @@ import {
   MessageCircle,
   Flame,
   ArrowRight,
-  Sparkles,
   ArrowLeftRight,
   History,
   ArrowLeft,
@@ -732,7 +731,7 @@ export function CollectionPageView({ category, allCategories, products }: Collec
               onClick={openQuiz}
               className="mt-5 h-[52px] px-7 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 text-emerald-950 font-extrabold text-sm tracking-wide hover:brightness-105 active:scale-[0.98] transition-all shadow-[0_12px_32px_-10px_rgba(245,158,11,0.65)] inline-flex items-center gap-2.5"
             >
-              <Sparkles size={18} /> FIND YOUR VAPE
+              FIND YOUR VAPE
             </button>
           </motion.div>
           {/* brand quick chips */}
@@ -771,35 +770,41 @@ export function CollectionPageView({ category, allCategories, products }: Collec
           {/* content */}
           <div className="flex-1 min-w-0" id="collection-grid-top">
             {/* toolbar */}
-            <div className="flex items-center gap-3 mb-5">
-              <button
-                onClick={() => setIsMobileFilterOpen(true)}
-                className="lg:hidden h-11 px-4 rounded-xl bg-emerald-900 text-white text-sm font-bold flex items-center gap-2 shrink-0"
-              >
-                <SlidersHorizontal size={16} /> FILTERS
-                {activeFilterCount > 0 && (
-                  <span className="w-5 h-5 rounded-full bg-amber-400 text-emerald-950 text-[11px] font-extrabold flex items-center justify-center">{activeFilterCount}</span>
-                )}
-              </button>
-              <p className="text-sm text-neutral-600">
+            <div className="mb-5">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setIsMobileFilterOpen(true)}
+                  className="lg:hidden h-11 px-4 rounded-xl bg-emerald-900 text-white text-sm font-bold flex items-center gap-2 shrink-0"
+                >
+                  <SlidersHorizontal size={16} /> FILTERS
+                  {activeFilterCount > 0 && (
+                    <span className="w-5 h-5 rounded-full bg-amber-400 text-emerald-950 text-[11px] font-extrabold flex items-center justify-center">{activeFilterCount}</span>
+                  )}
+                </button>
+                <p className="hidden lg:block text-sm text-neutral-600">
+                  Showing <span className="font-bold text-emerald-900">{pageItems.length}</span> of{" "}
+                  <span className="font-bold text-emerald-900">{filtered.length}</span> products
+                </p>
+                <div className="ml-auto relative">
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+                    aria-label="Sort products"
+                    className="h-11 appearance-none rounded-xl border border-emerald-900/15 bg-white pl-4 pr-10 text-sm font-semibold text-emerald-950 outline-none focus:border-amber-500 cursor-pointer"
+                  >
+                    <option value="popular">Most Popular</option>
+                    <option value="rating">Top Rated</option>
+                    <option value="price_asc">Price: Low → High</option>
+                    <option value="price_desc">Price: High → Low</option>
+                    <option value="newest">Newest</option>
+                  </select>
+                  <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-800 pointer-events-none" />
+                </div>
+              </div>
+              <p className="lg:hidden mt-2.5 text-[13px] text-neutral-500">
                 Showing <span className="font-bold text-emerald-900">{pageItems.length}</span> of{" "}
                 <span className="font-bold text-emerald-900">{filtered.length}</span> products
               </p>
-              <div className="ml-auto relative">
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-                  aria-label="Sort products"
-                  className="h-11 appearance-none rounded-xl border border-emerald-900/15 bg-white pl-4 pr-10 text-sm font-semibold text-emerald-950 outline-none focus:border-amber-500 cursor-pointer"
-                >
-                  <option value="popular">Most Popular</option>
-                  <option value="rating">Top Rated</option>
-                  <option value="price_asc">Price: Low → High</option>
-                  <option value="price_desc">Price: High → Low</option>
-                  <option value="newest">Newest</option>
-                </select>
-                <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-800 pointer-events-none" />
-              </div>
             </div>
 
             {/* grid */}
@@ -1538,7 +1543,7 @@ export function CollectionPageView({ category, allCategories, products }: Collec
                     disabled={quizMatches === 0}
                     className="mt-3 w-full h-[54px] rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 text-emerald-950 font-extrabold text-sm tracking-wide hover:brightness-105 active:scale-[0.99] transition-all disabled:opacity-40 flex items-center justify-center gap-2"
                   >
-                    <Sparkles size={17} /> SHOW MY {quizMatches} RESULT{quizMatches === 1 ? "" : "S"}
+                    SHOW MY {quizMatches} RESULT{quizMatches === 1 ? "" : "S"}
                   </button>
                 )}
                 <button onClick={() => setQuizOpen(false)} className="mt-2 w-full py-2 text-xs font-semibold text-neutral-400 hover:text-neutral-600">
