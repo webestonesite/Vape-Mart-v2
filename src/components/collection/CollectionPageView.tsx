@@ -24,11 +24,6 @@ import {
   MessageCircle,
   Flame,
   ArrowRight,
-  Snowflake,
-  Wind,
-  Leaf,
-  Candy,
-  LayoutGrid,
   Sparkles,
   Zap,
   Timer,
@@ -69,6 +64,85 @@ function Stars({ rating, size = 14 }: { rating: number; size?: number }) {
         />
       ))}
     </span>
+  );
+}
+
+interface QuizOption {
+  value: string;
+  label: string;
+  sub?: string;
+  count?: number;
+  image?: string;
+}
+
+function QuizDropdown({
+  value, onSelect, options, placeholder,
+}: {
+  value: string | null;
+  onSelect: (v: string) => void;
+  options: QuizOption[];
+  placeholder: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const selected = options.find((o) => o.value === value);
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className={`w-full min-h-[60px] rounded-2xl border-2 px-4 flex items-center gap-3 text-left transition-all active:scale-[0.99] ${open || selected ? "border-amber-500 bg-amber-50/60" : "border-emerald-900/15 hover:border-amber-500/60"}`}
+      >
+        {selected?.image ? (
+          <span className="w-10 h-10 rounded-xl bg-white border border-emerald-900/10 overflow-hidden shrink-0">
+            <Image src={selected.image} alt="" width={40} height={40} className="w-full h-full object-contain" />
+          </span>
+        ) : null}
+        <span className="flex-1 min-w-0">
+          <span className={`block text-sm font-extrabold truncate ${selected ? "text-emerald-950" : "text-neutral-400"}`}>
+            {selected ? selected.label : placeholder}
+          </span>
+          {selected?.sub && <span className="block text-xs text-neutral-500 truncate mt-0.5">{selected.sub}</span>}
+        </span>
+        {selected?.count !== undefined && (
+          <span className="text-xs font-bold text-emerald-700 bg-emerald-50 rounded-full px-2 py-0.5 shrink-0">{selected.count} matches</span>
+        )}
+        <ChevronDown size={18} className={`text-amber-600 shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <>
+            <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+            <motion.div
+              initial={{ opacity: 0, y: -6, scale: 0.99 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.99 }}
+              transition={{ duration: 0.18 }}
+              className="absolute z-20 left-0 right-0 mt-2 rounded-2xl border border-emerald-900/10 bg-white shadow-[0_24px_50px_-12px_rgba(2,44,34,0.35)] overflow-hidden max-h-[280px] overflow-y-auto"
+            >
+              {options.map((o) => (
+                <button
+                  key={o.value}
+                  onClick={() => { onSelect(o.value); setOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-emerald-50/70 transition-colors ${value === o.value ? "bg-amber-50" : ""}`}
+                >
+                  {o.image ? (
+                    <span className="w-10 h-10 rounded-xl bg-white border border-emerald-900/10 overflow-hidden shrink-0">
+                      <Image src={o.image} alt="" width={40} height={40} className="w-full h-full object-contain" />
+                    </span>
+                  ) : null}
+                  <span className="flex-1 min-w-0">
+                    <span className="block text-sm font-bold text-emerald-950">{o.label}</span>
+                    {o.sub && <span className="block text-xs text-neutral-500 truncate mt-0.5">{o.sub}</span>}
+                  </span>
+                  {o.count !== undefined && (
+                    <span className="text-xs font-bold text-emerald-700 bg-emerald-50 rounded-full px-2 py-0.5 shrink-0">{o.count}</span>
+                  )}
+                  {value === o.value && <Check size={16} className="text-amber-600 shrink-0" />}
+                </button>
+              ))}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 
@@ -169,12 +243,18 @@ export function CollectionPageView({ category, allCategories, products }: Collec
     catalogProducts.forEach((p) => { c[p.flavorFamily] = (c[p.flavorFamily] || 0) + 1; });
     return c;
   }, []);
-  const flavorFamilies = useMemo(() => ([
-    { id: "fruit_ice", name: "Fruit Ice", icon: Snowflake, desc: "Icy fruit blends — mango ice, blue razz, watermelon chill", color: "text-sky-400", bg: "from-sky-500/20 to-sky-500/5" },
-    { id: "menthol", name: "Menthol & Mint", icon: Wind, desc: "Cool, crisp and refreshing with every puff", color: "text-emerald-400", bg: "from-emerald-500/20 to-emerald-500/5" },
-    { id: "tobacco", name: "Tobacco", icon: Leaf, desc: "Classic rich tobacco notes for traditional taste", color: "text-amber-500", bg: "from-amber-500/20 to-amber-500/5" },
-    { id: "dessert", name: "Dessert & Sweet", icon: Candy, desc: "Vanilla custard, candy and sweet treats", color: "text-rose-400", bg: "from-rose-500/20 to-rose-500/5" },
-  ] as const), []);
+  const flavorFamilies = useMemo(() => {
+    const defs = [
+      { id: "fruit_ice", name: "Fruit Ice", desc: "Icy fruit blends — mango ice, blue razz, watermelon chill" },
+      { id: "menthol", name: "Menthol & Mint", desc: "Cool, crisp and refreshing with every puff" },
+      { id: "tobacco", name: "Tobacco", desc: "Classic rich tobacco notes for traditional taste" },
+      { id: "dessert", name: "Dessert & Sweet", desc: "Vanilla custard, candy and sweet treats" },
+    ] as const;
+    return defs.map((d) => ({
+      ...d,
+      image: catalogProducts.find((p) => p.flavorFamily === d.id)?.primaryImage ?? "",
+    }));
+  }, []);
 
   const nicotineCounts = useMemo(() => {
     const c: Record<string, number> = {};
@@ -466,7 +546,6 @@ export function CollectionPageView({ category, allCategories, products }: Collec
               >
                 {selectedFlavorFamilies.includes(f.id) && <Check size={12} className="text-white" strokeWidth={3.5} />}
               </button>
-              <f.icon size={15} className={`${f.color} shrink-0`} />
               <span className="text-sm text-emerald-950 flex-1">{f.name}</span>
               <span className="text-xs font-semibold text-emerald-900/45 bg-emerald-50 rounded-full px-2 py-0.5">{flavorFamilyCounts[f.id] || 0}</span>
             </label>
@@ -949,14 +1028,19 @@ export function CollectionPageView({ category, allCategories, products }: Collec
                 key={f.id}
                 initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
                 transition={{ duration: 0.35, delay: Math.min(i * 0.05, 0.3) }}
-                className={`rounded-2xl bg-gradient-to-br ${f.bg} border border-emerald-900/10 bg-white p-4 sm:p-6`}
+                className="group relative rounded-2xl overflow-hidden border border-emerald-900/10 bg-white"
               >
-                <span className={`inline-flex w-11 h-11 rounded-2xl bg-white border border-emerald-900/10 items-center justify-center ${f.color} shadow-sm`}>
-                  <f.icon size={22} />
-                </span>
-                <p className="mt-3 font-luxury text-base sm:text-lg font-bold text-emerald-950">{f.name}</p>
-                <p className="mt-1 text-xs sm:text-sm text-neutral-500 leading-relaxed">{f.desc}</p>
-                <p className="mt-2 text-xs font-bold text-emerald-700">{flavorFamilyCounts[f.id] || 0} products</p>
+                <div className="relative h-36 sm:h-44 bg-gradient-to-br from-emerald-50 to-white">
+                  {f.image ? (
+                    <Image src={f.image} alt={f.name} fill className="object-contain p-4 transition-transform duration-500 group-hover:scale-110" sizes="300px" />
+                  ) : null}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#022c22]/70 via-transparent to-transparent" />
+                  <p className="absolute bottom-3 left-4 right-4 font-luxury text-base sm:text-lg font-bold text-white leading-tight">{f.name}</p>
+                </div>
+                <div className="p-4">
+                  <p className="text-xs sm:text-sm text-neutral-500 leading-relaxed line-clamp-2">{f.desc}</p>
+                  <p className="mt-2 text-xs font-bold text-emerald-700">{flavorFamilyCounts[f.id] || 0} products →</p>
+                </div>
               </motion.div>
             ))}
           </div>
@@ -1260,32 +1344,20 @@ export function CollectionPageView({ category, allCategories, products }: Collec
                   </div>
                 )}
                 {quizStep === 1 && (
-                  <div className="flex flex-wrap gap-2.5">
-                    {nicotines.map((n) => (
-                      <button
-                        key={n}
-                        onClick={() => { setQuizNicotine(n); setQuizStep(2); }}
-                        className={`min-h-[52px] px-5 rounded-2xl border-2 text-sm font-bold transition-all active:scale-[0.98] ${quizNicotine === n ? "border-amber-500 bg-amber-50 text-emerald-950" : "border-emerald-900/15 text-emerald-900 hover:border-amber-500/60"}`}
-                      >
-                        {n} <span className="text-xs font-semibold opacity-60">({nicotineCounts[n]})</span>
-                      </button>
-                    ))}
-                  </div>
+                  <QuizDropdown
+                    value={quizNicotine}
+                    placeholder="Select nicotine strength"
+                    options={nicotines.map((n) => ({ value: n, label: n, count: nicotineCounts[n] }))}
+                    onSelect={(v) => { setQuizNicotine(v); setQuizStep(2); }}
+                  />
                 )}
                 {quizStep === 2 && (
-                  <div className="grid grid-cols-2 gap-3">
-                    {flavorFamilies.map((f) => (
-                      <button
-                        key={f.id}
-                        onClick={() => setQuizFlavor(f.id)}
-                        className={`min-h-[96px] rounded-2xl border-2 p-3.5 text-left transition-all active:scale-[0.98] ${quizFlavor === f.id ? "border-amber-500 bg-amber-50" : "border-emerald-900/15 hover:border-amber-500/60"}`}
-                      >
-                        <f.icon size={22} className={f.color} />
-                        <p className="mt-2 text-sm font-extrabold text-emerald-950">{f.name}</p>
-                        <p className="text-[11px] font-bold text-emerald-700 mt-0.5">{flavorFamilyCounts[f.id] || 0} matches</p>
-                      </button>
-                    ))}
-                  </div>
+                  <QuizDropdown
+                    value={quizFlavor}
+                    placeholder="Select your flavour vibe"
+                    options={flavorFamilies.map((f) => ({ value: f.id, label: f.name, sub: f.desc, count: flavorFamilyCounts[f.id] || 0, image: f.image }))}
+                    onSelect={(v) => setQuizFlavor(v)}
+                  />
                 )}
                 <div className="mt-6 flex items-center gap-3">
                   {quizStep > 0 && (
