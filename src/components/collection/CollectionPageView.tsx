@@ -1244,33 +1244,59 @@ export function CollectionPageView({ category, allCategories, products }: Collec
 
         {/* ============ REVIEWS ============ */}
         {allReviews.length > 0 && (
-          <section className="mt-12 sm:mt-16">
-            <div className="flex items-end justify-between mb-5">
-              <div>
-                <p className="font-cinzel text-[11px] tracking-[0.24em] text-amber-600 font-bold mb-2">VERIFIED BUYERS</p>
-                <h2 className="font-luxury text-2xl sm:text-3xl font-bold text-emerald-950">Customer Reviews</h2>
-              </div>
-              <div className="flex items-center gap-2 bg-white border border-emerald-900/10 rounded-2xl px-4 py-2.5">
-                <span className="font-luxury text-2xl font-bold text-emerald-900">{avgRating.toFixed(1)}</span>
+          <section className="mt-12 sm:mt-16 overflow-hidden rounded-3xl bg-gradient-to-br from-[#064e3b] via-[#043e2e] to-[#022c22] relative">
+            <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-amber-400/10 blur-[90px] pointer-events-none" />
+            <div className="absolute -bottom-24 -right-16 h-60 w-60 rounded-full bg-emerald-400/10 blur-[80px] pointer-events-none" />
+            <div className="relative z-10 p-6 sm:p-10">
+              <div className="flex flex-wrap items-end justify-between gap-4 mb-7">
                 <div>
-                  <Stars rating={avgRating} size={13} />
-                  <p className="text-[11px] text-neutral-500">{totalRevs.toLocaleString()} reviews</p>
+                  <p className="inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-amber-400/10 px-4 py-1.5 font-cinzel text-[11px] tracking-[0.24em] text-amber-300 font-bold mb-3">
+                    VERIFIED BUYERS
+                  </p>
+                  <h2 className="font-luxury text-2xl sm:text-3xl font-bold text-white">Customer Reviews</h2>
+                  <p className="mt-2 text-sm text-emerald-100/70 max-w-lg">Real feedback from verified customers across the UAE — unedited and unfiltered.</p>
                 </div>
-              </div>
-            </div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {allReviews.map((r) => (
-                <div key={r.id} className="rounded-2xl bg-white border border-emerald-900/10 p-5">
-                  <Stars rating={r.rating} />
-                  <p className="mt-2 text-sm font-bold text-emerald-950">{r.title}</p>
-                  <p className="mt-1.5 text-sm text-neutral-600 leading-relaxed line-clamp-3">{r.comment}</p>
-                  <div className="mt-3 flex items-center gap-2 text-xs text-neutral-500">
-                    <span className="font-semibold text-emerald-900">{r.author}</span>
-                    {r.verified && <span className="inline-flex items-center gap-1 text-emerald-700 font-semibold"><BadgeCheck size={13} /> Verified</span>}
-                    <span className="ml-auto">{r.location}</span>
+                <div className="flex items-center gap-4 rounded-2xl bg-white/[0.07] border border-white/10 backdrop-blur px-5 py-4">
+                  <span className="font-luxury text-4xl font-bold text-amber-300">{avgRating.toFixed(1)}</span>
+                  <div>
+                    <Stars rating={avgRating} size={15} />
+                    <p className="text-xs text-emerald-100/70 mt-1">{totalRevs.toLocaleString()} verified reviews</p>
                   </div>
                 </div>
-              ))}
+              </div>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {allReviews.map((r, i) => (
+                  <motion.figure
+                    key={r.id}
+                    initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: Math.min(i * 0.07, 0.3) }}
+                    className="group relative rounded-2xl bg-white p-5 sm:p-6 flex flex-col overflow-hidden hover:shadow-[0_20px_44px_-16px_rgba(0,0,0,0.45)] hover:-translate-y-1 transition-all duration-300"
+                  >
+                    <span className="absolute top-4 right-5 font-luxury text-5xl text-amber-400/25 select-none leading-none">&rdquo;</span>
+                    <div className="flex items-center justify-between">
+                      <Stars rating={r.rating} size={14} />
+                      {r.verified && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-900/5 border border-emerald-900/10 px-2.5 py-1 text-[11px] text-emerald-700 font-bold">
+                          <BadgeCheck size={12} /> Verified
+                        </span>
+                      )}
+                    </div>
+                    <blockquote className="mt-3 flex-1">
+                      <p className="text-[15px] font-bold text-emerald-950 leading-snug">{r.title}</p>
+                      <p className="mt-2 text-sm text-neutral-600 leading-relaxed line-clamp-4">{r.comment}</p>
+                    </blockquote>
+                    <figcaption className="mt-4 pt-4 border-t border-emerald-900/10 flex items-center gap-3">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#064e3b] to-[#022c22] text-amber-300 font-luxury font-bold text-sm">
+                        {r.author.charAt(0)}
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block text-sm font-bold text-emerald-950 truncate">{r.author}</span>
+                        <span className="block text-xs text-neutral-500 truncate">{r.location}</span>
+                      </span>
+                    </figcaption>
+                  </motion.figure>
+                ))}
+              </div>
             </div>
           </section>
         )}
