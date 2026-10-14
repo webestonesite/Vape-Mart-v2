@@ -1019,13 +1019,46 @@ export function CollectionPageView({ category, allCategories, products }: Collec
           </div>
 
           {/* Intro lead */}
-          <div className="px-6 sm:px-10 pt-8 sm:pt-10 max-w-4xl">
-            <p className="text-base sm:text-lg leading-relaxed text-emerald-950 font-medium">
-              Whether you are switching from cigarettes or upgrading your setup, choose by <span className="text-amber-600 font-bold">puff count first</span> (5,000–10,000 for casual use, 20,000+ for heavy daily vaping), then match your nicotine strength — <span className="text-amber-600 font-bold">20mg (2%)</span> for a balanced throat hit or <span className="text-amber-600 font-bold">50mg (5%)</span> for maximum satisfaction.
-            </p>
-            <p className="mt-4 text-sm sm:text-[15px] leading-relaxed text-neutral-600">
-              All orders placed before 9pm qualify for same-day dispatch in Dubai, Sharjah and Ajman, with cash on delivery available across the UAE. Below is everything you need to buy with confidence — from puff counts to flavour families.
-            </p>
+          <div className="px-6 sm:px-10 pt-8 sm:pt-10">
+            <div className="grid lg:grid-cols-[1fr_320px] gap-6 lg:gap-8 items-start">
+              <div>
+                <p className="text-base sm:text-lg leading-relaxed text-emerald-950 font-medium">
+                  Whether you are switching from cigarettes or upgrading your setup, choose by <span className="text-amber-600 font-bold">puff count first</span> (5,000–10,000 for casual use, 20,000+ for heavy daily vaping), then match your nicotine strength — <span className="text-amber-600 font-bold">20mg (2%)</span> for a balanced throat hit or <span className="text-amber-600 font-bold">50mg (5%)</span> for maximum satisfaction.
+                </p>
+                <p className="mt-4 text-sm sm:text-[15px] leading-relaxed text-neutral-600">
+                  All orders placed before 9pm qualify for same-day dispatch in Dubai, Sharjah and Ajman, with cash on delivery available across the UAE. Below is everything you need to buy with confidence — from puff counts to flavour families.
+                </p>
+                <div className="mt-5 flex flex-wrap gap-2">
+                  {["5,000–40,000 puffs", "20mg & 50mg nic salts", "Dual-mesh coils", "Type-C charging"].map((t) => (
+                    <span key={t} className="inline-flex items-center gap-1.5 rounded-full bg-emerald-900/5 border border-emerald-900/10 px-3 py-1.5 text-xs font-semibold text-emerald-900">
+                      <Check size={13} className="text-amber-600" /> {t}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <aside className="rounded-2xl bg-gradient-to-br from-[#064e3b] to-[#022c22] p-5 sm:p-6 text-white relative overflow-hidden">
+                <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-amber-400/20 blur-[50px] pointer-events-none" />
+                <p className="relative font-cinzel text-[10px] tracking-[0.22em] text-amber-300 font-bold mb-4">WHY VAPE MART</p>
+                <ul className="relative space-y-3.5">
+                  {[
+                    { icon: BadgeCheck, t: "100% Authentic", d: "Licensed UAE importer stock" },
+                    { icon: Truck, t: "Same-Day Dispatch", d: "Order before 9pm, Dubai express 2–3h" },
+                    { icon: CreditCard, t: "Cash on Delivery", d: "Pay cash or card at your door" },
+                    { icon: Headset, t: "24/7 Expert Help", d: "Real humans on WhatsApp" },
+                  ].map((f) => (
+                    <li key={f.t} className="flex items-start gap-3">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/10 text-amber-300">
+                        <f.icon size={16} />
+                      </span>
+                      <span>
+                        <span className="block text-sm font-bold">{f.t}</span>
+                        <span className="block text-xs text-emerald-100/70 mt-0.5">{f.d}</span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </aside>
+            </div>
           </div>
 
           {/* Guide chapters — numbered premium cards */}
