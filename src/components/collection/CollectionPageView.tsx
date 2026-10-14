@@ -6,6 +6,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronRight,
+  ChevronLeft,
   ChevronDown,
   X,
   Star,
@@ -1262,21 +1263,39 @@ export function CollectionPageView({ category, allCategories, products }: Collec
                   <h2 className="font-luxury text-2xl sm:text-3xl font-bold text-white">Customer Reviews</h2>
                   <p className="mt-2 text-sm text-emerald-100/70 max-w-lg">Real feedback from verified customers across the UAE — unedited and unfiltered.</p>
                 </div>
-                <div className="flex items-center gap-4 rounded-2xl bg-white/[0.07] border border-white/10 backdrop-blur px-5 py-4">
-                  <span className="font-luxury text-4xl font-bold text-amber-300">{avgRating.toFixed(1)}</span>
-                  <div>
-                    <Stars rating={avgRating} size={15} />
-                    <p className="text-xs text-emerald-100/70 mt-1">{totalRevs.toLocaleString()} verified reviews</p>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-4 rounded-2xl bg-white/[0.07] border border-white/10 backdrop-blur px-5 py-4">
+                    <span className="font-luxury text-4xl font-bold text-amber-300">{avgRating.toFixed(1)}</span>
+                    <div>
+                      <Stars rating={avgRating} size={15} />
+                      <p className="text-xs text-emerald-100/70 mt-1">{totalRevs.toLocaleString()} verified reviews</p>
+                    </div>
+                  </div>
+                  <div className="hidden sm:flex items-center gap-2">
+                    <button
+                      onClick={() => document.getElementById("reviews-track")?.scrollBy({ left: -360, behavior: "smooth" })}
+                      aria-label="Previous reviews"
+                      className="w-11 h-11 rounded-full border border-white/20 text-white flex items-center justify-center hover:bg-amber-400 hover:border-amber-400 hover:text-emerald-950 transition-all"
+                    >
+                      <ChevronLeft size={20} />
+                    </button>
+                    <button
+                      onClick={() => document.getElementById("reviews-track")?.scrollBy({ left: 360, behavior: "smooth" })}
+                      aria-label="Next reviews"
+                      className="w-11 h-11 rounded-full border border-white/20 text-white flex items-center justify-center hover:bg-amber-400 hover:border-amber-400 hover:text-emerald-950 transition-all"
+                    >
+                      <ChevronRight size={20} />
+                    </button>
                   </div>
                 </div>
               </div>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div id="reviews-track" className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 -mx-1 px-1" style={{ scrollbarWidth: "none" }}>
                 {allReviews.map((r, i) => (
                   <motion.figure
                     key={r.id}
-                    initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-                    transition={{ duration: 0.4, delay: Math.min(i * 0.07, 0.3) }}
-                    className="group relative rounded-2xl bg-white p-5 sm:p-6 flex flex-col overflow-hidden hover:shadow-[0_20px_44px_-16px_rgba(0,0,0,0.45)] hover:-translate-y-1 transition-all duration-300"
+                    initial={{ opacity: 0, x: 24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: Math.min(i * 0.06, 0.3) }}
+                    className="group relative shrink-0 snap-start w-[300px] sm:w-[340px] rounded-2xl bg-white p-5 sm:p-6 flex flex-col overflow-hidden hover:shadow-[0_20px_44px_-16px_rgba(0,0,0,0.45)] transition-all duration-300"
                   >
                     <span className="absolute top-4 right-5 font-luxury text-5xl text-amber-400/25 select-none leading-none">&rdquo;</span>
                     <div className="flex items-center justify-between">
