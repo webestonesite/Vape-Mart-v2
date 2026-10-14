@@ -562,12 +562,12 @@ export function CollectionPageView({ category, allCategories, products }: Collec
           <Link href={`/product/${p.slug}`} aria-label={p.title} className="block w-full h-full" onClick={() => saveRecent(p)}>
             <Image
               src={p.primaryImage} alt={p.title} fill sizes="(max-width: 640px) 50vw, 33vw"
-              className="object-contain p-3 transition-transform duration-500 group-hover:scale-105"
+              className="object-contain p-1 sm:p-2 transition-transform duration-500 group-hover:scale-105"
             />
             {p.images[1] && (
               <Image
                 src={p.images[1]} alt="" aria-hidden fill sizes="(max-width: 640px) 50vw, 33vw"
-                className="object-contain p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                className="object-contain p-1 sm:p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
               />
             )}
           </Link>
