@@ -19,9 +19,11 @@ import {
   Headset,
   BadgeCheck,
   MessageCircle,
+  Share2,
   Zap,
   ArrowRight,
   X,
+  Link2,
 } from "lucide-react";
 import { ProductItem, CartItem } from "@/types/product";
 import { Header } from "@/components/Header";
@@ -59,6 +61,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
   const [tab, setTab] = useState<"desc" | "specs" | "ship">("desc");
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [showSticky, setShowSticky] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [wished, setWished] = useState(false);
   const [flavorDropOpen, setFlavorDropOpen] = useState(false);
   const [nicotineDropOpen, setNicotineDropOpen] = useState(false);
@@ -113,6 +116,12 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
       return [...prev, newItem];
     });
     if (openDrawer) setIsCartOpen(true);
+  };
+
+  const copyLink = async () => {
+    try { await navigator.clipboard.writeText(window.location.href); } catch { /* noop */ }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1800);
   };
 
   const keySpecs = useMemo(() => [
@@ -198,6 +207,22 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
               </span>
             </div>
 
+            {/* share */}
+            <div className="mt-3 flex items-center gap-2">
+              <span className="text-xs font-bold text-neutral-400 tracking-wide flex items-center gap-1"><Share2 size={13} /> SHARE</span>
+              {[
+                { icon: MessageCircle, href: `https://wa.me/?text=${typeof window !== "undefined" ? encodeURIComponent(window.location.href) : ""}`, label: "Share on WhatsApp" },
+              ].map((s) => (
+                <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label} className="w-9 h-9 rounded-full border border-emerald-900/15 flex items-center justify-center text-emerald-800 hover:border-amber-500 hover:text-amber-600 transition-colors">
+                  <s.icon size={15} />
+                </a>
+              ))}
+              <button onClick={copyLink} aria-label="Copy product link" className="h-9 px-3 rounded-full border border-emerald-900/15 flex items-center gap-1.5 text-xs font-bold text-emerald-800 hover:border-amber-500 hover:text-amber-600 transition-colors">
+                {copied ? <Check size={14} className="text-emerald-600" /> : <Link2 size={14} />}
+                {copied ? "COPIED" : "COPY LINK"}
+              </button>
+            </div>
+
             {/* price */}
             <div className="mt-4 flex items-baseline gap-3 flex-wrap">
               <span className="text-3xl sm:text-4xl font-extrabold text-emerald-900">{formatAED(product.price)}</span>
@@ -210,14 +235,20 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
             </div>
             <p className="mt-1 text-xs text-neutral-500">VAT included. Free delivery on orders over AED 350.</p>
 
-            {/* key specs — clean strip */}
-            <div className="mt-5 flex divide-x divide-emerald-900/10 rounded-2xl bg-emerald-50/60 px-1 py-3">
-              {keySpecs.slice(0, 4).map((s) => (
-                <div key={s.label} className="flex-1 px-3 text-center">
-                  <p className="text-[10px] font-bold tracking-wider text-neutral-400">{s.label}</p>
-                  <p className="mt-0.5 text-[13px] font-bold text-emerald-950 leading-snug">{s.value}</p>
-                </div>
-              ))}
+            {/* key specs mini-grid */}
+            <div className="mt-5 rounded-2xl border-2 border-emerald-900/10 bg-white overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-2.5 bg-emerald-950">
+                <span className="font-cinzel text-[10px] tracking-[0.2em] text-amber-300 font-bold">KEY SPECIFICATIONS</span>
+                <span className="text-[10px] font-bold text-emerald-200/70">{keySpecs.filter((s) => s.value !== "—").length} SPECS</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4">
+                {keySpecs.map((s) => (
+                  <div key={s.label} className="px-3.5 py-3 border-b border-r border-emerald-900/10">
+                    <p className="text-[10px] font-bold tracking-wider text-neutral-400">{s.label}</p>
+                    <p className="mt-0.5 text-[13px] font-bold text-emerald-950 leading-snug">{s.value}</p>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* flavors — premium dropdown */}
