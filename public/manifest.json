@@ -1,0 +1,25 @@
+{
+  "name": "Vape Mart UAE",
+  "short_name": "Vape Mart",
+  "description": "Premium authentic vapes, pods & e-liquids with express UAE delivery.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#022c22",
+  "theme_color": "#064e3b",
+  "icons": [
+    {
+      "src": "/vape-mart-logo.jpg",
+      "sizes": "1024x1024",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/logo.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
