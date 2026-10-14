@@ -859,31 +859,40 @@ export function CollectionPageView({ category, allCategories, products }: Collec
 
         {/* ============ RECENTLY VIEWED ============ */}
         {recentlyViewed.length > 0 && (
-          <section className="mt-12 sm:mt-16">
-            <div className="flex items-end justify-between mb-5">
+          <section className="mt-12 sm:mt-16 rounded-3xl border border-emerald-900/10 bg-gradient-to-br from-white via-emerald-50/40 to-amber-50/30 p-5 sm:p-8 shadow-[0_20px_60px_-30px_rgba(6,78,59,0.25)]">
+            <div className="flex items-end justify-between mb-6">
               <div>
-                <p className="font-cinzel text-[11px] tracking-[0.24em] text-amber-600 font-bold mb-2">PICK UP WHERE YOU LEFT OFF</p>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-950 px-3.5 py-1.5 font-cinzel text-[10px] tracking-[0.22em] text-amber-300 font-bold mb-3">
+                  <History size={12} /> PICK UP WHERE YOU LEFT OFF
+                </span>
                 <h2 className="font-luxury text-2xl sm:text-3xl font-bold text-emerald-950">Recently Viewed</h2>
               </div>
-              <span className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-800/70">
-                <History size={14} /> Saved on this device
+              <span className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-800/60">
+                Saved on this device
               </span>
             </div>
-            <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden -mx-4 px-4 sm:mx-0 sm:px-0">
+            <div className="flex gap-4 sm:gap-5 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden -mx-5 px-5 sm:mx-0 sm:px-0">
               {recentlyViewed.map((r) => (
                 <Link
                   key={r.slug}
                   href={`/product/${r.slug}`}
-                  className="group shrink-0 w-40 sm:w-48 snap-start rounded-2xl bg-white border border-emerald-900/10 overflow-hidden hover:shadow-lg transition-shadow"
+                  className="group relative shrink-0 w-48 sm:w-60 snap-start rounded-3xl bg-white border border-emerald-900/10 overflow-hidden hover:border-amber-400/60 hover:shadow-[0_24px_50px_-20px_rgba(245,158,11,0.35)] hover:-translate-y-1 transition-all duration-300"
                 >
-                  <div className="relative aspect-square bg-gradient-to-br from-[#f8fafc] to-emerald-50/60">
-                    <Image src={r.primaryImage} alt={r.title} fill sizes="192px" className="object-contain p-3 transition-transform duration-500 group-hover:scale-105" />
+                  <div className="relative aspect-[4/3] bg-gradient-to-br from-emerald-50/80 via-white to-amber-50/40 overflow-hidden">
+                    <Image src={r.primaryImage} alt={r.title} fill sizes="240px" className="object-contain p-4 transition-transform duration-500 group-hover:scale-110" />
+                    <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-white/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
-                  <div className="p-3">
-                    <p className="font-cinzel text-[9px] tracking-[0.18em] text-emerald-700/80 font-bold">{r.brand}</p>
-                    <p className="mt-0.5 text-xs font-semibold text-emerald-950 leading-snug line-clamp-2 min-h-[2.4em]">{r.title}</p>
-                    <p className="mt-1 text-sm font-extrabold text-emerald-900">{formatAED(r.price)}</p>
+                  <div className="p-4">
+                    <p className="font-cinzel text-[10px] tracking-[0.2em] text-amber-600 font-bold">{r.brand}</p>
+                    <p className="mt-1 text-sm font-bold text-emerald-950 leading-snug line-clamp-2 min-h-[2.6em] group-hover:text-emerald-800 transition-colors">{r.title}</p>
+                    <div className="mt-2.5 flex items-center justify-between">
+                      <p className="text-base font-extrabold text-emerald-900">{formatAED(r.price)}</p>
+                      <span className="w-8 h-8 rounded-full bg-emerald-950 text-amber-300 flex items-center justify-center opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all duration-300">
+                        <ArrowRight size={15} />
+                      </span>
+                    </div>
                   </div>
+                  <div className="absolute top-0 left-6 right-6 h-0.5 bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
               ))}
             </div>
