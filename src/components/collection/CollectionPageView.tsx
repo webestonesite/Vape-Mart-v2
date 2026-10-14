@@ -25,8 +25,6 @@ import {
   Flame,
   ArrowRight,
   Sparkles,
-  Zap,
-  Timer,
   ArrowLeftRight,
   History,
   ArrowLeft,
@@ -183,14 +181,7 @@ export function CollectionPageView({ category, allCategories, products }: Collec
   const [quizNicotine, setQuizNicotine] = useState<string | null>(null);
   const [quizFlavor, setQuizFlavor] = useState<string | null>(null);
 
-  // ---- 2) flash deals countdown ----
-  const [nowTs, setNowTs] = useState(() => Date.now());
-  useEffect(() => {
-    const t = setInterval(() => setNowTs(Date.now()), 1000);
-    return () => clearInterval(t);
-  }, []);
-
-  // ---- 3) compare ----
+  // ---- 2) compare ----
   const [compareIds, setCompareIds] = useState<string[]>([]);
   const [compareOpen, setCompareOpen] = useState(false);
 
@@ -367,22 +358,6 @@ export function CollectionPageView({ category, allCategories, products }: Collec
     if (quizFlavor) list = list.filter((p) => p.flavorFamily === quizFlavor);
     return list.length;
   }, [products, quizPuffs, quizNicotine, quizFlavor, puffBuckets]);
-
-  // ---- flash deals: top 4 by discount % ----
-  const flashDeals = useMemo(() => [...products]
-    .filter((p) => p.originalPrice > p.price)
-    .sort((a, b) => (1 - b.price / b.originalPrice) - (1 - a.price / a.originalPrice))
-    .slice(0, 4), [products]);
-
-  // ---- countdown to midnight ----
-  const msToMidnight = useMemo(() => {
-    const d = new Date();
-    d.setHours(24, 0, 0, 0);
-    return Math.max(0, d.getTime() - nowTs);
-  }, [nowTs]);
-  const cdH = String(Math.floor(msToMidnight / 3600000)).padStart(2, "0");
-  const cdM = String(Math.floor((msToMidnight % 3600000) / 60000)).padStart(2, "0");
-  const cdS = String(Math.floor((msToMidnight % 60000) / 1000)).padStart(2, "0");
 
   // ---- compare list ----
   const compareProducts = useMemo(
@@ -867,59 +842,6 @@ export function CollectionPageView({ category, allCategories, products }: Collec
             )}
           </div>
         </div>
-
-        {/* ============ FLASH DEALS (main collections page only, not category pages) ============ */}
-        {!category && flashDeals.length > 0 && (
-          <section className="mt-12 sm:mt-16 rounded-3xl bg-gradient-to-br from-[#022c22] via-[#043e2e] to-[#064e3b] p-5 sm:p-8 relative overflow-hidden">
-            <div className="absolute -top-20 -right-20 w-72 h-72 bg-amber-400/15 rounded-full blur-[80px] pointer-events-none" />
-            <div className="relative z-10 flex flex-wrap items-center gap-3 sm:gap-4 mb-6">
-              <span className="inline-flex items-center gap-2 rounded-full bg-amber-400 text-emerald-950 font-extrabold text-xs px-3.5 py-2">
-                <Zap size={14} className="fill-emerald-950" /> FLASH DEALS
-              </span>
-              <h2 className="font-luxury text-xl sm:text-2xl font-bold text-white">Biggest Discounts</h2>
-              <span className="ml-auto inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/15 text-white text-sm font-bold px-4 py-2 tabular-nums">
-                <Timer size={15} className="text-amber-300" /> Ends in {cdH}:{cdM}:{cdS}
-              </span>
-            </div>
-            <div className="relative z-10 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
-              {flashDeals.map((p) => {
-                const discount = Math.round((1 - p.price / p.originalPrice) * 100);
-                return (
-                  <div key={p.id} className="group relative flex flex-col rounded-2xl bg-white overflow-hidden">
-                    <div className="relative aspect-square bg-gradient-to-br from-[#f8fafc] to-emerald-50/60">
-                      <Link href={`/product/${p.slug}`} aria-label={p.title} className="block w-full h-full" onClick={() => saveRecent(p)}>
-                        <Image src={p.primaryImage} alt={p.title} fill sizes="(max-width: 640px) 50vw, 25vw" className="object-contain p-4 transition-transform duration-500 group-hover:scale-105" />
-                      </Link>
-                      <span className="absolute top-2.5 left-2.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-emerald-950 text-[11px] font-extrabold px-2.5 py-1 shadow">
-                        -{discount}%
-                      </span>
-                      <span className="absolute top-2.5 right-2.5 inline-flex items-center gap-1 rounded-full bg-emerald-950/90 text-amber-300 text-[10px] font-bold px-2 py-1 tabular-nums">
-                        <Timer size={11} /> {cdH}:{cdM}:{cdS}
-                      </span>
-                    </div>
-                    <div className="flex flex-1 flex-col p-3 sm:p-4">
-                      <p className="font-cinzel text-[9px] tracking-[0.2em] text-emerald-700/80 font-bold">{p.brand}</p>
-                      <Link href={`/product/${p.slug}`} onClick={() => saveRecent(p)}>
-                        <h3 className="mt-1 text-[13px] font-semibold text-emerald-950 leading-snug line-clamp-2 min-h-[2.6em]">{p.title}</h3>
-                      </Link>
-                      <div className="mt-2 flex items-baseline gap-2 flex-wrap">
-                        <span className="text-base font-extrabold text-emerald-900">{formatAED(p.price)}</span>
-                        <span className="text-xs text-neutral-400 line-through">{formatAED(p.originalPrice)}</span>
-                      </div>
-                      <button
-                        onClick={(e) => startFlyToCart(p, e.currentTarget)}
-                        disabled={!p.inStock}
-                        className="mt-3 h-10 rounded-xl bg-emerald-800 text-white text-[11px] sm:text-xs font-bold tracking-wide hover:bg-emerald-700 active:scale-[0.98] transition-all disabled:opacity-40 flex items-center justify-center gap-1.5 whitespace-nowrap"
-                      >
-                        <ShoppingBag size={14} /> ADD TO CART
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        )}
 
         {/* ============ RECENTLY VIEWED ============ */}
         {recentlyViewed.length > 0 && (
