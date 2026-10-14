@@ -562,12 +562,12 @@ export function CollectionPageView({ category, allCategories, products }: Collec
           <Link href={`/product/${p.slug}`} aria-label={p.title} className="block w-full h-full" onClick={() => saveRecent(p)}>
             <Image
               src={p.primaryImage} alt={p.title} fill sizes="(max-width: 640px) 50vw, 33vw"
-              className="object-contain p-4 transition-transform duration-500 group-hover:scale-105"
+              className="object-contain p-3 transition-transform duration-500 group-hover:scale-105"
             />
             {p.images[1] && (
               <Image
                 src={p.images[1]} alt="" aria-hidden fill sizes="(max-width: 640px) 50vw, 33vw"
-                className="object-contain p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                className="object-contain p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
               />
             )}
           </Link>
@@ -804,7 +804,7 @@ export function CollectionPageView({ category, allCategories, products }: Collec
             {/* grid */}
             {pageItems.length > 0 ? (
               <div className="rounded-3xl bg-gradient-to-b from-emerald-50/80 to-emerald-50/30 border border-emerald-900/[0.07] p-3 sm:p-5">
-                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5">
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
                   {pageItems.map((p, i) => productCard(p, i))}
                 </div>
               </div>
