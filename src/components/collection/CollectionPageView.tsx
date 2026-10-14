@@ -556,7 +556,7 @@ export function CollectionPageView({ category, allCategories, products }: Collec
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-40px" }}
         transition={{ duration: 0.45, delay: (i % 6) * 0.05 }}
-        className="group relative flex flex-col rounded-2xl bg-white border border-emerald-900/10 overflow-hidden hover:shadow-[0_20px_50px_-16px_rgba(6,78,59,0.35)] hover:-translate-y-1 transition-all duration-300"
+        className="group relative flex flex-col rounded-2xl bg-white border border-emerald-900/15 shadow-[0_4px_18px_-8px_rgba(6,78,59,0.18)] overflow-hidden hover:shadow-[0_20px_50px_-16px_rgba(6,78,59,0.35)] hover:border-amber-400/50 hover:-translate-y-1 transition-all duration-300"
       >
         <div className="relative aspect-square bg-gradient-to-br from-[#f8fafc] to-emerald-50/60 overflow-hidden">
           <Link href={`/product/${p.slug}`} aria-label={p.title} className="block w-full h-full" onClick={() => saveRecent(p)}>
@@ -803,8 +803,10 @@ export function CollectionPageView({ category, allCategories, products }: Collec
 
             {/* grid */}
             {pageItems.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-5">
-                {pageItems.map((p, i) => productCard(p, i))}
+              <div className="rounded-3xl bg-gradient-to-b from-emerald-50/80 to-emerald-50/30 border border-emerald-900/[0.07] p-3 sm:p-5">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-5">
+                  {pageItems.map((p, i) => productCard(p, i))}
+                </div>
               </div>
             ) : (
               <div className="rounded-3xl border-2 border-dashed border-emerald-900/15 bg-white py-16 px-6 text-center">
