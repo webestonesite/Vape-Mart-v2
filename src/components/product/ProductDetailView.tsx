@@ -482,7 +482,8 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
                 {product.flavors.length} SIGNATURE OPTIONS
               </span>
             </div>
-            <div className="rounded-2xl border-2 border-emerald-900/10 overflow-hidden">
+            {/* desktop table */}
+            <div className="hidden sm:block rounded-2xl border-2 border-emerald-900/10 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm min-w-[520px]">
                   <thead>
@@ -499,7 +500,9 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
                         <td className="px-5 py-3.5 text-neutral-400 font-bold">{String(i + 1).padStart(2, "0")}</td>
                         <td className="px-5 py-3.5">
                           <button onClick={() => f.inStock && setFlavorId(f.id)} className="flex items-center gap-2.5 font-bold text-emerald-950 hover:text-amber-600 disabled:cursor-default" disabled={!f.inStock}>
-                            <span className="w-4 h-4 rounded-full border border-black/15 shrink-0" style={{ backgroundColor: f.color }} />
+                            <span className="relative w-8 h-8 rounded-lg overflow-hidden shrink-0 border border-emerald-900/10 bg-emerald-50/50">
+                              <Image src={f.img || product.primaryImage} alt={f.name} fill className="object-contain p-1" sizes="32px" />
+                            </span>
                             {f.name}
                           </button>
                         </td>
@@ -514,6 +517,29 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
                   </tbody>
                 </table>
               </div>
+            </div>
+            {/* mobile cards */}
+            <div className="sm:hidden space-y-2.5">
+              {product.flavors.map((f, i) => (
+                <button
+                  key={f.id}
+                  onClick={() => { if (f.inStock) { setFlavorId(f.id); const fi = product.flavors.findIndex((x) => x.id === f.id); if (galleryImages[fi]) setImgIdx(fi); } }}
+                  disabled={!f.inStock}
+                  className={`w-full rounded-2xl border-2 p-3 flex items-center gap-3 text-left transition-all ${flavorId === f.id ? "border-amber-500 bg-amber-50/60" : "border-emerald-900/10 bg-white"} ${!f.inStock ? "opacity-50" : ""}`}
+                >
+                  <span className="w-8 h-8 shrink-0 rounded-full bg-emerald-100 text-emerald-800 text-xs font-extrabold flex items-center justify-center">{i + 1}</span>
+                  <span className="relative w-11 h-11 rounded-xl overflow-hidden shrink-0 border border-emerald-900/10 bg-emerald-50/50">
+                    <Image src={f.img || product.primaryImage} alt={f.name} fill className="object-contain p-1" sizes="44px" />
+                  </span>
+                  <span className="flex-1 min-w-0">
+                    <span className="block text-sm font-bold text-emerald-950 leading-snug">{f.name}</span>
+                    <span className="block text-[13px] font-extrabold text-emerald-800 mt-0.5">{formatAED(product.price)}</span>
+                  </span>
+                  {f.inStock
+                    ? <span className="shrink-0 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2.5 py-1">IN STOCK</span>
+                    : <span className="shrink-0 rounded-full bg-neutral-200 text-neutral-500 text-[10px] font-extrabold px-2.5 py-1">OUT</span>}
+                </button>
+              ))}
             </div>
           </section>
         )}
