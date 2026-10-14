@@ -919,41 +919,45 @@ export function CollectionPageView({ category, allCategories, products }: Collec
         </section>
 
         {/* ============ SHOP BY BRAND ============ */}
-        <section className="mt-12 sm:mt-16">
-          <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <p className="font-cinzel text-[11px] tracking-[0.24em] text-amber-600 font-bold mb-2">TOP BRANDS</p>
-              <h2 className="font-luxury text-2xl sm:text-3xl font-bold text-emerald-950">Shop by Brand</h2>
-              <p className="mt-2 text-sm text-neutral-500 max-w-xl">Only 100% authentic stock from the world's most trusted vape manufacturers — every unit sourced through licensed UAE importers.</p>
+        <section className="mt-12 sm:mt-16 overflow-hidden rounded-3xl bg-gradient-to-br from-[#064e3b] via-[#043e2e] to-[#022c22] relative">
+          <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-amber-400/10 blur-[80px] pointer-events-none" />
+          <div className="absolute -bottom-20 -left-16 h-56 w-56 rounded-full bg-emerald-400/10 blur-[70px] pointer-events-none" />
+          <div className="relative z-10 p-6 sm:p-10">
+            <div className="mb-7 flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <p className="inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-amber-400/10 px-4 py-1.5 font-cinzel text-[11px] tracking-[0.24em] text-amber-300 font-bold mb-3">
+                  TOP BRANDS
+                </p>
+                <h2 className="font-luxury text-2xl sm:text-3xl font-bold text-white">Shop by Brand</h2>
+                <p className="mt-2 text-sm text-emerald-100/70 max-w-xl">Only 100% authentic stock from the world's most trusted manufacturers.</p>
+              </div>
             </div>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-5">
-            {brands.map((b, i) => (
-              <motion.button
-                key={b}
-                initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-                transition={{ duration: 0.35, delay: Math.min(i * 0.05, 0.3) }}
-                onClick={() => {
-                  setSelectedBrands([b]);
-                  document.getElementById("collection-grid-top")?.scrollIntoView({ behavior: "smooth", block: "start" });
-                }}
-                className="group relative rounded-2xl bg-white border border-emerald-900/10 p-5 sm:p-6 text-left overflow-hidden hover:border-amber-400/70 hover:shadow-[0_18px_40px_-16px_rgba(6,78,59,0.35)] transition-all duration-300 active:scale-[0.98]"
-              >
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-400 scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-500" />
-                <div className="flex items-center gap-3.5">
-                  <span className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#064e3b] to-[#022c22] font-luxury text-xl sm:text-2xl font-bold text-amber-300 shadow-[0_8px_20px_-8px_rgba(6,78,59,0.6)] group-hover:scale-105 transition-transform">
+            <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-2 -mx-1 px-1 snap-x snap-mandatory scrollbar-hide" style={{ scrollbarWidth: "none" }}>
+              {brands.map((b, i) => (
+                <motion.button
+                  key={b}
+                  initial={{ opacity: 0, x: 24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: Math.min(i * 0.07, 0.35) }}
+                  onClick={() => {
+                    setSelectedBrands([b]);
+                    document.getElementById("collection-grid-top")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }}
+                  className="group relative shrink-0 snap-start w-[200px] sm:w-[230px] rounded-2xl bg-white/[0.06] border border-white/10 backdrop-blur p-5 sm:p-6 text-left overflow-hidden hover:bg-white/[0.1] hover:border-amber-400/50 hover:shadow-[0_16px_40px_-12px_rgba(245,158,11,0.35)] transition-all duration-300 active:scale-[0.98]"
+                >
+                  <span className="absolute -bottom-4 -right-2 font-luxury text-[92px] sm:text-[104px] leading-none font-bold text-white/[0.05] group-hover:text-amber-400/10 transition-colors select-none">
                     {b.charAt(0)}
                   </span>
-                  <div className="min-w-0">
-                    <p className="font-luxury text-base sm:text-lg font-bold text-emerald-950 leading-tight truncate">{b}</p>
-                    <p className="mt-0.5 text-xs text-neutral-500">{brandCounts[b]} product{brandCounts[b] === 1 ? "" : "s"}</p>
-                  </div>
-                </div>
-                <p className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 group-hover:text-amber-600 transition-colors">
-                  Explore collection <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
-                </p>
-              </motion.button>
-            ))}
+                  <span className="inline-flex items-center rounded-full bg-amber-400/15 border border-amber-400/30 px-2.5 py-1 text-[11px] font-extrabold text-amber-300">
+                    {brandCounts[b]} product{brandCounts[b] === 1 ? "" : "s"}
+                  </span>
+                  <p className="relative mt-4 font-luxury text-xl sm:text-2xl font-bold text-white leading-tight">{b}</p>
+                  <p className="relative mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-emerald-100/60 group-hover:text-amber-300 transition-colors">
+                    Shop now <ArrowRight size={13} className="group-hover:translate-x-1 transition-transform" />
+                  </p>
+                  <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-amber-400 to-amber-500 scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-500" />
+                </motion.button>
+              ))}
+            </div>
           </div>
         </section>
 
