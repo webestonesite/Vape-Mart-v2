@@ -803,7 +803,7 @@ export function CollectionPageView({ category, allCategories, products }: Collec
 
             {/* grid */}
             {pageItems.length > 0 ? (
-              <div className="rounded-3xl bg-gradient-to-b from-emerald-50/80 to-emerald-50/30 border border-emerald-900/[0.07] p-3 sm:p-5">
+              <div className="sm:rounded-3xl sm:bg-gradient-to-b sm:from-emerald-50/80 sm:to-emerald-50/30 sm:border sm:border-emerald-900/[0.07] sm:p-5">
                 <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
                   {pageItems.map((p, i) => productCard(p, i))}
                 </div>
