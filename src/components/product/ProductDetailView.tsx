@@ -55,8 +55,8 @@ function Stars({ rating, size = 14 }: { rating: number; size?: number }) {
 export function ProductDetailView({ product, relatedProducts }: ProductDetailViewProps) {
   const galleryImages = product.images.length > 0 ? product.images : [product.primaryImage];
   const [imgIdx, setImgIdx] = useState(0);
-  const [flavorId, setFlavorId] = useState(product.flavors.find((f) => f.inStock)?.id || product.flavors[0]?.id || "");
-  const [nicotine, setNicotine] = useState(product.nicotineStrength);
+  const [flavorId, setFlavorId] = useState("");
+  const [nicotine, setNicotine] = useState("");
   const [qty, setQty] = useState(1);
   const [tab, setTab] = useState<"desc" | "specs" | "ship">("desc");
   const [openFaq, setOpenFaq] = useState<number | null>(0);
@@ -96,9 +96,11 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
   const total = product.price * qty;
 
   const addToCart = (openDrawer = true) => {
+    if (product.flavors.length > 0 && !flavorId) { setFlavorDropOpen(true); setNicotineDropOpen(false); flavorDropRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); return; }
+    if (product.nicotineOptions.length > 1 && !nicotine) { setNicotineDropOpen(true); setFlavorDropOpen(false); nicotineDropRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); return; }
     const flavorName = product.flavors.find((f) => f.id === flavorId)?.name;
     const newItem: CartItem = {
-      id: `${product.id}-${flavorId || "std"}-${nicotine}`,
+      id: `${product.id}-${flavorId || "std"}-${nicotine || "std"}`,
       productId: product.id,
       title: product.title,
       brand: product.brand,
@@ -106,7 +108,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
       image: product.primaryImage,
       quantity: qty,
       flavor: flavorName,
-      nicotine,
+      nicotine: nicotine || undefined,
     };
     setCartItems((prev) => {
       const i = prev.findIndex((x) => x.id === newItem.id);
@@ -125,7 +127,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
   const keySpecs = useMemo(() => [
     { label: "BRAND", value: product.brand },
     { label: "PUFF COUNT", value: product.puffs ? `${product.puffs.toLocaleString()} Puffs` : "—" },
-    { label: "NICOTINE", value: nicotine },
+    { label: "NICOTINE", value: nicotine || product.nicotineStrength },
     { label: "E-LIQUID", value: product.eLiquidCapacity || "—" },
     { label: "BATTERY", value: product.batteryCapacity || "—" },
     { label: "CHARGING", value: product.chargingType || "—" },
@@ -251,17 +253,21 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
 
             {/* flavors — premium dropdown */}
             {product.flavors.length > 0 && (
-              <div className="mt-5 relative" ref={flavorDropRef}>
-                <p className="text-xs font-extrabold tracking-wider text-emerald-950 mb-2.5">FLAVOR</p>
+              <div className="mt-4 relative" ref={flavorDropRef}>
+                <p className="text-xs font-extrabold tracking-wider text-emerald-950 mb-2">FLAVOR</p>
                 <button
                   onClick={() => { setFlavorDropOpen(!flavorDropOpen); setNicotineDropOpen(false); }}
-                  className={`w-full h-[52px] rounded-2xl border-2 bg-white px-4 flex items-center gap-3 text-left transition-all ${flavorDropOpen ? "border-amber-500 shadow-[0_8px_24px_-8px_rgba(245,158,11,0.4)]" : "border-emerald-900/15 hover:border-emerald-700"}`}
+                  className={`w-full h-12 rounded-xl border-2 bg-white px-3.5 flex items-center gap-2.5 text-left transition-all ${!flavorId && flavorDropOpen === false ? "" : ""} ${flavorDropOpen ? "border-amber-500 shadow-[0_8px_24px_-8px_rgba(245,158,11,0.4)]" : "border-emerald-900/15 hover:border-emerald-700"}`}
                 >
-                  <span className="w-5 h-5 rounded-full border border-black/15 shrink-0" style={{ backgroundColor: product.flavors.find((f) => f.id === flavorId)?.color }} />
-                  <span className="flex-1 text-sm font-bold text-emerald-950 truncate">
-                    {product.flavors.find((f) => f.id === flavorId)?.name}
+                  {flavorId ? (
+                    <span className="relative w-8 h-8 rounded-lg overflow-hidden shrink-0 border border-emerald-900/10 bg-emerald-50/50">
+                      <Image src={product.flavors.find((f) => f.id === flavorId)?.img || product.primaryImage} alt="" fill className="object-contain p-0.5" sizes="32px" />
+                    </span>
+                  ) : null}
+                  <span className={`flex-1 text-sm font-bold truncate ${flavorId ? "text-emerald-950" : "text-neutral-400"}`}>
+                    {product.flavors.find((f) => f.id === flavorId)?.name || "Select flavour"}
                   </span>
-                  <ChevronDown size={18} className={`shrink-0 text-amber-600 transition-transform duration-300 ${flavorDropOpen ? "rotate-180" : ""}`} />
+                  <ChevronDown size={17} className={`shrink-0 text-amber-600 transition-transform duration-300 ${flavorDropOpen ? "rotate-180" : ""}`} />
                 </button>
                 <AnimatePresence>
                   {flavorDropOpen && (
@@ -273,11 +279,13 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
                       {product.flavors.map((f) => (
                         <button
                           key={f.id}
-                          onClick={() => { if (f.inStock) { setFlavorId(f.id); setFlavorDropOpen(false); } }}
+                          onClick={() => { if (f.inStock) { setFlavorId(f.id); const fi = product.flavors.findIndex((x) => x.id === f.id); if (galleryImages[fi]) setImgIdx(fi); setFlavorDropOpen(false); } }}
                           disabled={!f.inStock}
-                          className={`w-full px-4 py-3.5 flex items-center gap-3 text-left transition-colors ${flavorId === f.id ? "bg-amber-50" : "hover:bg-emerald-50/60"} ${!f.inStock ? "opacity-40 cursor-not-allowed" : ""}`}
+                          className={`w-full px-3.5 py-3 flex items-center gap-3 text-left transition-colors ${flavorId === f.id ? "bg-amber-50" : "hover:bg-emerald-50/60"} ${!f.inStock ? "opacity-40 cursor-not-allowed" : ""}`}
                         >
-                          <span className="w-5 h-5 rounded-full border border-black/15 shrink-0" style={{ backgroundColor: f.color }} />
+                          <span className="relative w-10 h-10 rounded-lg overflow-hidden shrink-0 border border-emerald-900/10 bg-emerald-50/50">
+                            <Image src={f.img || product.primaryImage} alt={f.name} fill className="object-contain p-1" sizes="40px" />
+                          </span>
                           <span className={`flex-1 text-sm font-semibold ${flavorId === f.id ? "text-emerald-950" : "text-neutral-700"}`}>{f.name}</span>
                           {!f.inStock && <span className="text-[10px] font-bold text-neutral-400">OUT OF STOCK</span>}
                           {flavorId === f.id && <Check size={16} className="text-amber-600 shrink-0" />}
@@ -291,15 +299,15 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
 
             {/* nicotine — premium dropdown */}
             {product.nicotineOptions.length > 1 && (
-              <div className="mt-4 relative" ref={nicotineDropRef}>
-                <p className="text-xs font-extrabold tracking-wider text-emerald-950 mb-2.5">NICOTINE STRENGTH</p>
+              <div className="mt-3 relative" ref={nicotineDropRef}>
+                <p className="text-xs font-extrabold tracking-wider text-emerald-950 mb-2">NICOTINE STRENGTH</p>
                 <button
                   onClick={() => { setNicotineDropOpen(!nicotineDropOpen); setFlavorDropOpen(false); }}
-                  className={`w-full h-[52px] rounded-2xl border-2 bg-white px-4 flex items-center gap-3 text-left transition-all ${nicotineDropOpen ? "border-amber-500 shadow-[0_8px_24px_-8px_rgba(245,158,11,0.4)]" : "border-emerald-900/15 hover:border-emerald-700"}`}
+                  className={`w-full h-12 rounded-xl border-2 bg-white px-3.5 flex items-center gap-2.5 text-left transition-all ${nicotineDropOpen ? "border-amber-500 shadow-[0_8px_24px_-8px_rgba(245,158,11,0.4)]" : "border-emerald-900/15 hover:border-emerald-700"}`}
                 >
-                  <span className="flex-1 text-sm font-bold text-emerald-950">{nicotine}</span>
-                  <span className="text-[11px] font-semibold text-neutral-400">nicotine salt</span>
-                  <ChevronDown size={18} className={`shrink-0 text-amber-600 transition-transform duration-300 ${nicotineDropOpen ? "rotate-180" : ""}`} />
+                  <span className={`flex-1 text-sm font-bold ${nicotine ? "text-emerald-950" : "text-neutral-400"}`}>{nicotine || "Select nicotine strength"}</span>
+                  {nicotine && <span className="text-[11px] font-semibold text-neutral-400">nicotine salt</span>}
+                  <ChevronDown size={17} className={`shrink-0 text-amber-600 transition-transform duration-300 ${nicotineDropOpen ? "rotate-180" : ""}`} />
                 </button>
                 <AnimatePresence>
                   {nicotineDropOpen && (
@@ -312,7 +320,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
                         <button
                           key={n}
                           onClick={() => { setNicotine(n); setNicotineDropOpen(false); }}
-                          className={`w-full px-4 py-3.5 flex items-center gap-3 text-left transition-colors ${nicotine === n ? "bg-amber-50" : "hover:bg-emerald-50/60"}`}
+                          className={`w-full px-3.5 py-3 flex items-center gap-3 text-left transition-colors ${nicotine === n ? "bg-amber-50" : "hover:bg-emerald-50/60"}`}
                         >
                           <span className={`flex-1 text-sm font-bold ${nicotine === n ? "text-emerald-950" : "text-neutral-700"}`}>{n}</span>
                           {nicotine === n && <Check size={16} className="text-amber-600 shrink-0" />}
