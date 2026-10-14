@@ -28,6 +28,12 @@ import {
   ArrowLeftRight,
   History,
   ArrowLeft,
+  BookOpen,
+  Zap,
+  Droplets,
+  Cpu,
+  Leaf,
+  CreditCard,
 } from "lucide-react";
 import { ProductItem, CollectionCategory, CartItem } from "@/types/product";
 import { allProducts as catalogProducts } from "@/data/products";
@@ -994,92 +1000,115 @@ export function CollectionPageView({ category, allCategories, products }: Collec
         </section>
 
         {/* ============ SEO EDITORIAL ============ */}
-        <section className="mt-14 sm:mt-20 rounded-3xl bg-white border border-emerald-900/10 p-6 sm:p-10">
-          <p className="font-cinzel text-[11px] tracking-[0.24em] text-amber-600 font-bold mb-2">BUYING GUIDE</p>
-          <h2 className="font-luxury text-2xl sm:text-3xl font-bold text-emerald-950">
-            {category ? `Why Buy ${category.name} from Vape Mart UAE?` : "The Vape Mart UAE Buying Guide"}
-          </h2>
-          <div className="mt-4 space-y-4 text-sm sm:text-[15px] leading-relaxed text-neutral-600 max-w-4xl">
-            <p>
-              {category ? category.description : "Vape Mart UAE is the Emirates' trusted destination for 100% authentic vaping hardware. Every device in our catalog is sourced through licensed UAE importers, ESMA-compliant, and backed by our authenticity guarantee — so the puff count, flavor and battery life on the box are exactly what you get in your hand."}
+        <section className="mt-14 sm:mt-20 overflow-hidden rounded-3xl border border-emerald-900/10 bg-white">
+          {/* Guide header — emerald banner */}
+          <div className="relative overflow-hidden bg-gradient-to-br from-[#064e3b] via-[#043e2e] to-[#022c22] px-6 py-10 sm:px-10 sm:py-14">
+            <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-amber-400/15 blur-[90px] pointer-events-none" />
+            <div className="absolute -bottom-24 -left-16 h-60 w-60 rounded-full bg-emerald-400/10 blur-[80px] pointer-events-none" />
+            <div className="relative z-10 max-w-3xl">
+              <p className="inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-amber-400/10 px-4 py-1.5 font-cinzel text-[11px] tracking-[0.24em] text-amber-300 font-bold">
+                <BookOpen size={13} /> BUYING GUIDE
+              </p>
+              <h2 className="mt-4 font-luxury text-3xl sm:text-4xl font-bold text-white leading-tight">
+                {category ? `Why Buy ${category.name} from Vape Mart UAE?` : "The Vape Mart UAE Buying Guide"}
+              </h2>
+              <p className="mt-4 text-[15px] sm:text-base leading-relaxed text-emerald-100/85 max-w-2xl">
+                {category ? category.description : "The Emirates' trusted destination for 100% authentic vaping hardware — every device sourced through licensed UAE importers, ESMA-compliant, and backed by our authenticity guarantee."}
+              </p>
+            </div>
+          </div>
+
+          {/* Intro lead */}
+          <div className="px-6 sm:px-10 pt-8 sm:pt-10 max-w-4xl">
+            <p className="text-base sm:text-lg leading-relaxed text-emerald-950 font-medium">
+              Whether you are switching from cigarettes or upgrading your setup, choose by <span className="text-amber-600 font-bold">puff count first</span> (5,000–10,000 for casual use, 20,000+ for heavy daily vaping), then match your nicotine strength — <span className="text-amber-600 font-bold">20mg (2%)</span> for a balanced throat hit or <span className="text-amber-600 font-bold">50mg (5%)</span> for maximum satisfaction.
             </p>
-            <p>
-              Whether you are switching from cigarettes or upgrading your setup, choose by puff count first (5,000–10,000 for casual use, 20,000+ for heavy daily vaping), then match your nicotine strength — 20mg (2%) for a balanced throat hit or 50mg (5%) for maximum satisfaction. All orders placed before 9pm qualify for same-day dispatch in Dubai, Sharjah and Ajman, with cash on delivery available across the UAE.
+            <p className="mt-4 text-sm sm:text-[15px] leading-relaxed text-neutral-600">
+              All orders placed before 9pm qualify for same-day dispatch in Dubai, Sharjah and Ajman, with cash on delivery available across the UAE. Below is everything you need to buy with confidence — from puff counts to flavour families.
             </p>
           </div>
 
-          <div className="mt-8 grid md:grid-cols-2 gap-x-10 gap-y-8 max-w-5xl">
-            <div>
-              <h3 className="font-luxury text-lg sm:text-xl font-bold text-emerald-950">Understanding Puff Counts: How Long Will Your Vape Last?</h3>
-              <div className="mt-3 space-y-3 text-sm sm:text-[15px] leading-relaxed text-neutral-600">
-                <p>
-                  Puff count is the single most useful number when comparing {category ? category.name.toLowerCase() : "vapes"}. It tells you roughly how many draws you get before the e-liquid or battery runs out. A 600-puff device suits a weekend trial, while 10,000–15,000 puffs comfortably cover one to two weeks of moderate daily use. Heavy vapers who switched from a pack-a-day habit usually land happiest in the 20,000–40,000 puff range, where the cost per puff drops dramatically.
-                </p>
-                <p>
-                  Treat manufacturer puff counts as estimates — your real-world total depends on draw length. Short mouth-to-lung puffs stretch a device further, while long direct-lung draws consume e-liquid faster. As a rule of thumb, divide the advertised puffs by your daily cigarette count times ten to estimate days of use.
-                </p>
-              </div>
-            </div>
-            <div>
-              <h3 className="font-luxury text-lg sm:text-xl font-bold text-emerald-950">Nicotine Strengths Explained: 20mg vs 50mg</h3>
-              <div className="mt-3 space-y-3 text-sm sm:text-[15px] leading-relaxed text-neutral-600">
-                <p>
-                  In the UAE, disposable and pod devices typically come in 20mg (2%) or 50mg (5%) nicotine salt formulations. If you smoked up to half a pack a day, 20mg delivers a smooth, cigarette-like throat hit without harshness — it is the strength most ex-smokers settle on. Former pack-a-day (or heavier) smokers usually prefer 50mg, which satisfies cravings faster with fewer puffs.
-                </p>
-                <p>
-                  Nicotine salts (the "mg" on your device) absorb faster and feel smoother than the freebase nicotine in older e-liquids, which is why even 50mg vapes surprisingly gentle. If you ever feel dizzy or nauseous, you are vaping too much too fast — put the device down, drink water, and consider stepping down to 20mg.
-                </p>
-              </div>
-            </div>
-            <div>
-              <h3 className="font-luxury text-lg sm:text-xl font-bold text-emerald-950">Disposable vs Pod vs Mod: Which Device Type Suits You?</h3>
-              <div className="mt-3 space-y-3 text-sm sm:text-[15px] leading-relaxed text-neutral-600">
-                <p>
-                  <strong className="text-emerald-900">Disposables</strong> are draw-activated, pre-filled and pre-charged — zero setup, zero maintenance. They dominate the UAE market because they are perfect for beginners, travellers, and anyone who wants flavour variety without commitment. When the puffs run out, you responsibly recycle the unit and open a fresh one.
-                </p>
-                <p>
-                  <strong className="text-emerald-900">Pod systems</strong> (like JUUL, XROS or Nord) use a rechargeable battery with replaceable or refillable pods. The upfront cost is higher, but the long-term cost per puff is far lower, and you get tighter draw control plus refillable freedom. <strong className="text-emerald-900">Mods and kits</strong> are for enthusiasts who want adjustable wattage, rebuildable coils and maximum vapour — overkill for most switchers, heaven for hobbyists.
-                </p>
-              </div>
-            </div>
-            <div>
-              <h3 className="font-luxury text-lg sm:text-xl font-bold text-emerald-950">Flavour Families: Finding Your All-Day Vape</h3>
-              <div className="mt-3 space-y-3 text-sm sm:text-[15px] leading-relaxed text-neutral-600">
-                <p>
-                  <strong className="text-emerald-900">Fruit ice</strong> (mango ice, blue razz, watermelon chill) is the UAE's best-selling profile — sweet fruit finished with a cool menthol exhale that stays refreshing in the heat. <strong className="text-emerald-900">Menthol &amp; mint</strong> strips it back to pure coolness for ex-menthol cigarette smokers. <strong className="text-emerald-900">Tobacco</strong> blends mimic the earthy richness of cigarettes and help traditional smokers transition without flavour shock.
-                </p>
-                <p>
-                  <strong className="text-emerald-900">Dessert &amp; sweet</strong> (vanilla custard, candy, bakery) suits evening vaping when you want something indulgent. Pro tip: buy two flavour families at once — flavour fatigue is real, and rotating between a fruit ice and a menthol keeps every puff tasting fresh.
-                </p>
-              </div>
-            </div>
-            <div>
-              <h3 className="font-luxury text-lg sm:text-xl font-bold text-emerald-950">100% Authentic, ESMA-Compliant Stock</h3>
-              <div className="mt-3 space-y-3 text-sm sm:text-[15px] leading-relaxed text-neutral-600">
-                <p>
-                  Every product at Vape Mart UAE is imported through licensed UAE distributors and complies with Emirates Authority for Standardization and Metrology (ESMA) requirements, including Arabic/English labelling and child-resistant packaging. Each unit carries verifiable authenticity markings — scratch codes, holograms or QR verification depending on the brand.
-                </p>
-                <p>
-                  Why does this matter? Counterfeit vapes are the industry's biggest safety problem: unknown e-liquid ingredients, overstated puff counts, and batteries without protection circuits. Our authenticity guarantee means the flavour, nicotine strength and puff count printed on the box are exactly what is inside it.
-                </p>
-              </div>
-            </div>
-            <div>
-              <h3 className="font-luxury text-lg sm:text-xl font-bold text-emerald-950">Delivery, Payment &amp; Support Across the UAE</h3>
-              <div className="mt-3 space-y-3 text-sm sm:text-[15px] leading-relaxed text-neutral-600">
-                <p>
-                  Order before 9pm and your {category ? category.name.toLowerCase() : "vape"} ships the same day. Dubai customers get express 2–3 hour delivery in most areas; Sharjah, Ajman and Abu Dhabi are next-day; the Northern Emirates follow within 48 hours. Every parcel is discreetly packed with no product branding on the outside.
-                </p>
-                <p>
-                  Pay your way: cash on delivery, card on delivery, or a secure online payment link sent to your WhatsApp. And if you are ever unsure which device or flavour to pick, our vape experts reply on WhatsApp around the clock — real humans, not bots, who actually vape and know the catalog.
-                </p>
-              </div>
+          {/* Guide chapters — numbered premium cards */}
+          <div className="px-6 sm:px-10 py-8 sm:py-10">
+            <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
+              {[
+                {
+                  n: "01", icon: Zap, title: "Understanding Puff Counts: How Long Will Your Vape Last?",
+                  body: [
+                    <>Puff count is the single most useful number when comparing {category ? category.name.toLowerCase() : "vapes"}. It tells you roughly how many draws you get before the e-liquid or battery runs out. A 600-puff device suits a weekend trial, while 10,000–15,000 puffs comfortably cover one to two weeks of moderate daily use. Heavy vapers who switched from a pack-a-day habit usually land happiest in the 20,000–40,000 puff range, where the cost per puff drops dramatically.</>,
+                    <>Treat manufacturer puff counts as estimates — your real-world total depends on draw length. Short mouth-to-lung puffs stretch a device further, while long direct-lung draws consume e-liquid faster. As a rule of thumb, divide the advertised puffs by your daily cigarette count times ten to estimate days of use.</>,
+                  ]
+                },
+                {
+                  n: "02", icon: Droplets, title: "Nicotine Strengths Explained: 20mg vs 50mg",
+                  body: [
+                    <>In the UAE, disposable and pod devices typically come in 20mg (2%) or 50mg (5%) nicotine salt formulations. If you smoked up to half a pack a day, 20mg delivers a smooth, cigarette-like throat hit without harshness — it is the strength most ex-smokers settle on. Former pack-a-day (or heavier) smokers usually prefer 50mg, which satisfies cravings faster with fewer puffs.</>,
+                    <>Nicotine salts (the "mg" on your device) absorb faster and feel smoother than the freebase nicotine in older e-liquids, which is why even 50mg vapes surprisingly gentle. If you ever feel dizzy or nauseous, you are vaping too much too fast — put the device down, drink water, and consider stepping down to 20mg.</>,
+                  ]
+                },
+                {
+                  n: "03", icon: Cpu, title: "Disposable vs Pod vs Mod: Which Device Type Suits You?",
+                  body: [
+                    <><strong className="text-emerald-900">Disposables</strong> are draw-activated, pre-filled and pre-charged — zero setup, zero maintenance. They dominate the UAE market because they are perfect for beginners, travellers, and anyone who wants flavour variety without commitment. When the puffs run out, you responsibly recycle the unit and open a fresh one.</>,
+                    <><strong className="text-emerald-900">Pod systems</strong> (like JUUL, XROS or Nord) use a rechargeable battery with replaceable or refillable pods. The upfront cost is higher, but the long-term cost per puff is far lower, and you get tighter draw control plus refillable freedom. <strong className="text-emerald-900">Mods and kits</strong> are for enthusiasts who want adjustable wattage, rebuildable coils and maximum vapour — overkill for most switchers, heaven for hobbyists.</>,
+                  ]
+                },
+                {
+                  n: "04", icon: Leaf, title: "Flavour Families: Finding Your All-Day Vape",
+                  body: [
+                    <><strong className="text-emerald-900">Fruit ice</strong> (mango ice, blue razz, watermelon chill) is the UAE's best-selling profile — sweet fruit finished with a cool menthol exhale that stays refreshing in the heat. <strong className="text-emerald-900">Menthol &amp; mint</strong> strips it back to pure coolness for ex-menthol cigarette smokers. <strong className="text-emerald-900">Tobacco</strong> blends mimic the earthy richness of cigarettes and help traditional smokers transition without flavour shock.</>,
+                    <><strong className="text-emerald-900">Dessert &amp; sweet</strong> (vanilla custard, candy, bakery) suits evening vaping when you want something indulgent. Pro tip: buy two flavour families at once — flavour fatigue is real, and rotating between a fruit ice and a menthol keeps every puff tasting fresh.</>,
+                  ]
+                },
+                {
+                  n: "05", icon: ShieldCheck, title: "100% Authentic, ESMA-Compliant Stock",
+                  body: [
+                    <>Every product at Vape Mart UAE is imported through licensed UAE distributors and complies with Emirates Authority for Standardization and Metrology (ESMA) requirements, including Arabic/English labelling and child-resistant packaging. Each unit carries verifiable authenticity markings — scratch codes, holograms or QR verification depending on the brand.</>,
+                    <>Why does this matter? Counterfeit vapes are the industry's biggest safety problem: unknown e-liquid ingredients, overstated puff counts, and batteries without protection circuits. Our authenticity guarantee means the flavour, nicotine strength and puff count printed on the box are exactly what is inside it.</>,
+                  ]
+                },
+                {
+                  n: "06", icon: Truck, title: "Delivery, Payment & Support Across the UAE",
+                  body: [
+                    <>Order before 9pm and your {category ? category.name.toLowerCase() : "vape"} ships the same day. Dubai customers get express 2–3 hour delivery in most areas; Sharjah, Ajman and Abu Dhabi are next-day; the Northern Emirates follow within 48 hours. Every parcel is discreetly packed with no product branding on the outside.</>,
+                    <>Pay your way: cash on delivery, card on delivery, or a secure online payment link sent to your WhatsApp. And if you are ever unsure which device or flavour to pick, our vape experts reply on WhatsApp around the clock — real humans, not bots, who actually vape and know the catalog.</>,
+                  ]
+                },
+              ].map((c, i) => (
+                <motion.article
+                  key={c.n}
+                  initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: Math.min(i * 0.06, 0.3) }}
+                  className="group relative rounded-2xl border border-emerald-900/10 bg-gradient-to-b from-emerald-50/60 to-white p-5 sm:p-7 overflow-hidden hover:border-amber-400/50 hover:shadow-[0_16px_36px_-16px_rgba(6,78,59,0.3)] transition-all duration-300"
+                >
+                  <span className="absolute -top-2 right-4 font-luxury text-6xl sm:text-7xl font-bold text-emerald-900/[0.06] select-none group-hover:text-amber-500/10 transition-colors">{c.n}</span>
+                  <div className="relative">
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#064e3b] to-[#022c22] text-amber-300 shadow-[0_8px_18px_-8px_rgba(6,78,59,0.6)]">
+                        <c.icon size={20} />
+                      </span>
+                      <span className="font-cinzel text-[11px] tracking-[0.2em] text-amber-600 font-bold">CHAPTER {c.n}</span>
+                    </div>
+                    <h3 className="mt-4 font-luxury text-lg sm:text-xl font-bold text-emerald-950 leading-snug">{c.title}</h3>
+                    <div className="mt-3 space-y-3 text-sm leading-relaxed text-neutral-600">
+                      {c.body.map((p, j) => <p key={j}>{p}</p>)}
+                    </div>
+                  </div>
+                </motion.article>
+              ))}
             </div>
           </div>
 
           {/* comparison table */}
           {products.length > 0 && (
-            <div className="mt-8 overflow-x-auto rounded-2xl border border-emerald-900/10">
+            <div className="px-6 sm:px-10 pb-2">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-400/15 text-amber-600">
+                  <Star size={18} />
+                </span>
+                <h3 className="font-luxury text-xl font-bold text-emerald-950">Top Rated Right Now</h3>
+              </div>
+              <div className="overflow-x-auto rounded-2xl border border-emerald-900/10">
               <table className="w-full text-sm min-w-[560px]">
                 <thead>
                   <tr className="bg-emerald-950 text-left">
@@ -1104,12 +1133,18 @@ export function CollectionPageView({ category, allCategories, products }: Collec
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           )}
 
           {/* FAQ */}
-          <div className="mt-10">
-            <h3 className="font-luxury text-xl font-bold text-emerald-950 mb-4">Frequently Asked Questions</h3>
+          <div className="px-6 sm:px-10 py-8 sm:py-10">
+            <div className="flex items-center gap-3 mb-5">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-900/10 text-emerald-800">
+                <MessageCircle size={18} />
+              </span>
+              <h3 className="font-luxury text-xl font-bold text-emerald-950">Frequently Asked Questions</h3>
+            </div>
             <div className="divide-y divide-emerald-900/10 rounded-2xl border border-emerald-900/10 overflow-hidden">
               {[
                 { q: "Are your vapes 100% authentic?", a: "Yes — without exception. Every product at Vape Mart UAE is sourced from licensed UAE importers and carries verifiable authenticity packaging: scratch-to-verify codes, holograms or QR checks depending on the brand. We never sell clones, refills or grey-market stock. If any unit ever fails a brand authenticity check, we replace it free and investigate the batch." },
