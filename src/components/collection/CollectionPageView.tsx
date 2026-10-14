@@ -558,7 +558,7 @@ export function CollectionPageView({ category, allCategories, products }: Collec
         transition={{ duration: 0.45, delay: (i % 6) * 0.05 }}
         className="group relative flex flex-col rounded-2xl bg-white border border-emerald-900/15 shadow-[0_4px_18px_-8px_rgba(6,78,59,0.18)] overflow-hidden hover:shadow-[0_20px_50px_-16px_rgba(6,78,59,0.35)] hover:border-amber-400/50 hover:-translate-y-1 transition-all duration-300"
       >
-        <div className="relative aspect-[4/3] sm:aspect-square bg-gradient-to-br from-[#f8fafc] to-emerald-50/60 overflow-hidden">
+        <div className="relative aspect-square bg-gradient-to-br from-[#f8fafc] to-emerald-50/60 overflow-hidden">
           <Link href={`/product/${p.slug}`} aria-label={p.title} className="block w-full h-full" onClick={() => saveRecent(p)}>
             <Image
               src={p.primaryImage} alt={p.title} fill sizes="(max-width: 640px) 50vw, 33vw"
