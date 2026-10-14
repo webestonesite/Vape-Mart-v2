@@ -24,8 +24,14 @@ import {
   MessageCircle,
   Flame,
   ArrowRight,
+  Snowflake,
+  Wind,
+  Leaf,
+  Candy,
+  LayoutGrid,
 } from "lucide-react";
 import { ProductItem, CollectionCategory, CartItem } from "@/types/product";
+import { allProducts as catalogProducts } from "@/data/products";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
@@ -94,6 +100,24 @@ export function CollectionPageView({ category, allCategories, products }: Collec
     return c;
   }, [products]);
   const brands = useMemo(() => Object.keys(brandCounts).sort(), [brandCounts]);
+
+  // ---- discovery sections: catalog-wide counts (always full catalog) ----
+  const catalogCategoryCounts = useMemo(() => {
+    const c: Record<string, number> = {};
+    catalogProducts.forEach((p) => { c[p.categorySlug] = (c[p.categorySlug] || 0) + 1; });
+    return c;
+  }, []);
+  const flavorFamilyCounts = useMemo(() => {
+    const c: Record<string, number> = {};
+    catalogProducts.forEach((p) => { c[p.flavorFamily] = (c[p.flavorFamily] || 0) + 1; });
+    return c;
+  }, []);
+  const flavorFamilies = useMemo(() => ([
+    { id: "fruit_ice", name: "Fruit Ice", icon: Snowflake, desc: "Icy fruit blends — mango ice, blue razz, watermelon chill", color: "text-sky-400", bg: "from-sky-500/20 to-sky-500/5" },
+    { id: "menthol", name: "Menthol & Mint", icon: Wind, desc: "Cool, crisp and refreshing with every puff", color: "text-emerald-400", bg: "from-emerald-500/20 to-emerald-500/5" },
+    { id: "tobacco", name: "Tobacco", icon: Leaf, desc: "Classic rich tobacco notes for traditional taste", color: "text-amber-500", bg: "from-amber-500/20 to-amber-500/5" },
+    { id: "dessert", name: "Dessert & Sweet", icon: Candy, desc: "Vanilla custard, candy and sweet treats", color: "text-rose-400", bg: "from-rose-500/20 to-rose-500/5" },
+  ] as const), []);
 
   const nicotineCounts = useMemo(() => {
     const c: Record<string, number> = {};
@@ -476,7 +500,7 @@ export function CollectionPageView({ category, allCategories, products }: Collec
           </aside>
 
           {/* content */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0" id="collection-grid-top">
             {/* toolbar */}
             <div className="flex items-center gap-3 mb-5">
               <button
@@ -556,6 +580,93 @@ export function CollectionPageView({ category, allCategories, products }: Collec
             )}
           </div>
         </div>
+
+        {/* ============ SHOP BY CATEGORY ============ */}
+        <section className="mt-14 sm:mt-20">
+          <div className="flex items-end justify-between mb-5">
+            <div>
+              <p className="font-cinzel text-[11px] tracking-[0.24em] text-amber-600 font-bold mb-2">BROWSE COLLECTIONS</p>
+              <h2 className="font-luxury text-2xl sm:text-3xl font-bold text-emerald-950">Shop by Category</h2>
+            </div>
+            <Link href="/collections" className="hidden sm:inline-flex items-center gap-1.5 text-sm font-bold text-emerald-800 hover:text-amber-600 transition-colors">
+              View all <ArrowRight size={16} />
+            </Link>
+          </div>
+          <div className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden -mx-4 px-4 sm:mx-0 sm:px-0">
+            {allCategories.map((cat) => (
+              <Link
+                key={cat.slug}
+                href={`/collections/${cat.slug}`}
+                className="group relative shrink-0 w-44 sm:w-56 h-56 sm:h-64 rounded-3xl overflow-hidden snap-start border border-emerald-900/10"
+              >
+                <Image src={cat.image} alt={cat.name} fill className="object-cover transition-transform duration-500 group-hover:scale-110" sizes="224px" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#022c22] via-[#022c22]/40 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-4">
+                  <p className="font-luxury text-base sm:text-lg font-bold text-white leading-tight">{cat.name}</p>
+                  <p className="mt-1 text-xs font-semibold text-amber-300">{catalogCategoryCounts[cat.slug] || 0} products</p>
+                </div>
+                {cat.badge && (
+                  <span className="absolute top-3 left-3 font-cinzel text-[9px] tracking-[0.18em] font-bold bg-amber-400 text-emerald-950 px-2.5 py-1 rounded-full">
+                    {cat.badge}
+                  </span>
+                )}
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        {/* ============ SHOP BY BRAND ============ */}
+        <section className="mt-12 sm:mt-16">
+          <div className="mb-5">
+            <p className="font-cinzel text-[11px] tracking-[0.24em] text-amber-600 font-bold mb-2">TOP BRANDS</p>
+            <h2 className="font-luxury text-2xl sm:text-3xl font-bold text-emerald-950">Shop by Brand</h2>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+            {brands.map((b, i) => (
+              <motion.button
+                key={b}
+                initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                transition={{ duration: 0.35, delay: Math.min(i * 0.05, 0.3) }}
+                onClick={() => {
+                  setSelectedBrands([b]);
+                  document.getElementById("collection-grid-top")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
+                className="group rounded-2xl bg-gradient-to-br from-[#064e3b] to-[#022c22] p-4 sm:p-5 text-left border border-emerald-800/40 hover:border-amber-400/60 hover:shadow-[0_12px_30px_-12px_rgba(245,158,11,0.45)] transition-all active:scale-[0.98]"
+              >
+                <p className="font-cinzel text-sm sm:text-base font-bold tracking-[0.08em] text-white group-hover:text-amber-300 transition-colors truncate">{b}</p>
+                <p className="mt-1 text-xs text-emerald-100/70">{brandCounts[b]} product{brandCounts[b] === 1 ? "" : "s"}</p>
+                <p className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                  Shop now <ArrowRight size={12} />
+                </p>
+              </motion.button>
+            ))}
+          </div>
+        </section>
+
+        {/* ============ FLAVOUR HIGHLIGHTS ============ */}
+        <section className="mt-12 sm:mt-16">
+          <div className="mb-5">
+            <p className="font-cinzel text-[11px] tracking-[0.24em] text-amber-600 font-bold mb-2">TASTE PROFILES</p>
+            <h2 className="font-luxury text-2xl sm:text-3xl font-bold text-emerald-950">Explore Flavours</h2>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            {flavorFamilies.map((f, i) => (
+              <motion.div
+                key={f.id}
+                initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                transition={{ duration: 0.35, delay: Math.min(i * 0.05, 0.3) }}
+                className={`rounded-2xl bg-gradient-to-br ${f.bg} border border-emerald-900/10 bg-white p-4 sm:p-6`}
+              >
+                <span className={`inline-flex w-11 h-11 rounded-2xl bg-white border border-emerald-900/10 items-center justify-center ${f.color} shadow-sm`}>
+                  <f.icon size={22} />
+                </span>
+                <p className="mt-3 font-luxury text-base sm:text-lg font-bold text-emerald-950">{f.name}</p>
+                <p className="mt-1 text-xs sm:text-sm text-neutral-500 leading-relaxed">{f.desc}</p>
+                <p className="mt-2 text-xs font-bold text-emerald-700">{flavorFamilyCounts[f.id] || 0} products</p>
+              </motion.div>
+            ))}
+          </div>
+        </section>
 
         {/* ============ SEO EDITORIAL ============ */}
         <section className="mt-14 sm:mt-20 rounded-3xl bg-white border border-emerald-900/10 p-6 sm:p-10">
