@@ -1,40 +1,29 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Filter,
-  SlidersHorizontal,
+  ChevronRight,
   ChevronDown,
-  ChevronUp,
   X,
   Star,
   Heart,
   ShoppingBag,
-  Check,
   Search,
-  Grid,
-  List,
-  Flame,
-  Zap,
-  Droplets,
+  SlidersHorizontal,
+  Eye,
+  Minus,
+  Plus,
+  Check,
   ShieldCheck,
   Truck,
-  RotateCcw,
-  ArrowRight,
-  Clock,
-  ChevronRight,
-  HelpCircle,
-  ThumbsUp,
+  Headset,
+  BadgeCheck,
   MessageCircle,
-  Layers,
-  Eye,
-  Plus,
-  Minus,
-  CheckSquare,
-  Square
+  Flame,
+  ArrowRight,
 } from "lucide-react";
 import { ProductItem, CollectionCategory, CartItem } from "@/types/product";
 import { Header } from "@/components/Header";
@@ -48,1166 +37,710 @@ interface CollectionPageViewProps {
   products: ProductItem[];
 }
 
+const WHATSAPP_LINK = "https://wa.me/971551688299?text=Hi%20Vape%20Mart!%20I%20need%20help%20choosing%20a%20vape.";
+const ITEMS_PER_PAGE = 12;
+
+function formatAED(n: number): string {
+  return `AED ${n.toFixed(2)}`;
+}
+
+function Stars({ rating, size = 14 }: { rating: number; size?: number }) {
+  return (
+    <span className="inline-flex items-center gap-0.5" aria-label={`${rating} out of 5 stars`}>
+      {[1, 2, 3, 4, 5].map((i) => (
+        <Star
+          key={i}
+          size={size}
+          className={i <= Math.round(rating) ? "fill-amber-400 text-amber-400" : "fill-neutral-200 text-neutral-200"}
+        />
+      ))}
+    </span>
+  );
+}
+
 export function CollectionPageView({ category, allCategories, products }: CollectionPageViewProps) {
-  // View mode: Grid vs List
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
-  
-  // Filter States
+  // ---- filter state ----
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
-  const [priceMin, setPriceMin] = useState<number>(20);
-  const [priceMax, setPriceMax] = useState<number>(200);
-  const [selectedPuffRanges, setSelectedPuffRanges] = useState<string[]>([]);
+  const [priceMinInput, setPriceMinInput] = useState("");
+  const [priceMaxInput, setPriceMaxInput] = useState("");
+  const [priceMin, setPriceMin] = useState<number | null>(null);
+  const [priceMax, setPriceMax] = useState<number | null>(null);
   const [selectedNicotines, setSelectedNicotines] = useState<string[]>([]);
-  const [selectedFlavorFamilies, setSelectedFlavorFamilies] = useState<string[]>([]);
-  const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
+  const [selectedPuffs, setSelectedPuffs] = useState<string[]>([]);
   const [inStockOnly, setInStockOnly] = useState(false);
   const [sortBy, setSortBy] = useState<"popular" | "price_asc" | "price_desc" | "rating" | "newest">("popular");
-  
-  // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 9;
-
-  // Sidebar Accordion Collapse States
-  const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({
-    price: true,
-    availability: true,
-    brand: true,
-    puffs: true,
-    nicotine: true,
-    flavor: true,
-    features: true
-  });
-
-  const toggleSection = (key: string) => {
-    setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  // Quick View Modal State
-  const [quickViewProduct, setQuickViewProduct] = useState<ProductItem | null>(null);
-  const [quickViewFlavor, setQuickViewFlavor] = useState<string>("");
-  const [quickViewQuantity, setQuickViewQuantity] = useState(1);
-
-  // Cart Drawer State
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  
-  // FAQ accordion state
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
-  // Derived Brand Counts
+  // ---- quick view ----
+  const [quickViewProduct, setQuickViewProduct] = useState<ProductItem | null>(null);
+  const [quickViewFlavor, setQuickViewFlavor] = useState("");
+  const [quickViewQty, setQuickViewQty] = useState(1);
+
+  // ---- cart ----
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [wishlist, setWishlist] = useState<string[]>([]);
+
+  const toggleWishlist = (id: string) =>
+    setWishlist((prev) => (prev.includes(id) ? prev.filter((w) => w !== id) : [...prev, id]));
+
+  // ---- live counts computed from the ACTUAL products array (bug fix: no stale counts) ----
   const brandCounts = useMemo(() => {
-    const counts: { [brand: string]: number } = {};
-    products.forEach((p) => {
-      counts[p.brand] = (counts[p.brand] || 0) + 1;
-    });
-    return counts;
+    const c: Record<string, number> = {};
+    products.forEach((p) => { c[p.brand] = (c[p.brand] || 0) + 1; });
+    return c;
+  }, [products]);
+  const brands = useMemo(() => Object.keys(brandCounts).sort(), [brandCounts]);
+
+  const nicotineCounts = useMemo(() => {
+    const c: Record<string, number> = {};
+    products.forEach((p) => { c[p.nicotineStrength] = (c[p.nicotineStrength] || 0) + 1; });
+    return c;
+  }, [products]);
+  const nicotines = useMemo(() => Object.keys(nicotineCounts).sort(), [nicotineCounts]);
+
+  const puffBuckets = useMemo(() => {
+    const defs = [
+      { id: "under-10k", label: "Under 10,000", test: (p?: number) => (p ?? 0) < 10000 },
+      { id: "10k-20k", label: "10,000 – 20,000", test: (p?: number) => (p ?? 0) >= 10000 && (p ?? 0) < 20000 },
+      { id: "20k-35k", label: "20,000 – 35,000", test: (p?: number) => (p ?? 0) >= 20000 && (p ?? 0) < 35000 },
+      { id: "35k-plus", label: "35,000+", test: (p?: number) => (p ?? 0) >= 35000 },
+    ];
+    return defs.map((d) => ({ ...d, count: products.filter((p) => d.test(p.puffs)).length }));
   }, [products]);
 
-  const availableBrands = useMemo(() => Object.keys(brandCounts), [brandCounts]);
-
-  // Derived Puff Counts
-  const puffOptions = [
-    { id: "under-10k", label: "< 10,000 Puffs" },
-    { id: "10k-20k", label: "10,000 - 20,000 Puffs" },
-    { id: "20k-30k", label: "20,000 - 30,000 Puffs" },
-    { id: "30k-40k", label: "30,000 - 40,000 Puffs" },
-    { id: "40k-plus", label: "40,000+ Puffs" }
-  ];
-
-  const puffCounts = useMemo(() => {
-    const counts: { [key: string]: number } = {};
-    products.forEach((p) => {
-      if (!p.puffs) return;
-      if (p.puffs < 10000) counts["under-10k"] = (counts["under-10k"] || 0) + 1;
-      else if (p.puffs >= 10000 && p.puffs <= 20000) counts["10k-20k"] = (counts["10k-20k"] || 0) + 1;
-      else if (p.puffs > 20000 && p.puffs <= 30000) counts["20k-30k"] = (counts["20k-30k"] || 0) + 1;
-      else if (p.puffs > 30000 && p.puffs <= 40000) counts["30k-40k"] = (counts["30k-40k"] || 0) + 1;
-      else if (p.puffs > 40000) counts["40k-plus"] = (counts["40k-plus"] || 0) + 1;
-    });
-    return counts;
+  const priceBounds = useMemo(() => {
+    if (products.length === 0) return { min: 0, max: 0 };
+    const ps = products.map((p) => p.price);
+    return { min: Math.floor(Math.min(...ps)), max: Math.ceil(Math.max(...ps)) };
   }, [products]);
 
-  // Nicotine Strength Options
-  const nicotineOptions = [
-    { id: "20mg", label: "20mg / 2% (Standard SaltNic)" },
-    { id: "50mg", label: "50mg / 5% (Strong SaltNic)" },
-    { id: "3mg", label: "3mg (Low Nicotine / Direct Lung)" },
-    { id: "0mg", label: "0mg (Nicotine Free)" }
-  ];
+  // ---- filtering ----
+  const filtered = useMemo(() => {
+    let list = [...products];
+    const q = searchQuery.trim().toLowerCase();
+    if (q) list = list.filter((p) => `${p.title} ${p.brand} ${p.category}`.toLowerCase().includes(q));
+    if (selectedBrands.length) list = list.filter((p) => selectedBrands.includes(p.brand));
+    if (selectedNicotines.length) list = list.filter((p) => selectedNicotines.includes(p.nicotineStrength));
+    if (selectedPuffs.length) {
+      const tests = puffBuckets.filter((b) => selectedPuffs.includes(b.id));
+      list = list.filter((p) => tests.some((t) => t.test(p.puffs)));
+    }
+    if (priceMin !== null) list = list.filter((p) => p.price >= priceMin);
+    if (priceMax !== null) list = list.filter((p) => p.price <= priceMax);
+    if (inStockOnly) list = list.filter((p) => p.inStock);
+    switch (sortBy) {
+      case "price_asc": list.sort((a, b) => a.price - b.price); break;
+      case "price_desc": list.sort((a, b) => b.price - a.price); break;
+      case "rating": list.sort((a, b) => b.rating - a.rating || b.revs - a.revs); break;
+      case "newest": list.sort((a, b) => b.id.localeCompare(a.id)); break;
+      default: break; // popular = catalog order
+    }
+    return list;
+  }, [products, searchQuery, selectedBrands, selectedNicotines, selectedPuffs, priceMin, priceMax, inStockOnly, sortBy, puffBuckets]);
 
-  // Flavor Family Options
-  const flavorFamilyOptions = [
-    { id: "fruit_ice", label: "Fruity & Arctic Ice" },
-    { id: "mint_ice", label: "Pure Mint & Spearmint" },
-    { id: "tobacco", label: "Classic Cured Tobacco" },
-    { id: "drink", label: "Beverages & Energy Drinks" },
-    { id: "dessert", label: "Creamy & Dessert" }
-  ];
+  // reset to page 1 whenever filters change (bug fix: pagination math)
+  useEffect(() => { setCurrentPage(1); }, [searchQuery, selectedBrands, selectedNicotines, selectedPuffs, priceMin, priceMax, inStockOnly, sortBy, products]);
 
-  // Hardware Feature Options
-  const featureOptions = [
-    { id: "screen", label: "Smart HD Screen Display" },
-    { id: "dual_mesh", label: "Dual Mesh Coil Matrix" },
-    { id: "type_c", label: "Type-C Rechargeable" },
-    { id: "airflow", label: "Adjustable Airflow Valve" }
-  ];
+  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+  const safePage = Math.min(currentPage, totalPages);
+  const pageItems = filtered.slice((safePage - 1) * ITEMS_PER_PAGE, safePage * ITEMS_PER_PAGE);
 
-  // Toggle Handlers
-  const toggleBrand = (b: string) => {
-    setSelectedBrands((prev) =>
-      prev.includes(b) ? prev.filter((item) => item !== b) : [...prev, b]
-    );
-    setCurrentPage(1);
+  const toggleIn = (arr: string[], v: string, set: (x: string[]) => void) =>
+    set(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
+
+  const clearAll = () => {
+    setSearchQuery(""); setSelectedBrands([]); setSelectedNicotines([]); setSelectedPuffs([]);
+    setPriceMin(null); setPriceMax(null); setPriceMinInput(""); setPriceMaxInput("");
+    setInStockOnly(false); setSortBy("popular");
   };
-
-  const togglePuffRange = (range: string) => {
-    setSelectedPuffRanges((prev) =>
-      prev.includes(range) ? prev.filter((item) => item !== range) : [...prev, range]
-    );
-    setCurrentPage(1);
-  };
-
-  const toggleNicotine = (nic: string) => {
-    setSelectedNicotines((prev) =>
-      prev.includes(nic) ? prev.filter((item) => item !== nic) : [...prev, nic]
-    );
-    setCurrentPage(1);
-  };
-
-  const toggleFlavorFamily = (fl: string) => {
-    setSelectedFlavorFamilies((prev) =>
-      prev.includes(fl) ? prev.filter((item) => item !== fl) : [...prev, fl]
-    );
-    setCurrentPage(1);
-  };
-
-  const toggleFeature = (feat: string) => {
-    setSelectedFeatures((prev) =>
-      prev.includes(feat) ? prev.filter((item) => item !== feat) : [...prev, feat]
-    );
-    setCurrentPage(1);
-  };
-
-  const resetAllFilters = () => {
-    setSearchQuery("");
-    setSelectedBrands([]);
-    setPriceMin(20);
-    setPriceMax(200);
-    setSelectedPuffRanges([]);
-    setSelectedNicotines([]);
-    setSelectedFlavorFamilies([]);
-    setSelectedFeatures([]);
-    setInStockOnly(false);
-    setCurrentPage(1);
-  };
-
-  // Active Filter Count
   const activeFilterCount =
-    (searchQuery.trim() ? 1 : 0) +
-    selectedBrands.length +
-    (priceMin > 20 || priceMax < 200 ? 1 : 0) +
-    selectedPuffRanges.length +
-    selectedNicotines.length +
-    selectedFlavorFamilies.length +
-    selectedFeatures.length +
-    (inStockOnly ? 1 : 0);
+    selectedBrands.length + selectedNicotines.length + selectedPuffs.length +
+    (priceMin !== null || priceMax !== null ? 1 : 0) + (inStockOnly ? 1 : 0) + (searchQuery ? 1 : 0);
 
-  // Reactive Filter Algorithm
-  const filteredProducts = useMemo(() => {
-    return products.filter((prod) => {
-      // Search
-      if (searchQuery.trim()) {
-        const query = searchQuery.toLowerCase();
-        const matchesTitle = prod.title.toLowerCase().includes(query);
-        const matchesBrand = prod.brand.toLowerCase().includes(query);
-        const matchesCategory = prod.category.toLowerCase().includes(query);
-        if (!matchesTitle && !matchesBrand && !matchesCategory) return false;
-      }
-
-      // Brand Checkbox Multi-Select
-      if (selectedBrands.length > 0 && !selectedBrands.includes(prod.brand)) {
-        return false;
-      }
-
-      // Price Range Filter
-      if (prod.price < priceMin || prod.price > priceMax) {
-        return false;
-      }
-
-      // Puff Range Multi-Select
-      if (selectedPuffRanges.length > 0) {
-        if (!prod.puffs) return false;
-        const matchesAnyPuff = selectedPuffRanges.some((range) => {
-          if (range === "under-10k") return prod.puffs! < 10000;
-          if (range === "10k-20k") return prod.puffs! >= 10000 && prod.puffs! <= 20000;
-          if (range === "20k-30k") return prod.puffs! > 20000 && prod.puffs! <= 30000;
-          if (range === "30k-40k") return prod.puffs! > 30000 && prod.puffs! <= 40000;
-          if (range === "40k-plus") return prod.puffs! > 40000;
-          return false;
-        });
-        if (!matchesAnyPuff) return false;
-      }
-
-      // Nicotine Multi-Select
-      if (selectedNicotines.length > 0) {
-        const matchesAnyNic = selectedNicotines.some((nic) => {
-          if (nic === "20mg") return prod.nicotineStrength.includes("20mg") || prod.nicotineStrength.includes("2%");
-          if (nic === "50mg") return prod.nicotineStrength.includes("50mg") || prod.nicotineStrength.includes("5%");
-          if (nic === "3mg") return prod.nicotineStrength.includes("3mg") || prod.nicotineStrength.includes("0.3%");
-          if (nic === "0mg") return prod.nicotineStrength.includes("0mg") || prod.nicotineStrength.includes("Zero");
-          return false;
-        });
-        if (!matchesAnyNic) return false;
-      }
-
-      // Flavor Family Multi-Select
-      if (selectedFlavorFamilies.length > 0 && !selectedFlavorFamilies.includes(prod.flavorFamily)) {
-        return false;
-      }
-
-      // Features Multi-Select
-      if (selectedFeatures.length > 0) {
-        const fullDesc = `${prod.title} ${prod.shortDescription} ${prod.fullDescription}`.toLowerCase();
-        const matchesFeatures = selectedFeatures.every((feat) => {
-          if (feat === "screen") return fullDesc.includes("screen") || fullDesc.includes("oled") || fullDesc.includes("display");
-          if (feat === "dual_mesh") return fullDesc.includes("mesh") || fullDesc.includes("dual");
-          if (feat === "type_c") return fullDesc.includes("type-c") || fullDesc.includes("rechargeable") || prod.chargingType?.includes("Type-C");
-          if (feat === "airflow") return fullDesc.includes("airflow");
-          return true;
-        });
-        if (!matchesFeatures) return false;
-      }
-
-      // In Stock
-      if (inStockOnly && !prod.inStock) {
-        return false;
-      }
-
-      return true;
-    }).sort((a, b) => {
-      if (sortBy === "price_asc") return a.price - b.price;
-      if (sortBy === "price_desc") return b.price - a.price;
-      if (sortBy === "rating") return b.rating - a.rating;
-      if (sortBy === "newest") return b.revs - a.revs;
-      return b.revs - a.revs; // popular default
-    });
-  }, [
-    products,
-    searchQuery,
-    selectedBrands,
-    priceMin,
-    priceMax,
-    selectedPuffRanges,
-    selectedNicotines,
-    selectedFlavorFamilies,
-    selectedFeatures,
-    inStockOnly,
-    sortBy
-  ]);
-
-  // Paginated Slices
-  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
-  const paginatedProducts = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage;
-    return filteredProducts.slice(start, start + itemsPerPage);
-  }, [filteredProducts, currentPage, itemsPerPage]);
-
-  // Direct Add to Cart Action
-  const handleAddToCartDirect = (prod: ProductItem) => {
-    const itemFlavor = prod.flavors[0]?.name || "Standard";
+  // ---- cart helpers (same pattern as existing views) ----
+  const addToCart = (prod: ProductItem, flavorId?: string, qty: number = 1, nicotine?: string) => {
+    const flavorName = prod.flavors.find((f) => f.id === flavorId)?.name || prod.flavors[0]?.name;
     const newItem: CartItem = {
-      id: `${prod.id}-default`,
+      id: `${prod.id}-${flavorId || "std"}-${nicotine || prod.nicotineStrength}`,
       productId: prod.id,
       title: prod.title,
       brand: prod.brand,
       price: prod.price,
       image: prod.primaryImage,
-      quantity: 1,
-      flavor: itemFlavor,
-      nicotine: prod.nicotineStrength
+      quantity: qty,
+      flavor: flavorName,
+      nicotine: nicotine || prod.nicotineStrength,
     };
-
     setCartItems((prev) => {
       const idx = prev.findIndex((i) => i.id === newItem.id);
-      if (idx > -1) {
-        const copy = [...prev];
-        copy[idx].quantity += 1;
-        return copy;
-      }
+      if (idx > -1) { const copy = [...prev]; copy[idx].quantity += qty; return copy; }
       return [...prev, newItem];
     });
-
     setIsCartOpen(true);
-  };
-
-  // Quick View Modal
-  const openQuickView = (prod: ProductItem) => {
-    setQuickViewProduct(prod);
-    setQuickViewFlavor(prod.flavors[0]?.id || "");
-    setQuickViewQuantity(1);
-  };
-
-  const handleAddQuickViewToCart = () => {
-    if (!quickViewProduct) return;
-    const chosenFlavorName = quickViewProduct.flavors.find(f => f.id === quickViewFlavor)?.name || quickViewProduct.flavors[0]?.name;
-    const newItem: CartItem = {
-      id: `${quickViewProduct.id}-${quickViewFlavor}`,
-      productId: quickViewProduct.id,
-      title: quickViewProduct.title,
-      brand: quickViewProduct.brand,
-      price: quickViewProduct.price,
-      image: quickViewProduct.primaryImage,
-      quantity: quickViewQuantity,
-      flavor: chosenFlavorName,
-      nicotine: quickViewProduct.nicotineStrength
-    };
-
-    setCartItems(prev => {
-      const idx = prev.findIndex(i => i.id === newItem.id);
-      if (idx > -1) {
-        const copy = [...prev];
-        copy[idx].quantity += quickViewQuantity;
-        return copy;
-      }
-      return [...prev, newItem];
-    });
-
-    setQuickViewProduct(null);
-    setIsCartOpen(true);
-  };
-
-  const handleUpdateCartQuantity = (id: string, delta: number) => {
-    setCartItems((prev) =>
-      prev
-        .map((i) => (i.id === id ? { ...i, quantity: Math.max(0, i.quantity + delta) } : i))
-        .filter((i) => i.quantity > 0)
-    );
-  };
-
-  const handleRemoveCartItem = (id: string) => {
-    setCartItems((prev) => prev.filter((i) => i.id !== id));
   };
 
   const pageTitle = category ? category.title : "All Vape Products & Collections";
-  const pageSubtitle = category
-    ? category.subtitle
-    : "Explore the complete collection of 100% authentic disposable vapes, pod systems, e-liquids, and IQOS TEREA in the UAE.";
+  const pageEyebrow = category ? category.badge : "THE FULL CATALOG";
+  const pageSubtitle = category ? category.subtitle : "100% authentic disposable vapes, pod systems, e-liquids and heated tobacco — with express UAE delivery.";
 
-  // Reusable Filter Sidebar Content Component
-  const FilterControls = () => (
-    <div className="space-y-4 text-xs">
-      {/* Filter Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-neutral-200">
-        <div className="flex items-center gap-2">
-          <Filter size={16} className="text-[#064e3b]" />
-          <h3 className="font-bold text-sm text-neutral-900 tracking-tight">Filter Products</h3>
-          {activeFilterCount > 0 && (
-            <span className="w-5 h-5 rounded-full bg-[#064e3b] text-white text-[10px] font-black flex items-center justify-center">
-              {activeFilterCount}
-            </span>
-          )}
-        </div>
-        {activeFilterCount > 0 && (
+  const allReviews = useMemo(() => products.flatMap((p) => p.reviews.map((r) => ({ ...r, product: p.title }))).slice(0, 3), [products]);
+  const avgRating = useMemo(() => {
+    if (!products.length) return 0;
+    return products.reduce((a, p) => a + p.rating, 0) / products.length;
+  }, [products]);
+  const totalRevs = useMemo(() => products.reduce((a, p) => a + p.revs, 0), [products]);
+
+  // ---------- shared bits ----------
+  const filterPanel = (
+    <div className="space-y-5">
+      {/* search */}
+      <div className="relative">
+        <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-700/60" />
+        <input
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search products…"
+          className="w-full h-11 rounded-xl border border-emerald-900/15 bg-white pl-10 pr-4 text-sm text-emerald-950 placeholder:text-emerald-900/40 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
+        />
+      </div>
+
+      {/* availability */}
+      <div className="rounded-2xl border border-emerald-900/10 bg-white p-4">
+        <p className="font-cinzel text-[11px] tracking-[0.18em] text-emerald-900 font-bold mb-3">AVAILABILITY</p>
+        <label className="flex items-center gap-3 cursor-pointer min-h-[44px]">
           <button
-            type="button"
-            onClick={resetAllFilters}
-            className="text-[11px] font-bold text-red-600 hover:text-red-700 underline cursor-pointer"
+            role="checkbox" aria-checked={inStockOnly}
+            onClick={() => setInStockOnly(!inStockOnly)}
+            className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-colors ${inStockOnly ? "bg-emerald-800 border-emerald-800" : "border-emerald-900/25 bg-white"}`}
           >
-            Clear All
+            {inStockOnly && <Check size={14} className="text-white" strokeWidth={3} />}
           </button>
-        )}
+          <span className="text-sm font-medium text-emerald-950">In stock only</span>
+        </label>
       </div>
 
-      {/* 1. Availability */}
-      <div className="border-b border-neutral-100 pb-3.5">
+      {/* price */}
+      <div className="rounded-2xl border border-emerald-900/10 bg-white p-4">
+        <p className="font-cinzel text-[11px] tracking-[0.18em] text-emerald-900 font-bold mb-3">PRICE (AED)</p>
+        <div className="flex items-center gap-2">
+          <input
+            value={priceMinInput} inputMode="numeric"
+            onChange={(e) => setPriceMinInput(e.target.value.replace(/[^0-9.]/g, ""))}
+            placeholder={`${priceBounds.min}`} aria-label="Minimum price"
+            className="w-full h-11 rounded-xl border border-emerald-900/15 px-3 text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
+          />
+          <span className="text-emerald-900/40 font-bold">–</span>
+          <input
+            value={priceMaxInput} inputMode="numeric"
+            onChange={(e) => setPriceMaxInput(e.target.value.replace(/[^0-9.]/g, ""))}
+            placeholder={`${priceBounds.max}`} aria-label="Maximum price"
+            className="w-full h-11 rounded-xl border border-emerald-900/15 px-3 text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
+          />
+        </div>
         <button
-          type="button"
-          onClick={() => toggleSection("availability")}
-          className="w-full flex items-center justify-between font-bold text-neutral-900 text-xs py-1"
+          onClick={() => {
+            setPriceMin(priceMinInput ? parseFloat(priceMinInput) : null);
+            setPriceMax(priceMaxInput ? parseFloat(priceMaxInput) : null);
+          }}
+          className="mt-3 w-full h-11 rounded-xl bg-emerald-900 text-white text-sm font-bold tracking-wide hover:bg-emerald-800 transition-colors"
         >
-          <span>Availability</span>
-          {openSections.availability ? <ChevronUp size={14} className="text-neutral-500" /> : <ChevronDown size={14} className="text-neutral-500" />}
+          APPLY PRICE
         </button>
-        {openSections.availability && (
-          <div className="mt-2.5 space-y-2">
-            <label className="flex items-center justify-between text-neutral-700 hover:text-neutral-900 cursor-pointer select-none">
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={inStockOnly}
-                  onChange={(e) => {
-                    setInStockOnly(e.target.checked);
-                    setCurrentPage(1);
-                  }}
-                  className="w-4 h-4 rounded text-[#064e3b] focus:ring-[#064e3b] accent-[#064e3b] cursor-pointer"
-                />
-                <span className="font-medium">In Stock Only</span>
-              </div>
-              <span className="text-[10px] text-neutral-400 bg-neutral-100 px-1.5 py-0.2 rounded font-mono">
-                {products.filter(p => p.inStock).length}
-              </span>
+      </div>
+
+      {/* brand */}
+      <div className="rounded-2xl border border-emerald-900/10 bg-white p-4">
+        <p className="font-cinzel text-[11px] tracking-[0.18em] text-emerald-900 font-bold mb-2">BRAND</p>
+        <div className="max-h-56 overflow-y-auto pr-1 space-y-0.5">
+          {brands.map((b) => (
+            <label key={b} className="flex items-center gap-3 cursor-pointer min-h-[40px] rounded-lg px-1 hover:bg-emerald-50">
+              <button
+                role="checkbox" aria-checked={selectedBrands.includes(b)}
+                onClick={() => toggleIn(selectedBrands, b, setSelectedBrands)}
+                className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${selectedBrands.includes(b) ? "bg-amber-500 border-amber-500" : "border-emerald-900/25 bg-white"}`}
+              >
+                {selectedBrands.includes(b) && <Check size={12} className="text-white" strokeWidth={3.5} />}
+              </button>
+              <span className="text-sm text-emerald-950 flex-1">{b}</span>
+              <span className="text-xs font-semibold text-emerald-900/45 bg-emerald-50 rounded-full px-2 py-0.5">{brandCounts[b]}</span>
             </label>
-          </div>
-        )}
+          ))}
+        </div>
       </div>
 
-      {/* 2. Price Range */}
-      <div className="border-b border-neutral-100 pb-3.5">
-        <button
-          type="button"
-          onClick={() => toggleSection("price")}
-          className="w-full flex items-center justify-between font-bold text-neutral-900 text-xs py-1"
-        >
-          <span>Price Range (AED)</span>
-          {openSections.price ? <ChevronUp size={14} className="text-neutral-500" /> : <ChevronDown size={14} className="text-neutral-500" />}
-        </button>
-        {openSections.price && (
-          <div className="mt-2.5 space-y-3">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex-1 bg-neutral-50 rounded-xl border border-neutral-200 p-2">
-                <span className="text-[9px] font-bold text-neutral-400 uppercase block">Min</span>
-                <div className="flex items-center text-xs font-bold text-neutral-900">
-                  <span className="text-[10px] text-neutral-500 mr-1">AED</span>
-                  <input
-                    type="number"
-                    min={20}
-                    max={priceMax}
-                    value={priceMin}
-                    onChange={(e) => {
-                      setPriceMin(Math.max(20, Number(e.target.value)));
-                      setCurrentPage(1);
-                    }}
-                    className="w-full bg-transparent focus:outline-none text-xs font-bold"
-                  />
-                </div>
-              </div>
-              <span className="text-neutral-400 font-bold">-</span>
-              <div className="flex-1 bg-neutral-50 rounded-xl border border-neutral-200 p-2">
-                <span className="text-[9px] font-bold text-neutral-400 uppercase block">Max</span>
-                <div className="flex items-center text-xs font-bold text-neutral-900">
-                  <span className="text-[10px] text-neutral-500 mr-1">AED</span>
-                  <input
-                    type="number"
-                    min={priceMin}
-                    max={300}
-                    value={priceMax}
-                    onChange={(e) => {
-                      setPriceMax(Math.min(300, Number(e.target.value)));
-                      setCurrentPage(1);
-                    }}
-                    className="w-full bg-transparent focus:outline-none text-xs font-bold"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Slider Bar */}
-            <input
-              type="range"
-              min={20}
-              max={200}
-              value={priceMax}
-              onChange={(e) => {
-                setPriceMax(Number(e.target.value));
-                setCurrentPage(1);
-              }}
-              className="w-full accent-[#064e3b] cursor-pointer"
-            />
-            <div className="flex justify-between text-[10px] text-neutral-400 font-semibold">
-              <span>AED 20</span>
-              <span>AED 200+</span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* 3. Brands Checkbox List */}
-      <div className="border-b border-neutral-100 pb-3.5">
-        <button
-          type="button"
-          onClick={() => toggleSection("brand")}
-          className="w-full flex items-center justify-between font-bold text-neutral-900 text-xs py-1"
-        >
-          <span>Brands</span>
-          {openSections.brand ? <ChevronUp size={14} className="text-neutral-500" /> : <ChevronDown size={14} className="text-neutral-500" />}
-        </button>
-        {openSections.brand && (
-          <div className="mt-2.5 space-y-2 max-h-48 overflow-y-auto no-scrollbar pr-1">
-            {availableBrands.map((b) => (
-              <label
-                key={b}
-                className="flex items-center justify-between text-neutral-700 hover:text-neutral-900 cursor-pointer select-none"
+      {/* nicotine */}
+      <div className="rounded-2xl border border-emerald-900/10 bg-white p-4">
+        <p className="font-cinzel text-[11px] tracking-[0.18em] text-emerald-900 font-bold mb-2">NICOTINE STRENGTH</p>
+        <div className="space-y-0.5">
+          {nicotines.map((n) => (
+            <label key={n} className="flex items-center gap-3 cursor-pointer min-h-[40px] rounded-lg px-1 hover:bg-emerald-50">
+              <button
+                role="checkbox" aria-checked={selectedNicotines.includes(n)}
+                onClick={() => toggleIn(selectedNicotines, n, setSelectedNicotines)}
+                className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${selectedNicotines.includes(n) ? "bg-amber-500 border-amber-500" : "border-emerald-900/25 bg-white"}`}
               >
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedBrands.includes(b)}
-                    onChange={() => toggleBrand(b)}
-                    className="w-4 h-4 rounded text-[#064e3b] focus:ring-[#064e3b] accent-[#064e3b] cursor-pointer"
-                  />
-                  <span className="font-medium text-xs">{b}</span>
-                </div>
-                <span className="text-[10px] text-neutral-400 bg-neutral-100 px-1.5 py-0.2 rounded font-mono">
-                  {brandCounts[b] || 0}
-                </span>
-              </label>
-            ))}
-          </div>
-        )}
+                {selectedNicotines.includes(n) && <Check size={12} className="text-white" strokeWidth={3.5} />}
+              </button>
+              <span className="text-sm text-emerald-950 flex-1">{n}</span>
+              <span className="text-xs font-semibold text-emerald-900/45 bg-emerald-50 rounded-full px-2 py-0.5">{nicotineCounts[n]}</span>
+            </label>
+          ))}
+        </div>
       </div>
 
-      {/* 4. Puff Count Range */}
-      <div className="border-b border-neutral-100 pb-3.5">
-        <button
-          type="button"
-          onClick={() => toggleSection("puffs")}
-          className="w-full flex items-center justify-between font-bold text-neutral-900 text-xs py-1"
-        >
-          <span>Puff Capacity</span>
-          {openSections.puffs ? <ChevronUp size={14} className="text-neutral-500" /> : <ChevronDown size={14} className="text-neutral-500" />}
-        </button>
-        {openSections.puffs && (
-          <div className="mt-2.5 space-y-2">
-            {puffOptions.map((p) => (
-              <label
-                key={p.id}
-                className="flex items-center justify-between text-neutral-700 hover:text-neutral-900 cursor-pointer select-none"
+      {/* puffs */}
+      <div className="rounded-2xl border border-emerald-900/10 bg-white p-4">
+        <p className="font-cinzel text-[11px] tracking-[0.18em] text-emerald-900 font-bold mb-2">PUFF COUNT</p>
+        <div className="space-y-0.5">
+          {puffBuckets.map((b) => (
+            <label key={b.id} className="flex items-center gap-3 cursor-pointer min-h-[40px] rounded-lg px-1 hover:bg-emerald-50">
+              <button
+                role="checkbox" aria-checked={selectedPuffs.includes(b.id)}
+                onClick={() => toggleIn(selectedPuffs, b.id, setSelectedPuffs)}
+                className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${selectedPuffs.includes(b.id) ? "bg-amber-500 border-amber-500" : "border-emerald-900/25 bg-white"}`}
               >
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedPuffRanges.includes(p.id)}
-                    onChange={() => togglePuffRange(p.id)}
-                    className="w-4 h-4 rounded text-[#064e3b] focus:ring-[#064e3b] accent-[#064e3b] cursor-pointer"
-                  />
-                  <span className="font-medium text-xs">{p.label}</span>
-                </div>
-                <span className="text-[10px] text-neutral-400 bg-neutral-100 px-1.5 py-0.2 rounded font-mono">
-                  {puffCounts[p.id] || 0}
-                </span>
-              </label>
-            ))}
-          </div>
-        )}
+                {selectedPuffs.includes(b.id) && <Check size={12} className="text-white" strokeWidth={3.5} />}
+              </button>
+              <span className="text-sm text-emerald-950 flex-1">{b.label}</span>
+              <span className="text-xs font-semibold text-emerald-900/45 bg-emerald-50 rounded-full px-2 py-0.5">{b.count}</span>
+            </label>
+          ))}
+        </div>
       </div>
 
-      {/* 5. Nicotine Strength */}
-      <div className="border-b border-neutral-100 pb-3.5">
+      {activeFilterCount > 0 && (
         <button
-          type="button"
-          onClick={() => toggleSection("nicotine")}
-          className="w-full flex items-center justify-between font-bold text-neutral-900 text-xs py-1"
+          onClick={clearAll}
+          className="w-full h-11 rounded-xl border-2 border-emerald-900/15 text-emerald-900 text-sm font-bold hover:border-amber-500 hover:text-amber-600 transition-colors"
         >
-          <span>Nicotine Strength</span>
-          {openSections.nicotine ? <ChevronUp size={14} className="text-neutral-500" /> : <ChevronDown size={14} className="text-neutral-500" />}
+          CLEAR ALL FILTERS ({activeFilterCount})
         </button>
-        {openSections.nicotine && (
-          <div className="mt-2.5 space-y-2">
-            {nicotineOptions.map((nic) => (
-              <label
-                key={nic.id}
-                className="flex items-center justify-between text-neutral-700 hover:text-neutral-900 cursor-pointer select-none"
-              >
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedNicotines.includes(nic.id)}
-                    onChange={() => toggleNicotine(nic.id)}
-                    className="w-4 h-4 rounded text-[#064e3b] focus:ring-[#064e3b] accent-[#064e3b] cursor-pointer"
-                  />
-                  <span className="font-medium text-xs">{nic.label}</span>
-                </div>
-              </label>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* 6. Flavor Family */}
-      <div className="border-b border-neutral-100 pb-3.5">
-        <button
-          type="button"
-          onClick={() => toggleSection("flavor")}
-          className="w-full flex items-center justify-between font-bold text-neutral-900 text-xs py-1"
-        >
-          <span>Flavor Profile</span>
-          {openSections.flavor ? <ChevronUp size={14} className="text-neutral-500" /> : <ChevronDown size={14} className="text-neutral-500" />}
-        </button>
-        {openSections.flavor && (
-          <div className="mt-2.5 space-y-2">
-            {flavorFamilyOptions.map((fl) => (
-              <label
-                key={fl.id}
-                className="flex items-center justify-between text-neutral-700 hover:text-neutral-900 cursor-pointer select-none"
-              >
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedFlavorFamilies.includes(fl.id)}
-                    onChange={() => toggleFlavorFamily(fl.id)}
-                    className="w-4 h-4 rounded text-[#064e3b] focus:ring-[#064e3b] accent-[#064e3b] cursor-pointer"
-                  />
-                  <span className="font-medium text-xs">{fl.label}</span>
-                </div>
-              </label>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* 7. Hardware & Engineering Features */}
-      <div>
-        <button
-          type="button"
-          onClick={() => toggleSection("features")}
-          className="w-full flex items-center justify-between font-bold text-neutral-900 text-xs py-1"
-        >
-          <span>Device Features</span>
-          {openSections.features ? <ChevronUp size={14} className="text-neutral-500" /> : <ChevronDown size={14} className="text-neutral-500" />}
-        </button>
-        {openSections.features && (
-          <div className="mt-2.5 space-y-2">
-            {featureOptions.map((feat) => (
-              <label
-                key={feat.id}
-                className="flex items-center justify-between text-neutral-700 hover:text-neutral-900 cursor-pointer select-none"
-              >
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedFeatures.includes(feat.id)}
-                    onChange={() => toggleFeature(feat.id)}
-                    className="w-4 h-4 rounded text-[#064e3b] focus:ring-[#064e3b] accent-[#064e3b] cursor-pointer"
-                  />
-                  <span className="font-medium text-xs">{feat.label}</span>
-                </div>
-              </label>
-            ))}
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
 
+  const productCard = (p: ProductItem, i: number) => {
+    const discount = p.originalPrice > p.price ? Math.round((1 - p.price / p.originalPrice) * 100) : 0;
+    const wished = wishlist.includes(p.id);
+    return (
+      <motion.article
+        key={p.id}
+        initial={{ opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-40px" }}
+        transition={{ duration: 0.45, delay: (i % 6) * 0.05 }}
+        className="group relative flex flex-col rounded-2xl bg-white border border-emerald-900/10 overflow-hidden hover:shadow-[0_20px_50px_-16px_rgba(6,78,59,0.35)] hover:-translate-y-1 transition-all duration-300"
+      >
+        <div className="relative aspect-square bg-gradient-to-br from-[#f8fafc] to-emerald-50/60 overflow-hidden">
+          <Link href={`/product/${p.slug}`} aria-label={p.title} className="block w-full h-full">
+            <Image
+              src={p.primaryImage} alt={p.title} fill sizes="(max-width: 640px) 50vw, 33vw"
+              className="object-contain p-4 transition-transform duration-500 group-hover:scale-105"
+            />
+            {p.images[1] && (
+              <Image
+                src={p.images[1]} alt="" aria-hidden fill sizes="(max-width: 640px) 50vw, 33vw"
+                className="object-contain p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+              />
+            )}
+          </Link>
+          <button
+            onClick={() => toggleWishlist(p.id)} aria-label="Add to wishlist"
+            className="absolute top-3 left-3 w-9 h-9 rounded-full bg-white/90 backdrop-blur border border-emerald-900/10 flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
+          >
+            <Heart size={16} className={wished ? "fill-red-500 text-red-500" : "text-emerald-900"} />
+          </button>
+          {discount > 0 && (
+            <span className="absolute top-3 right-3 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-emerald-950 text-[11px] font-extrabold px-2.5 py-1 shadow">
+              -{discount}%
+            </span>
+          )}
+          {p.badge && (
+            <span className="absolute bottom-3 left-3 rounded-full bg-emerald-900 text-amber-300 font-cinzel text-[9px] tracking-[0.16em] px-2.5 py-1">
+              {p.badge}
+            </span>
+          )}
+          {!p.inStock && (
+            <span className="absolute inset-x-0 top-1/2 -translate-y-1/2 mx-auto w-max rounded-full bg-neutral-900/85 text-white text-xs font-bold px-4 py-1.5">
+              SOLD OUT
+            </span>
+          )}
+          <button
+            onClick={() => { setQuickViewProduct(p); setQuickViewFlavor(p.flavors[0]?.id || ""); setQuickViewQty(1); }}
+            className="absolute inset-x-3 bottom-3 h-11 rounded-xl bg-emerald-950/90 backdrop-blur text-white text-sm font-bold tracking-wide opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 hidden sm:flex items-center justify-center gap-2"
+          >
+            <Eye size={16} /> QUICK VIEW
+          </button>
+        </div>
+        <div className="flex flex-1 flex-col p-3.5 sm:p-4">
+          <p className="font-cinzel text-[10px] tracking-[0.2em] text-emerald-700/80 font-bold">{p.brand}</p>
+          <Link href={`/product/${p.slug}`}>
+            <h3 className="mt-1 text-[13px] sm:text-sm font-semibold text-emerald-950 leading-snug line-clamp-2 hover:text-amber-600 transition-colors min-h-[2.6em]">
+              {p.title}
+            </h3>
+          </Link>
+          <div className="mt-1.5 flex items-center gap-1.5">
+            <Stars rating={p.rating} />
+            <span className="text-xs text-neutral-500">({p.revs})</span>
+          </div>
+          <div className="mt-2 flex items-baseline gap-2 flex-wrap">
+            <span className="text-base sm:text-lg font-extrabold text-emerald-900">{formatAED(p.price)}</span>
+            {p.originalPrice > p.price && (
+              <>
+                <span className="text-xs sm:text-sm text-neutral-400 line-through">{formatAED(p.originalPrice)}</span>
+                <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 rounded-full px-2 py-0.5">
+                  Save {formatAED(p.originalPrice - p.price)}
+                </span>
+              </>
+            )}
+          </div>
+          <div className="mt-3 flex items-center gap-2">
+            <button
+              onClick={() => addToCart(p)}
+              disabled={!p.inStock}
+              className="flex-1 h-11 rounded-xl bg-emerald-800 text-white text-sm font-bold tracking-wide hover:bg-emerald-700 active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              <ShoppingBag size={16} /> ADD TO CART
+            </button>
+            <Link
+              href={`/product/${p.slug}`}
+              aria-label={`View ${p.title}`}
+              className="w-11 h-11 shrink-0 rounded-xl border-2 border-amber-500/60 text-amber-600 flex items-center justify-center hover:bg-amber-500 hover:text-white transition-colors"
+            >
+              <ArrowRight size={18} />
+            </Link>
+          </div>
+        </div>
+      </motion.article>
+    );
+  };
+
   return (
-    <div className="min-h-screen bg-[#ffffff] text-neutral-900 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#f8fafc] text-neutral-900 flex flex-col">
       <Header
         onCartClick={() => setIsCartOpen(true)}
-        cartCount={cartItems.reduce((acc, item) => acc + item.quantity, 0)}
+        cartCount={cartItems.reduce((a, it) => a + it.quantity, 0)}
       />
 
-      {/* SECTION 1: LUXURY HERO BANNER */}
-      <section className="bg-gradient-to-br from-[#064e3b] via-[#043e2e] to-[#022c22] text-white py-10 sm:py-14 md:py-16 relative overflow-hidden border-b border-emerald-800">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-400/15 rounded-full blur-[90px] pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-amber-400/15 rounded-full blur-[90px] pointer-events-none" />
-
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 relative z-10">
-          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-emerald-200/70 text-xs font-semibold mb-3">
+      {/* ============ HERO BANNER ============ */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#064e3b] via-[#043e2e] to-[#022c22] text-white">
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-emerald-400/15 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-amber-400/15 rounded-full blur-[100px] pointer-events-none" />
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 pt-6 pb-8 sm:pt-8 sm:pb-10 relative z-10">
+          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-emerald-200/70 text-xs font-semibold mb-4">
             <Link href="/" className="hover:text-amber-300 transition-colors">Home</Link>
             <ChevronRight size={12} className="text-emerald-400/60" />
             <Link href="/collections" className="hover:text-amber-300 transition-colors">Collections</Link>
-            {category && (
-              <>
-                <ChevronRight size={12} className="text-emerald-400/60" />
-                <span className="text-white font-bold">{category.name}</span>
-              </>
-            )}
+            {category && (<><ChevronRight size={12} className="text-emerald-400/60" /><span className="text-amber-300">{category.name}</span></>)}
           </nav>
-
-          <div className="max-w-3xl">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="h-0.5 w-6 bg-amber-400 rounded-full" />
-              <span className="font-cinzel text-xs font-bold text-amber-300 uppercase tracking-[0.22em]">
-                {category?.badge || "CURATED CATALOG"}
-              </span>
-            </div>
-
-            <h1 className="font-luxury text-2xl sm:text-3xl md:text-4xl font-extrabold text-white tracking-tight leading-tight mb-3">
-              {pageTitle}
-            </h1>
-
-            <p className="text-xs sm:text-sm text-emerald-100/90 leading-relaxed font-medium mb-5">
-              {pageSubtitle}
-            </p>
-
-            <div className="flex flex-wrap items-center gap-2.5 text-xs">
-              <span className="bg-white/10 backdrop-blur-md border border-white/20 text-emerald-100 px-3 py-1 rounded-full font-bold flex items-center gap-1.5 shadow-xs">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                {filteredProducts.length} Premium Products Available
-              </span>
-              <span className="bg-white/10 backdrop-blur-md border border-white/20 text-emerald-100 px-3 py-1 rounded-full font-bold flex items-center gap-1.5 shadow-xs">
-                <Truck size={13} className="text-amber-300" />
-                2-Hour Dubai Express Delivery
-              </span>
-              <span className="bg-white/10 backdrop-blur-md border border-white/20 text-emerald-100 px-3 py-1 rounded-full font-bold flex items-center gap-1.5 shadow-xs">
-                <ShieldCheck size={13} className="text-amber-300" />
-                100% Authentic UAE Tax-Paid
-              </span>
-            </div>
+          <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+            <p className="font-cinzel text-[11px] sm:text-xs tracking-[0.28em] text-amber-300 font-bold mb-2">{pageEyebrow}</p>
+            <h1 className="font-luxury text-3xl sm:text-4xl md:text-5xl font-bold leading-tight">{pageTitle}</h1>
+            <p className="mt-3 max-w-2xl text-sm sm:text-base text-emerald-100/85 leading-relaxed">{pageSubtitle}</p>
+          </motion.div>
+          {/* brand quick chips */}
+          <div className="mt-5 flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x">
+            <button
+              onClick={() => setSelectedBrands([])}
+              className={`shrink-0 snap-start h-10 px-4 rounded-full text-xs font-bold tracking-wide border transition-colors ${selectedBrands.length === 0 ? "bg-amber-400 text-emerald-950 border-amber-400" : "bg-white/10 text-white border-white/20 hover:border-amber-300"}`}
+            >
+              ALL BRANDS
+            </button>
+            {brands.map((b) => (
+              <button
+                key={b}
+                onClick={() => toggleIn(selectedBrands, b, setSelectedBrands)}
+                className={`shrink-0 snap-start h-10 px-4 rounded-full text-xs font-bold tracking-wide border transition-colors ${selectedBrands.includes(b) ? "bg-amber-400 text-emerald-950 border-amber-400" : "bg-white/10 text-white border-white/20 hover:border-amber-300"}`}
+              >
+                {b} <span className="opacity-70">({brandCounts[b]})</span>
+              </button>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* SECTION 2: VISUAL CATEGORY CHIPS SCROLLER */}
-      <section className="bg-neutral-50 border-b border-neutral-200/80 py-3 px-4 sm:px-6 sticky top-[58px] sm:top-[66px] z-30 backdrop-blur-md bg-white/95 shadow-xs">
-        <div className="max-w-[1400px] mx-auto flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
-          <Link
-            href="/collections"
-            className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all border ${
-              !category
-                ? "bg-[#064e3b] text-white border-[#064e3b] shadow-xs"
-                : "bg-white text-neutral-700 border-neutral-200 hover:border-emerald-300"
-            }`}
-          >
-            All Products ({products.length})
-          </Link>
-          {allCategories.map((cat) => {
-            const isActive = category?.slug === cat.slug;
-            return (
-              <Link
-                key={cat.slug}
-                href={`/collections/${cat.slug}`}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all border flex items-center gap-2 ${
-                  isActive
-                    ? "bg-[#064e3b] text-white border-[#064e3b] shadow-xs"
-                    : "bg-white text-neutral-700 border-neutral-200 hover:border-emerald-300"
-                }`}
-              >
-                <span>{cat.name}</span>
-                <span
-                  className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                    isActive ? "bg-white/20 text-white" : "bg-neutral-100 text-neutral-500"
-                  }`}
-                >
-                  {cat.count}
-                </span>
-              </Link>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* MAIN TWO-COLUMN E-COMMERCE WORKSPACE */}
-      <div className="max-w-[1400px] w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 flex-1">
-        <div className="flex flex-col lg:flex-row gap-6 sm:gap-8 items-start">
-          
-          {/* LEFT SIDEBAR (DESKTOP STICKY FILTER PANEL) */}
-          <aside className="hidden lg:block w-72 xl:w-80 shrink-0 sticky top-[130px] self-start bg-white border border-neutral-200/90 rounded-3xl p-5 shadow-xs">
-            <FilterControls />
+      {/* ============ BODY: SIDEBAR + GRID ============ */}
+      <main className="flex-1 w-full max-w-[1400px] mx-auto px-4 sm:px-6 py-6 sm:py-10">
+        <div className="flex gap-6 lg:gap-8 items-start">
+          {/* desktop sidebar */}
+          <aside className="hidden lg:block w-[280px] shrink-0 sticky top-24">
+            <div className="flex items-center gap-2 mb-4">
+              <SlidersHorizontal size={16} className="text-emerald-800" />
+              <h2 className="font-cinzel text-sm tracking-[0.18em] font-bold text-emerald-950">FILTERS</h2>
+            </div>
+            {filterPanel}
           </aside>
 
-          {/* RIGHT PRODUCT CATALOG WORKSPACE */}
-          <main className="flex-1 min-w-0 w-full space-y-4">
-            
-            {/* Top Toolbar: Search, Sort, View Modes, Mobile Filter Trigger */}
-            <div className="bg-white border border-neutral-200/90 rounded-2xl p-3 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5 flex-1 max-w-md">
-                {/* Mobile Filter Trigger Button */}
-                <button
-                  type="button"
-                  onClick={() => setIsMobileFilterOpen(true)}
-                  className="lg:hidden px-3 py-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 rounded-xl text-xs font-bold flex items-center gap-1.5 shrink-0"
-                >
-                  <SlidersHorizontal size={14} className="text-[#064e3b]" />
-                  <span>Filter {activeFilterCount > 0 && `(${activeFilterCount})`}</span>
-                </button>
-
-                {/* Search Bar */}
-                <div className="relative flex-1">
-                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      setCurrentPage(1);
-                    }}
-                    placeholder="Search by brand, flavor, or puffs..."
-                    className="w-full h-8.5 pl-8 pr-3 rounded-xl border border-neutral-200 text-xs text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-[#064e3b] focus:ring-1 focus:ring-emerald-500/20"
-                  />
-                </div>
-              </div>
-
-              {/* Sort & Grid / List View Toggle */}
-              <div className="flex items-center justify-between sm:justify-end gap-2.5">
-                <span className="text-[11px] text-neutral-500 font-semibold hidden md:inline">
-                  Showing {filteredProducts.length} of {products.length}
-                </span>
-
+          {/* content */}
+          <div className="flex-1 min-w-0">
+            {/* toolbar */}
+            <div className="flex items-center gap-3 mb-5">
+              <button
+                onClick={() => setIsMobileFilterOpen(true)}
+                className="lg:hidden h-11 px-4 rounded-xl bg-emerald-900 text-white text-sm font-bold flex items-center gap-2 shrink-0"
+              >
+                <SlidersHorizontal size={16} /> FILTERS
+                {activeFilterCount > 0 && (
+                  <span className="w-5 h-5 rounded-full bg-amber-400 text-emerald-950 text-[11px] font-extrabold flex items-center justify-center">{activeFilterCount}</span>
+                )}
+              </button>
+              <p className="text-sm text-neutral-600">
+                Showing <span className="font-bold text-emerald-900">{pageItems.length}</span> of{" "}
+                <span className="font-bold text-emerald-900">{filtered.length}</span> products
+              </p>
+              <div className="ml-auto relative">
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-                  className="h-8.5 px-2.5 rounded-xl border border-neutral-200 text-xs font-bold text-neutral-800 bg-white focus:outline-none focus:border-[#064e3b] cursor-pointer"
+                  aria-label="Sort products"
+                  className="h-11 appearance-none rounded-xl border border-emerald-900/15 bg-white pl-4 pr-10 text-sm font-semibold text-emerald-950 outline-none focus:border-amber-500 cursor-pointer"
                 >
-                  <option value="popular">Sort: Best Selling</option>
-                  <option value="price_asc">Price: Low to High</option>
-                  <option value="price_desc">Price: High to Low</option>
-                  <option value="rating">Highest Rated</option>
-                  <option value="newest">Most Reviews</option>
+                  <option value="popular">Most Popular</option>
+                  <option value="rating">Top Rated</option>
+                  <option value="price_asc">Price: Low → High</option>
+                  <option value="price_desc">Price: High → Low</option>
+                  <option value="newest">Newest</option>
                 </select>
-
-                <div className="flex items-center border border-neutral-200 rounded-xl p-0.5 bg-neutral-50">
-                  <button
-                    type="button"
-                    onClick={() => setViewMode("grid")}
-                    className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                      viewMode === "grid" ? "bg-white text-[#064e3b] shadow-xs" : "text-neutral-400 hover:text-neutral-700"
-                    }`}
-                    aria-label="Grid view"
-                  >
-                    <Grid size={14} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setViewMode("list")}
-                    className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                      viewMode === "list" ? "bg-white text-[#064e3b] shadow-xs" : "text-neutral-400 hover:text-neutral-700"
-                    }`}
-                    aria-label="List view"
-                  >
-                    <List size={14} />
-                  </button>
-                </div>
+                <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-800 pointer-events-none" />
               </div>
             </div>
 
-            {/* Active Filters Chip Row */}
-            {activeFilterCount > 0 && (
-              <div className="flex flex-wrap items-center gap-1.5 py-1 text-xs">
-                <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider mr-1">Active:</span>
-                {selectedBrands.map((b) => (
-                  <span
-                    key={b}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-[#064e3b] border border-emerald-200 text-[11px] font-bold"
-                  >
-                    {b}
-                    <button type="button" onClick={() => toggleBrand(b)} className="hover:text-red-500">
-                      <X size={11} />
-                    </button>
-                  </span>
-                ))}
-                {(priceMin > 20 || priceMax < 200) && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-[#064e3b] border border-emerald-200 text-[11px] font-bold">
-                    AED {priceMin} - {priceMax}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPriceMin(20);
-                        setPriceMax(200);
-                      }}
-                      className="hover:text-red-500"
-                    >
-                      <X size={11} />
-                    </button>
-                  </span>
-                )}
-                {selectedPuffRanges.map((p) => (
-                  <span
-                    key={p}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-[#064e3b] border border-emerald-200 text-[11px] font-bold"
-                  >
-                    {puffOptions.find((opt) => opt.id === p)?.label || p}
-                    <button type="button" onClick={() => togglePuffRange(p)} className="hover:text-red-500">
-                      <X size={11} />
-                    </button>
-                  </span>
-                ))}
-                {selectedNicotines.map((nic) => (
-                  <span
-                    key={nic}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-[#064e3b] border border-emerald-200 text-[11px] font-bold"
-                  >
-                    {nic}
-                    <button type="button" onClick={() => toggleNicotine(nic)} className="hover:text-red-500">
-                      <X size={11} />
-                    </button>
-                  </span>
-                ))}
-                {inStockOnly && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-[#064e3b] border border-emerald-200 text-[11px] font-bold">
-                    In Stock Only
-                    <button type="button" onClick={() => setInStockOnly(false)} className="hover:text-red-500">
-                      <X size={11} />
-                    </button>
-                  </span>
-                )}
-                <button
-                  type="button"
-                  onClick={resetAllFilters}
-                  className="text-[11px] text-red-600 font-bold hover:underline ml-2"
-                >
-                  Clear All
-                </button>
-              </div>
-            )}
-
-            {/* PRODUCT SHOWCASE (GRID VS LIST) */}
-            {filteredProducts.length === 0 ? (
-              <div className="bg-white rounded-3xl p-12 text-center border border-neutral-200 shadow-xs">
-                <div className="w-14 h-14 rounded-full bg-neutral-100 text-neutral-400 flex items-center justify-center mx-auto mb-3">
-                  <Search size={22} />
-                </div>
-                <h3 className="font-bold text-base text-neutral-900 mb-1">No products match your filters</h3>
-                <p className="text-xs text-neutral-500 max-w-sm mx-auto mb-4">
-                  Try adjusting or resetting your brand, price, or puff count filters.
-                </p>
-                <button
-                  type="button"
-                  onClick={resetAllFilters}
-                  className="px-5 py-2 bg-[#064e3b] text-white text-xs font-bold rounded-xl hover:bg-[#022c22] transition-colors cursor-pointer"
-                >
-                  Reset All Filters
-                </button>
-              </div>
-            ) : viewMode === "grid" ? (
-              /* RESPONSIVE 3-COLUMN DESKTOP GRID (Matches reference layout) */
-              <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-3.5 sm:gap-5">
-                {paginatedProducts.map((prod) => (
-                  <div
-                    key={prod.id}
-                    className="group bg-white rounded-3xl border border-neutral-200/90 p-3 sm:p-4 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between relative overflow-hidden"
-                  >
-                    {/* Top Badges */}
-                    <div className="flex items-center justify-between w-full mb-1 z-10">
-                      {prod.badge ? (
-                        <span className="bg-red-600 text-white text-[8.5px] sm:text-[9px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-xs">
-                          {prod.badge}
-                        </span>
-                      ) : <span />}
-
-                      <button
-                        type="button"
-                        onClick={() => openQuickView(prod)}
-                        className="w-7 h-7 rounded-full bg-neutral-100 hover:bg-[#064e3b] hover:text-white text-neutral-600 flex items-center justify-center transition-colors cursor-pointer"
-                        aria-label="Quick view"
-                        title="Quick Preview"
-                      >
-                        <Eye size={13} />
-                      </button>
-                    </div>
-
-                    {/* Image Stage with smooth hover */}
-                    <Link
-                      href={`/product/${prod.slug}`}
-                      className="relative w-full aspect-square max-h-[220px] mx-auto flex items-center justify-center p-2 my-1 overflow-hidden block"
-                    >
-                      <Image
-                        src={prod.primaryImage}
-                        alt={prod.title}
-                        fill
-                        className="object-contain group-hover:scale-108 transition-transform duration-500"
-                      />
-                    </Link>
-
-                    {/* Brand Tag */}
-                    <div className="w-full bg-neutral-900 text-amber-300 text-[8.5px] font-black uppercase tracking-wider py-1 px-2 text-center rounded-md my-1 truncate">
-                      {prod.brand}
-                    </div>
-
-                    {/* Product Title */}
-                    <Link
-                      href={`/product/${prod.slug}`}
-                      className="font-bold text-neutral-900 text-[12.5px] sm:text-[13.5px] leading-snug line-clamp-2 text-center my-1 hover:text-[#064e3b] transition-colors min-h-[36px] flex items-center justify-center"
-                    >
-                      {prod.title}
-                    </Link>
-
-                    {/* Star Rating */}
-                    <div className="flex items-center justify-center gap-0.5 my-1 text-amber-400">
-                      {[1, 2, 3, 4, 5].map((i) => (
-                        <Star key={i} size={11} fill="#fbbf24" color="#fbbf24" />
-                      ))}
-                      <span className="text-[10px] text-neutral-400 font-medium ml-1">({prod.revs})</span>
-                    </div>
-
-                    {/* Price */}
-                    <div className="text-center my-1 flex items-baseline justify-center gap-1.5">
-                      <span className="text-[14px] sm:text-[16px] font-black text-neutral-900 tracking-tight">
-                        AED {prod.price.toFixed(2)}
-                      </span>
-                      {prod.originalPrice > prod.price && (
-                        <span className="text-[11px] text-neutral-400 line-through">
-                          AED {prod.originalPrice.toFixed(2)}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* 1-Click Instant Cart Button */}
-                    <button
-                      type="button"
-                      onClick={() => handleAddToCartDirect(prod)}
-                      className="w-full py-2.5 bg-[#064e3b] hover:bg-[#022c22] text-white text-[11px] font-bold rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer mt-1 active:scale-95"
-                    >
-                      <ShoppingBag size={13} />
-                      <span>Add to Cart</span>
-                    </button>
-                  </div>
-                ))}
+            {/* grid */}
+            {pageItems.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-5">
+                {pageItems.map((p, i) => productCard(p, i))}
               </div>
             ) : (
-              /* RESPONSIVE LIST VIEW */
-              <div className="space-y-3.5">
-                {paginatedProducts.map((prod) => (
-                  <div
-                    key={prod.id}
-                    className="bg-white rounded-3xl border border-neutral-200/90 p-4 shadow-xs hover:shadow-md transition-all flex flex-col sm:flex-row items-center gap-5"
-                  >
-                    <Link
-                      href={`/product/${prod.slug}`}
-                      className="w-28 h-28 relative shrink-0 bg-neutral-50 rounded-2xl p-2"
-                    >
-                      <Image
-                        src={prod.primaryImage}
-                        alt={prod.title}
-                        fill
-                        className="object-contain"
-                      />
-                    </Link>
-
-                    <div className="flex-1 text-center sm:text-left">
-                      <span className="text-[9px] font-black text-neutral-900 uppercase tracking-widest bg-neutral-100 px-2 py-0.5 rounded">
-                        {prod.brand}
-                      </span>
-                      <Link
-                        href={`/product/${prod.slug}`}
-                        className="font-bold text-sm sm:text-base text-neutral-900 hover:text-[#064e3b] transition-colors block mt-1"
-                      >
-                        {prod.title}
-                      </Link>
-                      <p className="text-xs text-neutral-500 line-clamp-2 mt-1">
-                        {prod.shortDescription}
-                      </p>
-
-                      <div className="flex items-center justify-center sm:justify-start gap-4 mt-3">
-                        <span className="font-black text-base text-neutral-900">
-                          AED {prod.price.toFixed(2)}
-                        </span>
-                        {prod.puffs && (
-                          <span className="text-xs text-neutral-600 font-bold bg-neutral-100 px-2 py-0.5 rounded">
-                            {prod.puffs.toLocaleString()} Puffs
-                          </span>
-                        )}
-                        <span className="text-xs text-emerald-800 font-medium">In Stock (UAE)</span>
-                      </div>
-                    </div>
-
-                    <div className="flex sm:flex-col gap-2 shrink-0 w-full sm:w-auto">
-                      <button
-                        type="button"
-                        onClick={() => openQuickView(prod)}
-                        className="flex-1 sm:flex-none px-4 py-2 border border-neutral-300 hover:border-neutral-400 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
-                      >
-                        <Eye size={13} />
-                        <span>Preview</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleAddToCartDirect(prod)}
-                        className="flex-1 sm:flex-none px-5 py-2 bg-[#064e3b] hover:bg-[#022c22] text-white rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5 shadow-xs"
-                      >
-                        <ShoppingBag size={13} />
-                        <span>Add</span>
-                      </button>
-                    </div>
-                  </div>
-                ))}
+              <div className="rounded-3xl border-2 border-dashed border-emerald-900/15 bg-white py-16 px-6 text-center">
+                <Search size={36} className="mx-auto text-emerald-900/25 mb-4" />
+                <h3 className="font-luxury text-xl font-bold text-emerald-950">No products match your filters</h3>
+                <p className="text-sm text-neutral-500 mt-2">Try widening the price range or clearing a filter.</p>
+                <button onClick={clearAll} className="mt-5 h-11 px-6 rounded-xl bg-emerald-800 text-white text-sm font-bold hover:bg-emerald-700">
+                  CLEAR ALL FILTERS
+                </button>
               </div>
             )}
 
-            {/* NUMERICAL PAGINATION BAR (Matches reference layout) */}
+            {/* pagination — correct math (bug fix) */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 pt-6 pb-2">
+              <nav aria-label="Pagination" className="mt-8 flex items-center justify-center gap-2">
                 <button
-                  type="button"
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                  className="w-9 h-9 rounded-xl border border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-100 disabled:opacity-40 flex items-center justify-center font-bold text-xs transition-colors cursor-pointer"
+                  onClick={() => { setCurrentPage(Math.max(1, safePage - 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                  disabled={safePage === 1}
+                  className="h-11 px-4 rounded-xl border border-emerald-900/15 bg-white text-sm font-bold text-emerald-900 disabled:opacity-35 hover:border-amber-500"
                 >
-                  &lt;
+                  ← Prev
                 </button>
-                {Array.from({ length: totalPages }).map((_, idx) => {
-                  const pNum = idx + 1;
-                  return (
-                    <button
-                      key={pNum}
-                      type="button"
-                      onClick={() => setCurrentPage(pNum)}
-                      className={`w-9 h-9 rounded-xl font-bold text-xs transition-all cursor-pointer ${
-                        currentPage === pNum
-                          ? "bg-[#064e3b] text-white shadow-xs font-black"
-                          : "border border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-100"
-                      }`}
-                    >
-                      {pNum}
-                    </button>
-                  );
-                })}
+                {Array.from({ length: totalPages }, (_, n) => n + 1).map((n) => (
+                  <button
+                    key={n}
+                    onClick={() => { setCurrentPage(n); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                    aria-current={n === safePage ? "page" : undefined}
+                    className={`w-11 h-11 rounded-xl text-sm font-bold transition-colors ${n === safePage ? "bg-emerald-900 text-white" : "border border-emerald-900/15 bg-white text-emerald-900 hover:border-amber-500"}`}
+                  >
+                    {n}
+                  </button>
+                ))}
                 <button
-                  type="button"
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                  className="w-9 h-9 rounded-xl border border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-100 disabled:opacity-40 flex items-center justify-center font-bold text-xs transition-colors cursor-pointer"
+                  onClick={() => { setCurrentPage(Math.min(totalPages, safePage + 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                  disabled={safePage === totalPages}
+                  className="h-11 px-4 rounded-xl border border-emerald-900/15 bg-white text-sm font-bold text-emerald-900 disabled:opacity-35 hover:border-amber-500"
                 >
-                  &gt;
+                  Next →
                 </button>
-              </div>
+              </nav>
             )}
-          </main>
+          </div>
         </div>
-      </div>
 
-      {/* MOBILE SLIDE-OVER FILTER DRAWER */}
+        {/* ============ SEO EDITORIAL ============ */}
+        <section className="mt-14 sm:mt-20 rounded-3xl bg-white border border-emerald-900/10 p-6 sm:p-10">
+          <p className="font-cinzel text-[11px] tracking-[0.24em] text-amber-600 font-bold mb-2">BUYING GUIDE</p>
+          <h2 className="font-luxury text-2xl sm:text-3xl font-bold text-emerald-950">
+            {category ? `Why Buy ${category.name} from Vape Mart UAE?` : "The Vape Mart UAE Buying Guide"}
+          </h2>
+          <div className="mt-4 space-y-4 text-sm sm:text-[15px] leading-relaxed text-neutral-600 max-w-4xl">
+            <p>
+              {category ? category.description : "Vape Mart UAE is the Emirates' trusted destination for 100% authentic vaping hardware. Every device in our catalog is sourced through licensed UAE importers, ESMA-compliant, and backed by our authenticity guarantee — so the puff count, flavor and battery life on the box are exactly what you get in your hand."}
+            </p>
+            <p>
+              Whether you are switching from cigarettes or upgrading your setup, choose by puff count first (5,000–10,000 for casual use, 20,000+ for heavy daily vaping), then match your nicotine strength — 20mg (2%) for a balanced throat hit or 50mg (5%) for maximum satisfaction. All orders placed before 9pm qualify for same-day dispatch in Dubai, Sharjah and Ajman, with cash on delivery available across the UAE.
+            </p>
+          </div>
+
+          {/* comparison table */}
+          {products.length > 0 && (
+            <div className="mt-8 overflow-x-auto rounded-2xl border border-emerald-900/10">
+              <table className="w-full text-sm min-w-[560px]">
+                <thead>
+                  <tr className="bg-emerald-950 text-left">
+                    <th className="font-cinzel text-[11px] tracking-[0.14em] text-amber-300 px-4 py-3">PRODUCT</th>
+                    <th className="font-cinzel text-[11px] tracking-[0.14em] text-amber-300 px-4 py-3">PUFFS</th>
+                    <th className="font-cinzel text-[11px] tracking-[0.14em] text-amber-300 px-4 py-3">NICOTINE</th>
+                    <th className="font-cinzel text-[11px] tracking-[0.14em] text-amber-300 px-4 py-3">RATING</th>
+                    <th className="font-cinzel text-[11px] tracking-[0.14em] text-amber-300 px-4 py-3 text-right">PRICE</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...products].sort((a, b) => b.rating - a.rating).slice(0, 5).map((p, i) => (
+                    <tr key={p.id} className={i % 2 ? "bg-emerald-50/50" : "bg-white"}>
+                      <td className="px-4 py-3 font-semibold text-emerald-950">
+                        <Link href={`/product/${p.slug}`} className="hover:text-amber-600">{p.title}</Link>
+                      </td>
+                      <td className="px-4 py-3 text-neutral-600">{p.puffs ? p.puffs.toLocaleString() : "—"}</td>
+                      <td className="px-4 py-3 text-neutral-600">{p.nicotineStrength}</td>
+                      <td className="px-4 py-3"><span className="inline-flex items-center gap-1"><Stars rating={p.rating} size={12} /><span className="text-xs text-neutral-500">({p.revs})</span></span></td>
+                      <td className="px-4 py-3 text-right font-extrabold text-emerald-900">{formatAED(p.price)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* FAQ */}
+          <div className="mt-8">
+            <h3 className="font-luxury text-xl font-bold text-emerald-950 mb-4">Frequently Asked Questions</h3>
+            <div className="divide-y divide-emerald-900/10 rounded-2xl border border-emerald-900/10 overflow-hidden">
+              {[
+                { q: "Are your vapes 100% authentic?", a: "Yes. Every product at Vape Mart UAE is sourced from licensed UAE importers and carries verifiable authenticity packaging. We never sell clones or refills." },
+                { q: "How fast is delivery in the UAE?", a: "Dubai orders placed before 9pm are delivered same-day (express 2–3 hours in most areas). Sharjah, Ajman and Abu Dhabi are next-day. Cash on delivery is available everywhere." },
+                { q: "What nicotine strength should I choose?", a: "20mg (2%) suits most switchers from cigarettes with a smooth throat hit. 50mg (5%) is for heavy smokers wanting maximum satisfaction. 3mg options exist for sub-ohm kits." },
+                { q: "Do you offer cash on delivery?", a: "Yes — pay cash or by card when your order arrives. No prepayment needed, anywhere in the UAE." },
+              ].map((f, i) => (
+                <div key={i}>
+                  <button
+                    onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                    className="w-full flex items-center justify-between gap-4 px-5 min-h-[56px] text-left hover:bg-emerald-50/60 transition-colors"
+                  >
+                    <span className="text-sm sm:text-[15px] font-semibold text-emerald-950">{f.q}</span>
+                    <ChevronDown size={18} className={`shrink-0 text-amber-600 transition-transform ${openFaq === i ? "rotate-180" : ""}`} />
+                  </button>
+                  <AnimatePresence initial={false}>
+                    {openFaq === i && (
+                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25 }} className="overflow-hidden">
+                        <p className="px-5 pb-5 text-sm text-neutral-600 leading-relaxed">{f.a}</p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ============ TRUST BADGES ============ */}
+        <section className="mt-12 sm:mt-16">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
+            {[
+              { icon: BadgeCheck, t: "100% Authentic", d: "Licensed UAE importer, ESMA compliant" },
+              { icon: Truck, t: "Express Delivery", d: "2–3 hour Dubai express, same-day UAE" },
+              { icon: ShieldCheck, t: "Secure Checkout", d: "COD, card & online link payment" },
+              { icon: Headset, t: "24/7 Support", d: "Real humans on WhatsApp, anytime" },
+            ].map((b, i) => (
+              <motion.div
+                key={b.t} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: i * 0.07 }}
+                className="rounded-2xl bg-gradient-to-br from-[#064e3b] to-[#022c22] p-4 sm:p-6 text-white"
+              >
+                <b.icon size={26} className="text-amber-400 mb-3" />
+                <p className="font-bold text-sm sm:text-base">{b.t}</p>
+                <p className="text-xs sm:text-sm text-emerald-100/75 mt-1">{b.d}</p>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+
+        {/* ============ REVIEWS ============ */}
+        {allReviews.length > 0 && (
+          <section className="mt-12 sm:mt-16">
+            <div className="flex items-end justify-between mb-5">
+              <div>
+                <p className="font-cinzel text-[11px] tracking-[0.24em] text-amber-600 font-bold mb-2">VERIFIED BUYERS</p>
+                <h2 className="font-luxury text-2xl sm:text-3xl font-bold text-emerald-950">Customer Reviews</h2>
+              </div>
+              <div className="flex items-center gap-2 bg-white border border-emerald-900/10 rounded-2xl px-4 py-2.5">
+                <span className="font-luxury text-2xl font-bold text-emerald-900">{avgRating.toFixed(1)}</span>
+                <div>
+                  <Stars rating={avgRating} size={13} />
+                  <p className="text-[11px] text-neutral-500">{totalRevs.toLocaleString()} reviews</p>
+                </div>
+              </div>
+            </div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {allReviews.map((r) => (
+                <div key={r.id} className="rounded-2xl bg-white border border-emerald-900/10 p-5">
+                  <Stars rating={r.rating} />
+                  <p className="mt-2 text-sm font-bold text-emerald-950">{r.title}</p>
+                  <p className="mt-1.5 text-sm text-neutral-600 leading-relaxed line-clamp-3">{r.comment}</p>
+                  <div className="mt-3 flex items-center gap-2 text-xs text-neutral-500">
+                    <span className="font-semibold text-emerald-900">{r.author}</span>
+                    {r.verified && <span className="inline-flex items-center gap-1 text-emerald-700 font-semibold"><BadgeCheck size={13} /> Verified</span>}
+                    <span className="ml-auto">{r.location}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ============ WHATSAPP CTA ============ */}
+        <section className="mt-12 sm:mt-16 mb-4 rounded-3xl overflow-hidden bg-gradient-to-r from-[#064e3b] to-[#022c22] text-white p-6 sm:p-10 relative">
+          <div className="absolute -right-16 -top-16 w-64 h-64 bg-emerald-400/15 rounded-full blur-[80px] pointer-events-none" />
+          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center gap-5">
+            <div className="flex-1">
+              <p className="font-cinzel text-[11px] tracking-[0.24em] text-amber-300 font-bold mb-2">LIVE WHATSAPP SUPPORT</p>
+              <h2 className="font-luxury text-2xl sm:text-3xl font-bold">Need Help Choosing? Talk to a Vape Expert.</h2>
+              <ul className="mt-3 space-y-1.5 text-sm text-emerald-100/85">
+                <li className="flex items-center gap-2"><Check size={15} className="text-amber-400" /> Flavor & nicotine guidance in minutes</li>
+                <li className="flex items-center gap-2"><Check size={15} className="text-amber-400" /> Order directly on WhatsApp — COD available</li>
+                <li className="flex items-center gap-2"><Check size={15} className="text-amber-400" /> Bulk & wholesale pricing on request</li>
+              </ul>
+            </div>
+            <a
+              href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer"
+              className="shrink-0 h-[52px] px-7 rounded-2xl bg-[#25D366] text-white font-bold text-sm tracking-wide flex items-center justify-center gap-2.5 hover:brightness-110 active:scale-[0.98] transition-all shadow-lg"
+            >
+              <MessageCircle size={20} /> CHAT ON WHATSAPP
+            </a>
+          </div>
+        </section>
+      </main>
+
+      <Footer />
+      <MobileBottomNav />
+
+      {/* ============ MOBILE FILTER DRAWER ============ */}
       <AnimatePresence>
         {isMobileFilterOpen && (
           <>
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setIsMobileFilterOpen(false)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 lg:hidden"
+              className="fixed inset-0 bg-emerald-950/60 backdrop-blur-sm z-[60] lg:hidden"
             />
             <motion.div
-              initial={{ x: "-100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 220 }}
-              className="fixed inset-y-0 left-0 w-full max-w-xs bg-white z-50 shadow-2xl flex flex-col justify-between overflow-hidden lg:hidden"
+              initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }}
+              transition={{ type: "tween", duration: 0.3, ease: "easeOut" }}
+              className="fixed inset-y-0 left-0 w-[86vw] max-w-[340px] bg-[#f8fafc] z-[61] lg:hidden flex flex-col"
             >
-              <div className="p-4 border-b border-neutral-200 flex items-center justify-between bg-neutral-50">
-                <div className="flex items-center gap-2">
-                  <Filter size={16} className="text-[#064e3b]" />
-                  <span className="font-bold text-sm text-neutral-900">Filters</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsMobileFilterOpen(false)}
-                  className="w-8 h-8 rounded-full bg-white border border-neutral-200 flex items-center justify-center text-neutral-600"
-                >
-                  <X size={16} />
+              <div className="flex items-center justify-between px-5 h-16 border-b border-emerald-900/10 bg-white shrink-0">
+                <span className="font-cinzel text-sm tracking-[0.18em] font-bold text-emerald-950">FILTERS</span>
+                <button onClick={() => setIsMobileFilterOpen(false)} aria-label="Close filters" className="w-11 h-11 flex items-center justify-center rounded-xl hover:bg-emerald-50">
+                  <X size={20} className="text-emerald-900" />
                 </button>
               </div>
-
-              <div className="p-4 flex-1 overflow-y-auto">
-                <FilterControls />
-              </div>
-
-              <div className="p-4 border-t border-neutral-200 bg-neutral-50 flex gap-2">
+              <div className="flex-1 overflow-y-auto p-5">{filterPanel}</div>
+              <div className="p-4 border-t border-emerald-900/10 bg-white shrink-0" style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}>
                 <button
-                  type="button"
-                  onClick={resetAllFilters}
-                  className="flex-1 py-2.5 border border-neutral-300 rounded-xl text-xs font-bold text-neutral-700 hover:bg-white"
-                >
-                  Reset
-                </button>
-                <button
-                  type="button"
                   onClick={() => setIsMobileFilterOpen(false)}
-                  className="flex-1 py-2.5 bg-[#064e3b] text-white rounded-xl text-xs font-bold hover:bg-[#022c22]"
+                  className="w-full h-[52px] rounded-2xl bg-emerald-900 text-white font-bold text-sm tracking-wide"
                 >
-                  View ({filteredProducts.length})
+                  SHOW {filtered.length} PRODUCTS
                 </button>
               </div>
             </motion.div>
@@ -1215,360 +748,82 @@ export function CollectionPageView({ category, allCategories, products }: Collec
         )}
       </AnimatePresence>
 
-      {/* SECTION 6: CURATED COMPARISON MATRIX TABLES (MATCHES USER SCREENSHOT IN EMERALD/GOLD) */}
-      <section className="bg-neutral-50/80 border-t border-neutral-200/80 py-12 sm:py-16">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6">
-          <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-10">
-            <span className="font-cinzel text-xs font-bold text-[#064e3b] uppercase tracking-widest">
-              EXPERT SELECTION MATRIX
-            </span>
-            <h2 className="font-luxury text-2xl sm:text-3xl font-extrabold text-neutral-900 mt-1">
-              Popular Disposable Vapes Comparison
-            </h2>
-            <div className="flex items-center justify-center gap-3 my-2.5">
-              <div className="h-px w-12 bg-[#064e3b]"></div>
-              <div className="w-1.5 h-1.5 rotate-45 bg-amber-500"></div>
-              <div className="h-px w-12 bg-[#064e3b]"></div>
-            </div>
-            <p className="text-xs text-neutral-600">
-              Benchmark comparing top-selling high puff disposables in UAE across battery, coil architecture, and daily cost efficiency.
-            </p>
-          </div>
-
-          {/* TABLE 1: Model Comparison */}
-          <div className="bg-white rounded-3xl border border-neutral-200/90 shadow-xs overflow-x-auto mb-8">
-            <table className="w-full text-left text-xs min-w-[700px]">
-              <thead>
-                <tr className="bg-[#064e3b] text-white font-bold border-b border-emerald-800">
-                  <th className="p-4">Model Name</th>
-                  <th className="p-4">Output / Puffs</th>
-                  <th className="p-4">Coil Type</th>
-                  <th className="p-4">Battery Spec</th>
-                  <th className="p-4">Nicotine Strength</th>
-                  <th className="p-4">Best Suited For</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-neutral-100">
-                <tr className="hover:bg-emerald-50/30">
-                  <td className="p-4 font-bold text-neutral-900">Kief King 35000</td>
-                  <td className="p-4 font-bold text-[#064e3b]">35,000 Puffs</td>
-                  <td className="p-4">Dual Mesh Matrix</td>
-                  <td className="p-4">850mAh Type-C Fast</td>
-                  <td className="p-4">20mg / 50mg / 3mg</td>
-                  <td className="p-4 font-semibold text-neutral-700">Long-term heavy daily vapers</td>
-                </tr>
-                <tr className="hover:bg-emerald-50/30">
-                  <td className="p-4 font-bold text-neutral-900">Vozol Star 40000</td>
-                  <td className="p-4 font-bold text-[#064e3b]">40,000 Puffs</td>
-                  <td className="p-4">S.i.L.C Mesh Chamber</td>
-                  <td className="p-4">1000mAh Type-C Fast</td>
-                  <td className="p-4">20mg / 50mg</td>
-                  <td className="p-4 font-semibold text-neutral-700">Maximum longevity and travel</td>
-                </tr>
-                <tr className="hover:bg-emerald-50/30">
-                  <td className="p-4 font-bold text-neutral-900">Elf Bar JoinOne 25K</td>
-                  <td className="p-4 font-bold text-[#064e3b]">25,000 Puffs</td>
-                  <td className="p-4">QUAQ Neo Mesh</td>
-                  <td className="p-4">800mAh Fast Recharge</td>
-                  <td className="p-4">20mg / 50mg</td>
-                  <td className="p-4 font-semibold text-neutral-700">Crisp fruit flavor connoisseurs</td>
-                </tr>
-                <tr className="hover:bg-emerald-50/30">
-                  <td className="p-4 font-bold text-neutral-900">Myle Meta Max 18K</td>
-                  <td className="p-4 font-bold text-[#064e3b]">18,000 Puffs</td>
-                  <td className="p-4">Dual Tank Coil</td>
-                  <td className="p-4">850mAh Type-C</td>
-                  <td className="p-4">20mg / 50mg</td>
-                  <td className="p-4 font-semibold text-neutral-700">Discreet executive pocket form</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 7: SEO DEEP DIVE EDITORIAL & BUYING GUIDE (MATCHES USER SCREENSHOT) */}
-      <section className="bg-white border-t border-neutral-200/80 py-12 sm:py-16">
-        <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
-          <div className="bg-neutral-50/70 border border-neutral-200/90 rounded-3xl p-6 sm:p-10 space-y-6 text-neutral-700 leading-relaxed text-xs sm:text-sm">
-            <div>
-              <span className="font-cinzel text-xs font-bold text-[#064e3b] uppercase tracking-widest block mb-1">
-                EXPERT BUYER GUIDE
-              </span>
-              <h2 className="font-luxury text-xl sm:text-2xl md:text-3xl font-extrabold text-neutral-900">
-                Buy Disposable Vapes in UAE - Dubai, Abu Dhabi & Sharjah (2026 Guide)
-              </h2>
-            </div>
-
-            <p>
-              Disposable vapes have surged in popularity across the United Arab Emirates thanks to unmatched convenience, authentic salt nicotine formulation, and advanced coil engineering. Unlike older generation e-cigarettes that suffered from frequent spit-back and premature coil burnout, modern high-puff disposables feature twin organic mesh chambers, high-density pure cobalt batteries, and intelligent power modulation chips.
-            </p>
-
-            <h3 className="font-bold text-base text-neutral-900 pt-2 border-t border-neutral-200">
-              Understanding Puff Count & Real-World Longevity in UAE
-            </h3>
-            <p>
-              When evaluating high-capacity devices ranging from 10,000 to 40,000 puffs, the key determining factors are e-liquid volume (ml) and battery efficiency. A standard 20ml to 28ml pre-filled reservoir paired with Type-C recharging comfortably sustains an average vaper taking 300 to 400 puffs per day for 3 to 5 full weeks. Devices like the Kief King 35K and Vozol Star 40K also integrate digital smart displays that monitor real-time battery percentage and juice levels.
-            </p>
-
-            <h3 className="font-bold text-base text-neutral-900 pt-2 border-t border-neutral-200">
-              UAE ESMA Regulation, Digital Tax Stamp & Authenticity
-            </h3>
-            <p>
-              In compliance with UAE Federal Standard UAE.S 5030, all electronic smoking devices sold legally within the Emirates must feature verified child-resistant packaging, authentic ingredients transparency, and official Federal Tax Authority (FTA) digital tax stamps. Purchasing from authorized distributors like Vape Mart guarantees you receive 100% genuine products with security scratch verification seals.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 8: FAQ ACCORDION IN LUXURY EMERALD & GOLD */}
-      <section className="py-12 sm:py-16 max-w-[1100px] mx-auto px-4 sm:px-6 w-full">
-        <div className="text-center mb-8">
-          <span className="font-cinzel text-xs font-bold text-[#064e3b] uppercase tracking-widest">
-            BUYER ASSISTANCE
-          </span>
-          <h2 className="font-luxury text-2xl sm:text-3xl font-extrabold text-neutral-900 mt-1">
-            Frequently Asked Questions (UAE Vaping)
-          </h2>
-        </div>
-
-        <div className="space-y-3">
-          {[
-            {
-              q: "Are disposable vapes legal in the UAE?",
-              a: "Yes. Vaping is fully legal for adults aged 18 and over in the UAE, provided devices comply with ESMA standards (UAE.S 5030) and bear the official digital tax stamp."
-            },
-            {
-              q: "How fast is delivery to Dubai, Abu Dhabi, and Sharjah?",
-              a: "We offer 2 to 3-hour express courier delivery in Dubai. Orders to Abu Dhabi, Sharjah, and Ajman placed before 5 PM arrive the same evening. Other Emirates arrive within 24 hours."
-            },
-            {
-              q: "Can I pay using Cash on Delivery (COD) or Card on Delivery?",
-              a: "Yes! Both Cash on Delivery and Wireless POS Card on Delivery are supported across all 7 Emirates with zero hidden surcharge."
-            },
-            {
-              q: "How do I know my device is original and not a counterfeit?",
-              a: "Every product we ship carries an authentic manufacturer QR scratch seal and official UAE tax stamp. You can scratch the security code and verify it directly on the manufacturer portal."
-            },
-            {
-              q: "How should I recharge my disposable vape safely?",
-              a: "Use the included Type-C port connected to a standard 5V/1A wall adapter or computer port. Avoid leaving the device on high-speed phone fast-chargers overnight to preserve battery health."
-            },
-            {
-              q: "What should I do if my disposable device arrives defective?",
-              a: "We offer a 24-hour Dead-On-Arrival (DOA) replacement warranty. If a device fails to fire or leaks upon unboxing, contact our WhatsApp support team for an immediate free exchange."
-            }
-          ].map((faq, idx) => (
-            <div key={idx} className="border border-neutral-200 rounded-2xl bg-white overflow-hidden shadow-xs">
-              <button
-                type="button"
-                onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
-                className="w-full p-4 sm:p-5 flex items-center justify-between gap-4 text-left font-bold text-xs sm:text-sm text-neutral-900 hover:text-[#064e3b] transition-colors cursor-pointer"
-              >
-                <span>{faq.q}</span>
-                <ChevronDown
-                  size={18}
-                  className={`text-neutral-400 shrink-0 transition-transform duration-300 ${
-                    openFaq === idx ? "rotate-180 text-[#064e3b]" : ""
-                  }`}
-                />
-              </button>
-              <AnimatePresence>
-                {openFaq === idx && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.25 }}
-                    className="overflow-hidden"
-                  >
-                    <div className="px-4 sm:px-5 pb-5 text-xs text-neutral-600 leading-relaxed border-t border-neutral-100 pt-3">
-                      {faq.a}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* SECTION 9: 3 LUXURY TRUST CARDS (MATCHES REFERENCE FOOTER BANNER) */}
-      <section className="bg-gradient-to-br from-[#064e3b] to-[#022c22] py-10 sm:py-12 text-white">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center md:text-left">
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/10 flex flex-col items-center md:items-start gap-3">
-              <div className="w-12 h-12 rounded-xl bg-amber-400 text-neutral-950 flex items-center justify-center shadow-xs">
-                <Truck size={24} />
-              </div>
-              <div>
-                <h4 className="font-bold text-sm text-white mb-1">2-3 Hour Dubai Express</h4>
-                <p className="text-xs text-emerald-100/80 leading-relaxed">
-                  Temperature-controlled dispatch across Dubai, plus same-day courier across Abu Dhabi and Sharjah.
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/10 flex flex-col items-center md:items-start gap-3">
-              <div className="w-12 h-12 rounded-xl bg-amber-400 text-neutral-950 flex items-center justify-center shadow-xs">
-                <ShieldCheck size={24} />
-              </div>
-              <div>
-                <h4 className="font-bold text-sm text-white mb-1">100% Genuine ESMA Certified</h4>
-                <p className="text-xs text-emerald-100/80 leading-relaxed">
-                  Official UAE tax stamps and holographic anti-counterfeit scratch seals on every single box.
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/10 flex flex-col items-center md:items-start gap-3">
-              <div className="w-12 h-12 rounded-xl bg-amber-400 text-neutral-950 flex items-center justify-center shadow-xs">
-                <MessageCircle size={24} />
-              </div>
-              <div>
-                <h4 className="font-bold text-sm text-white mb-1">Cash & Card on Delivery</h4>
-                <p className="text-xs text-emerald-100/80 leading-relaxed">
-                  Pay securely at your doorstep with cash or wireless card terminal. 24/7 WhatsApp concierge available.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* QUICK VIEW MODAL (UX EXCELLENCE) */}
+      {/* ============ QUICK VIEW MODAL ============ */}
       <AnimatePresence>
         {quickViewProduct && (
-          <>
+          <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center p-0 sm:p-6">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setQuickViewProduct(null)} className="absolute inset-0 bg-emerald-950/60 backdrop-blur-sm" />
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setQuickViewProduct(null)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 transition-opacity"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="fixed inset-4 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[90vw] sm:max-w-2xl bg-white rounded-3xl z-50 p-6 shadow-2xl overflow-y-auto max-h-[90vh] flex flex-col justify-between"
+              initial={{ y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 60, opacity: 0 }}
+              transition={{ type: "spring", damping: 28, stiffness: 300 }}
+              className="relative w-full sm:max-w-3xl bg-white rounded-t-3xl sm:rounded-3xl overflow-hidden max-h-[92dvh] flex flex-col"
             >
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <span className="text-[10px] font-black uppercase tracking-widest bg-neutral-900 text-amber-300 px-2 py-0.5 rounded">
-                    {quickViewProduct.brand}
-                  </span>
-                  <h3 className="font-luxury text-xl font-bold text-neutral-900 mt-1">
-                    {quickViewProduct.title}
-                  </h3>
+              <button onClick={() => setQuickViewProduct(null)} aria-label="Close quick view" className="absolute top-3 right-3 z-10 w-11 h-11 rounded-full bg-white/90 border border-emerald-900/10 flex items-center justify-center">
+                <X size={18} className="text-emerald-950" />
+              </button>
+              <div className="grid sm:grid-cols-2 overflow-y-auto">
+                <div className="relative aspect-square bg-gradient-to-br from-[#f8fafc] to-emerald-50/60">
+                  <Image src={quickViewProduct.primaryImage} alt={quickViewProduct.title} fill className="object-contain p-8" sizes="50vw" />
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setQuickViewProduct(null)}
-                  className="w-8 h-8 rounded-full bg-neutral-100 hover:bg-neutral-200 flex items-center justify-center text-neutral-600"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-center my-4">
-                <div className="relative aspect-square w-full max-h-[220px] bg-neutral-50 rounded-2xl p-4">
-                  <Image
-                    src={quickViewProduct.primaryImage}
-                    alt={quickViewProduct.title}
-                    fill
-                    className="object-contain p-2"
-                  />
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <span className="text-2xl font-black text-neutral-900 block">
-                      AED {quickViewProduct.price.toFixed(2)}
-                    </span>
-                    <span className="text-xs text-emerald-800 font-bold">VAT Included • UAE Express Delivery</span>
+                <div className="p-5 sm:p-7 flex flex-col" style={{ paddingBottom: "max(1.25rem, env(safe-area-inset-bottom))" }}>
+                  <p className="font-cinzel text-[10px] tracking-[0.2em] text-emerald-700/80 font-bold">{quickViewProduct.brand}</p>
+                  <h3 className="mt-1 font-luxury text-xl font-bold text-emerald-950 leading-snug">{quickViewProduct.title}</h3>
+                  <div className="mt-2 flex items-center gap-2">
+                    <Stars rating={quickViewProduct.rating} />
+                    <span className="text-xs text-neutral-500">({quickViewProduct.revs} reviews)</span>
                   </div>
-
+                  <p className="mt-3 text-2xl font-extrabold text-emerald-900">{formatAED(quickViewProduct.price)}</p>
                   {quickViewProduct.flavors.length > 0 && (
-                    <div>
-                      <span className="text-xs font-bold text-neutral-700 block mb-1.5">Select Flavor:</span>
-                      <div className="grid grid-cols-2 gap-2">
-                        {quickViewProduct.flavors.slice(0, 4).map(f => (
+                    <div className="mt-4">
+                      <p className="text-xs font-bold tracking-wide text-emerald-900 mb-2">FLAVOR</p>
+                      <div className="flex flex-wrap gap-2">
+                        {quickViewProduct.flavors.map((f) => (
                           <button
                             key={f.id}
-                            type="button"
                             onClick={() => setQuickViewFlavor(f.id)}
-                            className={`p-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 ${
-                              quickViewFlavor === f.id
-                                ? "border-[#064e3b] bg-emerald-50 text-[#064e3b] font-bold"
-                                : "border-neutral-200"
-                            }`}
+                            disabled={!f.inStock}
+                            className={`min-h-[40px] px-3.5 rounded-full text-xs font-semibold border-2 transition-colors flex items-center gap-2 ${quickViewFlavor === f.id ? "border-amber-500 bg-amber-50 text-emerald-950" : "border-emerald-900/15 text-emerald-900"} ${!f.inStock ? "opacity-40 line-through" : ""}`}
                           >
-                            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: f.color }} />
-                            <span className="truncate">{f.name}</span>
+                            <span className="w-3 h-3 rounded-full border border-black/10" style={{ backgroundColor: f.color }} />
+                            {f.name}
                           </button>
                         ))}
                       </div>
                     </div>
                   )}
-
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center border border-neutral-300 rounded-xl p-1 bg-white">
-                      <button
-                        type="button"
-                        onClick={() => setQuickViewQuantity(Math.max(1, quickViewQuantity - 1))}
-                        className="w-7 h-7 flex items-center justify-center text-neutral-600"
-                      >
-                        <Minus size={13} />
-                      </button>
-                      <span className="w-8 text-center text-xs font-bold">{quickViewQuantity}</span>
-                      <button
-                        type="button"
-                        onClick={() => setQuickViewQuantity(quickViewQuantity + 1)}
-                        className="w-7 h-7 flex items-center justify-center text-neutral-600"
-                      >
-                        <Plus size={13} />
-                      </button>
+                  <div className="mt-5 flex items-center gap-3">
+                    <div className="flex items-center rounded-xl border-2 border-emerald-900/15 h-[52px]">
+                      <button onClick={() => setQuickViewQty(Math.max(1, quickViewQty - 1))} aria-label="Decrease quantity" className="w-12 h-full flex items-center justify-center text-emerald-900"><Minus size={16} /></button>
+                      <span className="w-8 text-center font-bold text-emerald-950">{quickViewQty}</span>
+                      <button onClick={() => setQuickViewQty(quickViewQty + 1)} aria-label="Increase quantity" className="w-12 h-full flex items-center justify-center text-emerald-900"><Plus size={16} /></button>
                     </div>
-
                     <button
-                      type="button"
-                      onClick={handleAddQuickViewToCart}
-                      className="flex-1 py-3 bg-[#064e3b] hover:bg-[#022c22] text-white font-bold text-xs uppercase rounded-xl transition-all shadow-md flex items-center justify-center gap-2"
+                      onClick={() => { addToCart(quickViewProduct, quickViewFlavor, quickViewQty); setQuickViewProduct(null); }}
+                      className="flex-1 h-[52px] rounded-2xl bg-emerald-800 text-white font-bold text-sm tracking-wide hover:bg-emerald-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                     >
-                      <ShoppingBag size={15} />
-                      <span>Add to Cart</span>
+                      <ShoppingBag size={17} /> ADD TO CART
                     </button>
                   </div>
+                  <Link href={`/product/${quickViewProduct.slug}`} className="mt-3 text-center text-sm font-bold text-amber-600 hover:text-amber-700 py-2">
+                    View full details →
+                  </Link>
                 </div>
               </div>
-
-              <div className="pt-3 border-t border-neutral-100 flex items-center justify-between text-xs">
-                <Link
-                  href={`/product/${quickViewProduct.slug}`}
-                  className="font-bold text-[#064e3b] hover:underline"
-                >
-                  Go to Full Product Page &rarr;
-                </Link>
-                <span className="text-neutral-500 font-medium">Same-Day Courier across UAE</span>
-              </div>
             </motion.div>
-          </>
+          </div>
         )}
       </AnimatePresence>
 
-      {/* REUSABLE CART DRAWER */}
       <CartDrawer
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
         items={cartItems}
-        onUpdateQuantity={handleUpdateCartQuantity}
-        onRemoveItem={handleRemoveCartItem}
+        onUpdateQuantity={(id, delta) =>
+          setCartItems((prev) => prev.map((i) => (i.id === id ? { ...i, quantity: Math.max(0, i.quantity + delta) } : i)).filter((i) => i.quantity > 0))
+        }
+        onRemoveItem={(id) => setCartItems((prev) => prev.filter((i) => i.id !== id))}
         onClearCart={() => setCartItems([])}
       />
-
-      <Footer />
-      <MobileBottomNav />
     </div>
   );
 }

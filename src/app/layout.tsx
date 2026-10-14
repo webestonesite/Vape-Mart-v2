@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Outfit, Playfair_Display } from "next/font/google";
 import "./globals.css";
 
@@ -14,6 +14,23 @@ const playfair = Playfair_Display({
 export const metadata: Metadata = {
   title: "Vape Mart | Premium E-Cigarettes & E-Liquids",
   description: "Discover premium vapes, exclusive e-liquids, and next-gen hardware. Designed for those who demand the best.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    title: "Vape Mart",
+    statusBarStyle: "black-translucent",
+  },
+  icons: {
+    icon: [{ url: "/vape-mart-logo.jpg", sizes: "1024x1024", type: "image/jpeg" }],
+    apple: [{ url: "/images/logo.png", sizes: "1024x1024", type: "image/png" }],
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#064e3b",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
