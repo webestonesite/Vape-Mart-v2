@@ -756,7 +756,7 @@ export function CollectionPageView({ category, allCategories, products }: Collec
       </section>
 
       {/* ============ BODY: SIDEBAR + GRID ============ */}
-      <main className="flex-1 w-full max-w-[1400px] mx-auto px-4 sm:px-6 py-6 sm:py-10">
+      <main className="flex-1 w-full max-w-[1600px] mx-auto px-4 sm:px-6 py-6 sm:py-10">
         <div className="flex gap-6 lg:gap-8 items-start">
           {/* desktop sidebar */}
           <aside className="hidden lg:block w-[280px] shrink-0 sticky top-24">
@@ -804,7 +804,7 @@ export function CollectionPageView({ category, allCategories, products }: Collec
             {/* grid */}
             {pageItems.length > 0 ? (
               <div className="rounded-3xl bg-gradient-to-b from-emerald-50/80 to-emerald-50/30 border border-emerald-900/[0.07] p-3 sm:p-5">
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-5">
+                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5">
                   {pageItems.map((p, i) => productCard(p, i))}
                 </div>
               </div>
