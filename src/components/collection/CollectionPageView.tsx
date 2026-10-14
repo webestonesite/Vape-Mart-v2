@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -29,6 +29,12 @@ import {
   Leaf,
   Candy,
   LayoutGrid,
+  Sparkles,
+  Zap,
+  Timer,
+  ArrowLeftRight,
+  History,
+  ArrowLeft,
 } from "lucide-react";
 import { ProductItem, CollectionCategory, CartItem } from "@/types/product";
 import { allProducts as catalogProducts } from "@/data/products";
@@ -45,6 +51,8 @@ interface CollectionPageViewProps {
 
 const WHATSAPP_LINK = "https://wa.me/971551688299?text=Hi%20Vape%20Mart!%20I%20need%20help%20choosing%20a%20vape.";
 const ITEMS_PER_PAGE = 12;
+
+interface RecentItem { slug: string; title: string; brand: string; price: number; primaryImage: string; }
 
 function formatAED(n: number): string {
   return `AED ${n.toFixed(2)}`;
@@ -74,6 +82,7 @@ export function CollectionPageView({ category, allCategories, products }: Collec
   const [priceMax, setPriceMax] = useState<number | null>(null);
   const [selectedNicotines, setSelectedNicotines] = useState<string[]>([]);
   const [selectedPuffs, setSelectedPuffs] = useState<string[]>([]);
+  const [selectedFlavorFamilies, setSelectedFlavorFamilies] = useState<string[]>([]);
   const [inStockOnly, setInStockOnly] = useState(false);
   const [sortBy, setSortBy] = useState<"popular" | "price_asc" | "price_desc" | "rating" | "newest">("popular");
   const [currentPage, setCurrentPage] = useState(1);
@@ -92,6 +101,54 @@ export function CollectionPageView({ category, allCategories, products }: Collec
 
   const toggleWishlist = (id: string) =>
     setWishlist((prev) => (prev.includes(id) ? prev.filter((w) => w !== id) : [...prev, id]));
+
+  // ---- 1) vape finder quiz ----
+  const [quizOpen, setQuizOpen] = useState(false);
+  const [quizStep, setQuizStep] = useState(0);
+  const [quizPuffs, setQuizPuffs] = useState<string | null>(null);
+  const [quizNicotine, setQuizNicotine] = useState<string | null>(null);
+  const [quizFlavor, setQuizFlavor] = useState<string | null>(null);
+
+  // ---- 2) flash deals countdown ----
+  const [nowTs, setNowTs] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNowTs(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+
+  // ---- 3) compare ----
+  const [compareIds, setCompareIds] = useState<string[]>([]);
+  const [compareOpen, setCompareOpen] = useState(false);
+
+  // ---- 4) fly-to-cart ----
+  const [flyItem, setFlyItem] = useState<{ p: ProductItem; x: number; y: number; tx: number; ty: number } | null>(null);
+
+  // ---- 5) hero parallax ----
+  const heroRef = useRef<HTMLElement>(null);
+  const [heroTilt, setHeroTilt] = useState({ x: 0, y: 0 });
+  const [finePointer, setFinePointer] = useState(false);
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.matchMedia("(pointer: fine)").matches) setFinePointer(true);
+  }, []);
+
+  // ---- 6) recently viewed ----
+  const [recentlyViewed, setRecentlyViewed] = useState<RecentItem[]>([]);
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("vm_recently_viewed");
+      if (raw) setRecentlyViewed(JSON.parse(raw));
+    } catch { /* ignore */ }
+  }, []);
+  const saveRecent = (p: ProductItem) => {
+    setRecentlyViewed((prev) => {
+      const next = [
+        { slug: p.slug, title: p.title, brand: p.brand, price: p.price, primaryImage: p.primaryImage },
+        ...prev.filter((r) => r.slug !== p.slug),
+      ].slice(0, 8);
+      try { localStorage.setItem("vm_recently_viewed", JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+  };
 
   // ---- live counts computed from the ACTUAL products array (bug fix: no stale counts) ----
   const brandCounts = useMemo(() => {
@@ -156,6 +213,7 @@ export function CollectionPageView({ category, allCategories, products }: Collec
     if (priceMin !== null) list = list.filter((p) => p.price >= priceMin);
     if (priceMax !== null) list = list.filter((p) => p.price <= priceMax);
     if (inStockOnly) list = list.filter((p) => p.inStock);
+    if (selectedFlavorFamilies.length) list = list.filter((p) => selectedFlavorFamilies.includes(p.flavorFamily));
     switch (sortBy) {
       case "price_asc": list.sort((a, b) => a.price - b.price); break;
       case "price_desc": list.sort((a, b) => b.price - a.price); break;
@@ -164,10 +222,10 @@ export function CollectionPageView({ category, allCategories, products }: Collec
       default: break; // popular = catalog order
     }
     return list;
-  }, [products, searchQuery, selectedBrands, selectedNicotines, selectedPuffs, priceMin, priceMax, inStockOnly, sortBy, puffBuckets]);
+  }, [products, searchQuery, selectedBrands, selectedNicotines, selectedPuffs, selectedFlavorFamilies, priceMin, priceMax, inStockOnly, sortBy, puffBuckets]);
 
   // reset to page 1 whenever filters change (bug fix: pagination math)
-  useEffect(() => { setCurrentPage(1); }, [searchQuery, selectedBrands, selectedNicotines, selectedPuffs, priceMin, priceMax, inStockOnly, sortBy, products]);
+  useEffect(() => { setCurrentPage(1); }, [searchQuery, selectedBrands, selectedNicotines, selectedPuffs, selectedFlavorFamilies, priceMin, priceMax, inStockOnly, sortBy, products]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
   const safePage = Math.min(currentPage, totalPages);
@@ -177,12 +235,12 @@ export function CollectionPageView({ category, allCategories, products }: Collec
     set(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
 
   const clearAll = () => {
-    setSearchQuery(""); setSelectedBrands([]); setSelectedNicotines([]); setSelectedPuffs([]);
+    setSearchQuery(""); setSelectedBrands([]); setSelectedNicotines([]); setSelectedPuffs([]); setSelectedFlavorFamilies([]);
     setPriceMin(null); setPriceMax(null); setPriceMinInput(""); setPriceMaxInput("");
     setInStockOnly(false); setSortBy("popular");
   };
   const activeFilterCount =
-    selectedBrands.length + selectedNicotines.length + selectedPuffs.length +
+    selectedBrands.length + selectedNicotines.length + selectedPuffs.length + selectedFlavorFamilies.length +
     (priceMin !== null || priceMax !== null ? 1 : 0) + (inStockOnly ? 1 : 0) + (searchQuery ? 1 : 0);
 
   // ---- cart helpers (same pattern as existing views) ----
@@ -217,6 +275,65 @@ export function CollectionPageView({ category, allCategories, products }: Collec
     return products.reduce((a, p) => a + p.rating, 0) / products.length;
   }, [products]);
   const totalRevs = useMemo(() => products.reduce((a, p) => a + p.revs, 0), [products]);
+
+  // ---- quiz live match count ----
+  const quizMatches = useMemo(() => {
+    let list = [...products];
+    if (quizPuffs) {
+      const b = puffBuckets.find((x) => x.id === quizPuffs);
+      if (b) list = list.filter((p) => b.test(p.puffs));
+    }
+    if (quizNicotine) list = list.filter((p) => p.nicotineStrength === quizNicotine);
+    if (quizFlavor) list = list.filter((p) => p.flavorFamily === quizFlavor);
+    return list.length;
+  }, [products, quizPuffs, quizNicotine, quizFlavor, puffBuckets]);
+
+  // ---- flash deals: top 4 by discount % ----
+  const flashDeals = useMemo(() => [...products]
+    .filter((p) => p.originalPrice > p.price)
+    .sort((a, b) => (1 - b.price / b.originalPrice) - (1 - a.price / a.originalPrice))
+    .slice(0, 4), [products]);
+
+  // ---- countdown to midnight ----
+  const msToMidnight = useMemo(() => {
+    const d = new Date();
+    d.setHours(24, 0, 0, 0);
+    return Math.max(0, d.getTime() - nowTs);
+  }, [nowTs]);
+  const cdH = String(Math.floor(msToMidnight / 3600000)).padStart(2, "0");
+  const cdM = String(Math.floor((msToMidnight % 3600000) / 60000)).padStart(2, "0");
+  const cdS = String(Math.floor((msToMidnight % 60000) / 1000)).padStart(2, "0");
+
+  // ---- compare list ----
+  const compareProducts = useMemo(
+    () => compareIds.map((id) => products.find((p) => p.id === id)).filter((p): p is ProductItem => Boolean(p)),
+    [compareIds, products]
+  );
+  const toggleCompare = (id: string) =>
+    setCompareIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : prev.length >= 3 ? prev : [...prev, id]));
+
+  const openQuiz = () => {
+    setQuizStep(0); setQuizPuffs(null); setQuizNicotine(null); setQuizFlavor(null);
+    setQuizOpen(true);
+  };
+  const applyQuiz = () => {
+    setSelectedPuffs(quizPuffs ? [quizPuffs] : []);
+    setSelectedNicotines(quizNicotine ? [quizNicotine] : []);
+    setSelectedFlavorFamilies(quizFlavor ? [quizFlavor] : []);
+    setQuizOpen(false);
+    setTimeout(() => document.getElementById("collection-grid-top")?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+  };
+
+  const startFlyToCart = (p: ProductItem, el: HTMLElement) => {
+    const r = el.getBoundingClientRect();
+    setFlyItem({
+      p,
+      x: r.left + r.width / 2,
+      y: r.top + r.height / 2,
+      tx: typeof window !== "undefined" ? window.innerWidth - 52 : 300,
+      ty: 44,
+    });
+  };
 
   // ---------- shared bits ----------
   const filterPanel = (
@@ -336,6 +453,27 @@ export function CollectionPageView({ category, allCategories, products }: Collec
         </div>
       </div>
 
+      {/* flavour profile */}
+      <div className="rounded-2xl border border-emerald-900/10 bg-white p-4">
+        <p className="font-cinzel text-[11px] tracking-[0.18em] text-emerald-900 font-bold mb-2">FLAVOUR PROFILE</p>
+        <div className="space-y-0.5">
+          {flavorFamilies.map((f) => (
+            <label key={f.id} className="flex items-center gap-3 cursor-pointer min-h-[40px] rounded-lg px-1 hover:bg-emerald-50">
+              <button
+                role="checkbox" aria-checked={selectedFlavorFamilies.includes(f.id)}
+                onClick={() => toggleIn(selectedFlavorFamilies, f.id, setSelectedFlavorFamilies)}
+                className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${selectedFlavorFamilies.includes(f.id) ? "bg-amber-500 border-amber-500" : "border-emerald-900/25 bg-white"}`}
+              >
+                {selectedFlavorFamilies.includes(f.id) && <Check size={12} className="text-white" strokeWidth={3.5} />}
+              </button>
+              <f.icon size={15} className={`${f.color} shrink-0`} />
+              <span className="text-sm text-emerald-950 flex-1">{f.name}</span>
+              <span className="text-xs font-semibold text-emerald-900/45 bg-emerald-50 rounded-full px-2 py-0.5">{flavorFamilyCounts[f.id] || 0}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
       {activeFilterCount > 0 && (
         <button
           onClick={clearAll}
@@ -350,6 +488,7 @@ export function CollectionPageView({ category, allCategories, products }: Collec
   const productCard = (p: ProductItem, i: number) => {
     const discount = p.originalPrice > p.price ? Math.round((1 - p.price / p.originalPrice) * 100) : 0;
     const wished = wishlist.includes(p.id);
+    const inCompare = compareIds.includes(p.id);
     return (
       <motion.article
         key={p.id}
@@ -360,7 +499,7 @@ export function CollectionPageView({ category, allCategories, products }: Collec
         className="group relative flex flex-col rounded-2xl bg-white border border-emerald-900/10 overflow-hidden hover:shadow-[0_20px_50px_-16px_rgba(6,78,59,0.35)] hover:-translate-y-1 transition-all duration-300"
       >
         <div className="relative aspect-square bg-gradient-to-br from-[#f8fafc] to-emerald-50/60 overflow-hidden">
-          <Link href={`/product/${p.slug}`} aria-label={p.title} className="block w-full h-full">
+          <Link href={`/product/${p.slug}`} aria-label={p.title} className="block w-full h-full" onClick={() => saveRecent(p)}>
             <Image
               src={p.primaryImage} alt={p.title} fill sizes="(max-width: 640px) 50vw, 33vw"
               className="object-contain p-4 transition-transform duration-500 group-hover:scale-105"
@@ -377,6 +516,14 @@ export function CollectionPageView({ category, allCategories, products }: Collec
             className="absolute top-3 left-3 w-9 h-9 rounded-full bg-white/90 backdrop-blur border border-emerald-900/10 flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
           >
             <Heart size={16} className={wished ? "fill-red-500 text-red-500" : "text-emerald-900"} />
+          </button>
+          <button
+            onClick={() => toggleCompare(p.id)}
+            aria-label={inCompare ? "Remove from compare" : "Add to compare"}
+            title="Compare"
+            className={`absolute top-[52px] left-3 w-9 h-9 rounded-full backdrop-blur border flex items-center justify-center shadow-sm hover:scale-110 transition-all ${inCompare ? "bg-amber-400 border-amber-400 text-emerald-950" : "bg-white/90 border-emerald-900/10 text-emerald-900"}`}
+          >
+            <ArrowLeftRight size={15} />
           </button>
           {discount > 0 && (
             <span className="absolute top-3 right-3 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-emerald-950 text-[11px] font-extrabold px-2.5 py-1 shadow">
@@ -402,7 +549,7 @@ export function CollectionPageView({ category, allCategories, products }: Collec
         </div>
         <div className="flex flex-1 flex-col p-3.5 sm:p-4">
           <p className="font-cinzel text-[10px] tracking-[0.2em] text-emerald-700/80 font-bold">{p.brand}</p>
-          <Link href={`/product/${p.slug}`}>
+          <Link href={`/product/${p.slug}`} onClick={() => saveRecent(p)}>
             <h3 className="mt-1 text-[13px] sm:text-sm font-semibold text-emerald-950 leading-snug line-clamp-2 hover:text-amber-600 transition-colors min-h-[2.6em]">
               {p.title}
             </h3>
@@ -424,7 +571,7 @@ export function CollectionPageView({ category, allCategories, products }: Collec
           </div>
           <div className="mt-3 flex items-center gap-1.5 sm:gap-2">
             <button
-              onClick={() => addToCart(p)}
+              onClick={(e) => startFlyToCart(p, e.currentTarget)}
               disabled={!p.inStock}
               className="flex-1 min-w-0 h-10 sm:h-11 rounded-xl bg-emerald-800 text-white text-[10px] sm:text-sm font-bold tracking-normal sm:tracking-wide hover:bg-emerald-700 active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap px-1.5 sm:px-3"
             >
@@ -450,10 +597,65 @@ export function CollectionPageView({ category, allCategories, products }: Collec
         cartCount={cartItems.reduce((a, it) => a + it.quantity, 0)}
       />
 
-      {/* ============ HERO BANNER ============ */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#064e3b] via-[#043e2e] to-[#022c22] text-white">
+      {/* ============ HERO BANNER (cinematic) ============ */}
+      <section
+        ref={heroRef}
+        onMouseMove={(e) => {
+          if (!finePointer || !heroRef.current) return;
+          const r = heroRef.current.getBoundingClientRect();
+          setHeroTilt({ x: (e.clientX - r.left) / r.width - 0.5, y: (e.clientY - r.top) / r.height - 0.5 });
+        }}
+        onMouseLeave={() => setHeroTilt({ x: 0, y: 0 })}
+        className="relative overflow-hidden bg-gradient-to-br from-[#064e3b] via-[#043e2e] to-[#022c22] text-white"
+      >
         <div className="absolute -top-24 -right-24 w-96 h-96 bg-emerald-400/15 rounded-full blur-[100px] pointer-events-none" />
         <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-amber-400/15 rounded-full blur-[100px] pointer-events-none" />
+        {/* drifting ambient blobs */}
+        <motion.div
+          aria-hidden
+          className="absolute top-1/3 left-1/4 w-72 h-72 bg-emerald-300/10 rounded-full blur-[90px] pointer-events-none"
+          animate={{ x: [0, 46, -20, 0], y: [0, -34, 22, 0] }}
+          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          aria-hidden
+          className="absolute bottom-0 right-1/4 w-80 h-80 bg-amber-400/10 rounded-full blur-[100px] pointer-events-none"
+          animate={{ x: [0, -40, 28, 0], y: [0, 30, -24, 0] }}
+          transition={{ duration: 24, repeat: Infinity, ease: "easeInOut" }}
+        />
+        {/* floating product images with mouse parallax (desktop only) */}
+        {products[0] && (
+          <motion.div
+            aria-hidden
+            className="hidden lg:block absolute right-[8%] top-1/2 w-44 xl:w-56 pointer-events-none z-[5]"
+            animate={finePointer ? { x: heroTilt.x * 34, y: heroTilt.y * 26 - 80 } : { y: -80 }}
+            transition={{ type: "spring", stiffness: 60, damping: 18 }}
+          >
+            <motion.div
+              animate={{ y: [0, -14, 0], rotate: [0, 2, 0] }}
+              transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+              className="rounded-3xl bg-white/10 backdrop-blur-md border border-white/15 p-4 shadow-2xl"
+            >
+              <Image src={products[0].primaryImage} alt="" width={200} height={200} className="w-full h-auto object-contain" />
+            </motion.div>
+          </motion.div>
+        )}
+        {products[1] && (
+          <motion.div
+            aria-hidden
+            className="hidden lg:block absolute right-[24%] bottom-[8%] w-32 xl:w-40 pointer-events-none z-[5]"
+            animate={finePointer ? { x: heroTilt.x * -24, y: heroTilt.y * -18 } : {}}
+            transition={{ type: "spring", stiffness: 60, damping: 18 }}
+          >
+            <motion.div
+              animate={{ y: [0, 12, 0], rotate: [0, -3, 0] }}
+              transition={{ duration: 8.5, repeat: Infinity, ease: "easeInOut" }}
+              className="rounded-3xl bg-white/10 backdrop-blur-md border border-white/15 p-3 shadow-2xl"
+            >
+              <Image src={products[1].primaryImage} alt="" width={150} height={150} className="w-full h-auto object-contain" />
+            </motion.div>
+          </motion.div>
+        )}
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 pt-6 pb-8 sm:pt-8 sm:pb-10 relative z-10">
           <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-emerald-200/70 text-xs font-semibold mb-4">
             <Link href="/" className="hover:text-amber-300 transition-colors">Home</Link>
@@ -463,8 +665,14 @@ export function CollectionPageView({ category, allCategories, products }: Collec
           </nav>
           <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             <p className="font-cinzel text-[11px] sm:text-xs tracking-[0.28em] text-amber-300 font-bold mb-2">{pageEyebrow}</p>
-            <h1 className="font-luxury text-3xl sm:text-4xl md:text-5xl font-bold leading-tight">{pageTitle}</h1>
-            <p className="mt-3 max-w-2xl text-sm sm:text-base text-emerald-100/85 leading-relaxed">{pageSubtitle}</p>
+            <h1 className="font-luxury text-3xl sm:text-4xl md:text-5xl font-bold leading-tight lg:max-w-[62%]">{pageTitle}</h1>
+            <p className="mt-3 max-w-2xl text-sm sm:text-base text-emerald-100/85 leading-relaxed lg:max-w-[55%]">{pageSubtitle}</p>
+            <button
+              onClick={openQuiz}
+              className="mt-5 h-[52px] px-7 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 text-emerald-950 font-extrabold text-sm tracking-wide hover:brightness-105 active:scale-[0.98] transition-all shadow-[0_12px_32px_-10px_rgba(245,158,11,0.65)] inline-flex items-center gap-2.5"
+            >
+              <Sparkles size={18} /> FIND YOUR VAPE
+            </button>
           </motion.div>
           {/* brand quick chips */}
           <div className="mt-5 flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x">
@@ -580,6 +788,92 @@ export function CollectionPageView({ category, allCategories, products }: Collec
             )}
           </div>
         </div>
+
+        {/* ============ FLASH DEALS ============ */}
+        {flashDeals.length > 0 && (
+          <section className="mt-12 sm:mt-16 rounded-3xl bg-gradient-to-br from-[#022c22] via-[#043e2e] to-[#064e3b] p-5 sm:p-8 relative overflow-hidden">
+            <div className="absolute -top-20 -right-20 w-72 h-72 bg-amber-400/15 rounded-full blur-[80px] pointer-events-none" />
+            <div className="relative z-10 flex flex-wrap items-center gap-3 sm:gap-4 mb-6">
+              <span className="inline-flex items-center gap-2 rounded-full bg-amber-400 text-emerald-950 font-extrabold text-xs px-3.5 py-2">
+                <Zap size={14} className="fill-emerald-950" /> FLASH DEALS
+              </span>
+              <h2 className="font-luxury text-xl sm:text-2xl font-bold text-white">Biggest Discounts</h2>
+              <span className="ml-auto inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/15 text-white text-sm font-bold px-4 py-2 tabular-nums">
+                <Timer size={15} className="text-amber-300" /> Ends in {cdH}:{cdM}:{cdS}
+              </span>
+            </div>
+            <div className="relative z-10 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
+              {flashDeals.map((p) => {
+                const discount = Math.round((1 - p.price / p.originalPrice) * 100);
+                return (
+                  <div key={p.id} className="group relative flex flex-col rounded-2xl bg-white overflow-hidden">
+                    <div className="relative aspect-square bg-gradient-to-br from-[#f8fafc] to-emerald-50/60">
+                      <Link href={`/product/${p.slug}`} aria-label={p.title} className="block w-full h-full" onClick={() => saveRecent(p)}>
+                        <Image src={p.primaryImage} alt={p.title} fill sizes="(max-width: 640px) 50vw, 25vw" className="object-contain p-4 transition-transform duration-500 group-hover:scale-105" />
+                      </Link>
+                      <span className="absolute top-2.5 left-2.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-emerald-950 text-[11px] font-extrabold px-2.5 py-1 shadow">
+                        -{discount}%
+                      </span>
+                      <span className="absolute top-2.5 right-2.5 inline-flex items-center gap-1 rounded-full bg-emerald-950/90 text-amber-300 text-[10px] font-bold px-2 py-1 tabular-nums">
+                        <Timer size={11} /> {cdH}:{cdM}:{cdS}
+                      </span>
+                    </div>
+                    <div className="flex flex-1 flex-col p-3 sm:p-4">
+                      <p className="font-cinzel text-[9px] tracking-[0.2em] text-emerald-700/80 font-bold">{p.brand}</p>
+                      <Link href={`/product/${p.slug}`} onClick={() => saveRecent(p)}>
+                        <h3 className="mt-1 text-[13px] font-semibold text-emerald-950 leading-snug line-clamp-2 min-h-[2.6em]">{p.title}</h3>
+                      </Link>
+                      <div className="mt-2 flex items-baseline gap-2 flex-wrap">
+                        <span className="text-base font-extrabold text-emerald-900">{formatAED(p.price)}</span>
+                        <span className="text-xs text-neutral-400 line-through">{formatAED(p.originalPrice)}</span>
+                      </div>
+                      <button
+                        onClick={(e) => startFlyToCart(p, e.currentTarget)}
+                        disabled={!p.inStock}
+                        className="mt-3 h-10 rounded-xl bg-emerald-800 text-white text-[11px] sm:text-xs font-bold tracking-wide hover:bg-emerald-700 active:scale-[0.98] transition-all disabled:opacity-40 flex items-center justify-center gap-1.5 whitespace-nowrap"
+                      >
+                        <ShoppingBag size={14} /> ADD TO CART
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* ============ RECENTLY VIEWED ============ */}
+        {recentlyViewed.length > 0 && (
+          <section className="mt-12 sm:mt-16">
+            <div className="flex items-end justify-between mb-5">
+              <div>
+                <p className="font-cinzel text-[11px] tracking-[0.24em] text-amber-600 font-bold mb-2">PICK UP WHERE YOU LEFT OFF</p>
+                <h2 className="font-luxury text-2xl sm:text-3xl font-bold text-emerald-950">Recently Viewed</h2>
+              </div>
+              <span className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-800/70">
+                <History size={14} /> Saved on this device
+              </span>
+            </div>
+            <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden -mx-4 px-4 sm:mx-0 sm:px-0">
+              {recentlyViewed.map((r) => (
+                <Link
+                  key={r.slug}
+                  href={`/product/${r.slug}`}
+                  className="group shrink-0 w-40 sm:w-48 snap-start rounded-2xl bg-white border border-emerald-900/10 overflow-hidden hover:shadow-lg transition-shadow"
+                >
+                  <div className="relative aspect-square bg-gradient-to-br from-[#f8fafc] to-emerald-50/60">
+                    <Image src={r.primaryImage} alt={r.title} fill sizes="192px" className="object-contain p-3 transition-transform duration-500 group-hover:scale-105" />
+                  </div>
+                  <div className="p-3">
+                    <p className="font-cinzel text-[9px] tracking-[0.18em] text-emerald-700/80 font-bold">{r.brand}</p>
+                    <p className="mt-0.5 text-xs font-semibold text-emerald-950 leading-snug line-clamp-2 min-h-[2.4em]">{r.title}</p>
+                    <p className="mt-1 text-sm font-extrabold text-emerald-900">{formatAED(r.price)}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* ============ SHOP BY CATEGORY ============ */}
         <section className="mt-14 sm:mt-20">
@@ -922,6 +1216,242 @@ export function CollectionPageView({ category, allCategories, products }: Collec
               </div>
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+
+      {/* ============ VAPE FINDER QUIZ MODAL ============ */}
+      <AnimatePresence>
+        {quizOpen && (
+          <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center p-0 sm:p-6">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setQuizOpen(false)} className="absolute inset-0 bg-emerald-950/60 backdrop-blur-sm" />
+            <motion.div
+              initial={{ y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 60, opacity: 0 }}
+              transition={{ type: "spring", damping: 28, stiffness: 300 }}
+              className="relative w-full sm:max-w-lg bg-white rounded-t-3xl sm:rounded-3xl overflow-hidden max-h-[92dvh] flex flex-col"
+            >
+              <div className="bg-gradient-to-br from-[#064e3b] to-[#022c22] px-6 pt-6 pb-5 text-white relative">
+                <button onClick={() => setQuizOpen(false)} aria-label="Close quiz" className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20">
+                  <X size={18} />
+                </button>
+                <p className="font-cinzel text-[10px] tracking-[0.24em] text-amber-300 font-bold mb-1.5">VAPE FINDER</p>
+                <h3 className="font-luxury text-xl sm:text-2xl font-bold">
+                  {quizStep === 0 ? "How much do you vape?" : quizStep === 1 ? "Pick your nicotine strength" : "Choose your flavour vibe"}
+                </h3>
+                <div className="mt-4 flex items-center gap-2">
+                  {[0, 1, 2].map((s) => (
+                    <span key={s} className={`h-1.5 flex-1 rounded-full transition-colors ${s <= quizStep ? "bg-amber-400" : "bg-white/20"}`} />
+                  ))}
+                </div>
+              </div>
+              <div className="p-5 sm:p-6 overflow-y-auto" style={{ paddingBottom: "max(1.25rem, env(safe-area-inset-bottom))" }}>
+                {quizStep === 0 && (
+                  <div className="grid grid-cols-2 gap-3">
+                    {puffBuckets.map((b) => (
+                      <button
+                        key={b.id}
+                        onClick={() => { setQuizPuffs(b.id); setQuizStep(1); }}
+                        className={`min-h-[76px] rounded-2xl border-2 p-3 text-left transition-all active:scale-[0.98] ${quizPuffs === b.id ? "border-amber-500 bg-amber-50" : "border-emerald-900/15 hover:border-amber-500/60"}`}
+                      >
+                        <p className="text-sm font-extrabold text-emerald-950">{b.label}</p>
+                        <p className="text-xs text-neutral-500 mt-0.5">puffs</p>
+                        <p className="text-[11px] font-bold text-emerald-700 mt-1">{b.count} matches</p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {quizStep === 1 && (
+                  <div className="flex flex-wrap gap-2.5">
+                    {nicotines.map((n) => (
+                      <button
+                        key={n}
+                        onClick={() => { setQuizNicotine(n); setQuizStep(2); }}
+                        className={`min-h-[52px] px-5 rounded-2xl border-2 text-sm font-bold transition-all active:scale-[0.98] ${quizNicotine === n ? "border-amber-500 bg-amber-50 text-emerald-950" : "border-emerald-900/15 text-emerald-900 hover:border-amber-500/60"}`}
+                      >
+                        {n} <span className="text-xs font-semibold opacity-60">({nicotineCounts[n]})</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {quizStep === 2 && (
+                  <div className="grid grid-cols-2 gap-3">
+                    {flavorFamilies.map((f) => (
+                      <button
+                        key={f.id}
+                        onClick={() => setQuizFlavor(f.id)}
+                        className={`min-h-[96px] rounded-2xl border-2 p-3.5 text-left transition-all active:scale-[0.98] ${quizFlavor === f.id ? "border-amber-500 bg-amber-50" : "border-emerald-900/15 hover:border-amber-500/60"}`}
+                      >
+                        <f.icon size={22} className={f.color} />
+                        <p className="mt-2 text-sm font-extrabold text-emerald-950">{f.name}</p>
+                        <p className="text-[11px] font-bold text-emerald-700 mt-0.5">{flavorFamilyCounts[f.id] || 0} matches</p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <div className="mt-6 flex items-center gap-3">
+                  {quizStep > 0 && (
+                    <button
+                      onClick={() => setQuizStep(quizStep - 1)}
+                      className="h-[52px] px-5 rounded-2xl border-2 border-emerald-900/15 text-emerald-900 font-bold text-sm flex items-center gap-2 hover:border-amber-500"
+                    >
+                      <ArrowLeft size={16} /> Back
+                    </button>
+                  )}
+                  <div className="flex-1 rounded-2xl bg-emerald-50 px-4 h-[52px] flex items-center justify-center">
+                    <p className="text-sm font-bold text-emerald-900"><span className="text-amber-600 text-base">{quizMatches}</span> match{quizMatches === 1 ? "" : "es"} found</p>
+                  </div>
+                </div>
+                {quizStep === 2 && (
+                  <button
+                    onClick={applyQuiz}
+                    disabled={quizMatches === 0}
+                    className="mt-3 w-full h-[54px] rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 text-emerald-950 font-extrabold text-sm tracking-wide hover:brightness-105 active:scale-[0.99] transition-all disabled:opacity-40 flex items-center justify-center gap-2"
+                  >
+                    <Sparkles size={17} /> SHOW MY {quizMatches} RESULT{quizMatches === 1 ? "" : "S"}
+                  </button>
+                )}
+                <button onClick={() => setQuizOpen(false)} className="mt-2 w-full py-2 text-xs font-semibold text-neutral-400 hover:text-neutral-600">
+                  Skip — browse everything
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ============ COMPARE FLOATING BAR ============ */}
+      <AnimatePresence>
+        {compareIds.length > 0 && !compareOpen && (
+          <motion.div
+            initial={{ y: 90, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 90, opacity: 0 }}
+            transition={{ type: "spring", damping: 26, stiffness: 300 }}
+            className="fixed z-40 left-3 right-3 bottom-[calc(84px+env(safe-area-inset-bottom))] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:bottom-6 sm:w-auto"
+          >
+            <div className="flex items-center gap-2.5 rounded-2xl bg-emerald-950/95 backdrop-blur border border-emerald-700/40 shadow-[0_16px_40px_-10px_rgba(0,0,0,0.5)] p-2.5 pl-3">
+              <div className="flex -space-x-2">
+                {compareProducts.map((p) => (
+                  <span key={p.id} className="w-10 h-10 rounded-xl bg-white border-2 border-emerald-950 overflow-hidden inline-block">
+                    <Image src={p.primaryImage} alt="" width={40} height={40} className="w-full h-full object-contain p-0.5" />
+                  </span>
+                ))}
+              </div>
+              <button
+                onClick={() => setCompareOpen(true)}
+                className="h-11 px-5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-emerald-950 font-extrabold text-sm whitespace-nowrap hover:brightness-105 active:scale-[0.98] transition-all"
+              >
+                Compare ({compareIds.length})
+              </button>
+              <button onClick={() => setCompareIds([])} aria-label="Clear compare" className="w-11 h-11 rounded-xl text-emerald-100/70 hover:text-white hover:bg-white/10 flex items-center justify-center">
+                <X size={18} />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ============ COMPARE MODAL ============ */}
+      <AnimatePresence>
+        {compareOpen && compareProducts.length > 0 && (
+          <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center p-0 sm:p-6">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setCompareOpen(false)} className="absolute inset-0 bg-emerald-950/60 backdrop-blur-sm" />
+            <motion.div
+              initial={{ y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 60, opacity: 0 }}
+              transition={{ type: "spring", damping: 28, stiffness: 300 }}
+              className="relative w-full sm:max-w-3xl bg-white rounded-t-3xl sm:rounded-3xl overflow-hidden max-h-[92dvh] flex flex-col"
+            >
+              <div className="flex items-center justify-between px-5 sm:px-7 h-16 border-b border-emerald-900/10 shrink-0">
+                <h3 className="font-luxury text-lg sm:text-xl font-bold text-emerald-950">Compare Products</h3>
+                <button onClick={() => setCompareOpen(false)} aria-label="Close compare" className="w-11 h-11 rounded-full hover:bg-emerald-50 flex items-center justify-center">
+                  <X size={20} className="text-emerald-950" />
+                </button>
+              </div>
+              <div className="overflow-auto p-5 sm:p-7" style={{ paddingBottom: "max(1.25rem, env(safe-area-inset-bottom))" }}>
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[520px] text-sm">
+                    <thead>
+                      <tr>
+                        <th className="w-24" />
+                        {compareProducts.map((p) => (
+                          <th key={p.id} className="align-top pb-4 px-2 min-w-[160px]">
+                            <div className="relative rounded-2xl bg-gradient-to-br from-[#f8fafc] to-emerald-50/60 border border-emerald-900/10 p-3">
+                              <button onClick={() => toggleCompare(p.id)} aria-label={`Remove ${p.title}`} className="absolute top-1.5 right-1.5 w-8 h-8 rounded-full bg-white border border-emerald-900/10 flex items-center justify-center text-neutral-400 hover:text-red-500">
+                                <X size={14} />
+                              </button>
+                              <Image src={p.primaryImage} alt={p.title} width={120} height={120} className="w-24 h-24 object-contain mx-auto" />
+                            </div>
+                            <p className="mt-2 text-[13px] font-bold text-emerald-950 leading-snug text-left">{p.title}</p>
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="[&_td]:px-2 [&_td]:py-2.5 [&_td]:border-t [&_td]:border-emerald-900/10 [&_th]:px-2 [&_th]:py-2.5 [&_th]:border-t [&_th]:border-emerald-900/10 [&_th]:text-left [&_th]:text-xs [&_th]:font-bold [&_th]:text-emerald-900/60 [&_th]:uppercase [&_th]:tracking-wide">
+                      <tr>
+                        <th scope="row">Price</th>
+                        {compareProducts.map((p) => (
+                          <td key={p.id}>
+                            <span className="font-extrabold text-emerald-900">{formatAED(p.price)}</span>
+                            {p.originalPrice > p.price && <span className="block text-xs text-neutral-400 line-through">{formatAED(p.originalPrice)}</span>}
+                          </td>
+                        ))}
+                      </tr>
+                      <tr>
+                        <th scope="row">Puffs</th>
+                        {compareProducts.map((p) => <td key={p.id} className="font-semibold text-emerald-950">{p.puffs ? p.puffs.toLocaleString() : "—"}</td>)}
+                      </tr>
+                      <tr>
+                        <th scope="row">Nicotine</th>
+                        {compareProducts.map((p) => <td key={p.id} className="text-neutral-600">{p.nicotineStrength}</td>)}
+                      </tr>
+                      <tr>
+                        <th scope="row">Rating</th>
+                        {compareProducts.map((p) => (
+                          <td key={p.id}><span className="inline-flex items-center gap-1.5"><Stars rating={p.rating} size={12} /><span className="text-xs text-neutral-500">({p.revs})</span></span></td>
+                        ))}
+                      </tr>
+                      <tr>
+                        <th scope="row">Battery</th>
+                        {compareProducts.map((p) => <td key={p.id} className="text-neutral-600">{p.batteryCapacity || "—"}</td>)}
+                      </tr>
+                      <tr>
+                        <th scope="row">Flavours</th>
+                        {compareProducts.map((p) => <td key={p.id} className="text-neutral-600">{p.flavors.length} options</td>)}
+                      </tr>
+                      <tr>
+                        <th scope="row" />
+                        {compareProducts.map((p) => (
+                          <td key={p.id}>
+                            <button
+                              onClick={() => { setCompareOpen(false); addToCart(p); }}
+                              disabled={!p.inStock}
+                              className="w-full h-11 rounded-xl bg-emerald-800 text-white text-xs font-bold whitespace-nowrap hover:bg-emerald-700 active:scale-[0.98] transition-all disabled:opacity-40 flex items-center justify-center gap-1.5"
+                            >
+                              <ShoppingBag size={14} /> ADD TO CART
+                            </button>
+                          </td>
+                        ))}
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ============ FLY TO CART LAYER ============ */}
+      <AnimatePresence>
+        {flyItem && (
+          <motion.img
+            key={`${flyItem.p.id}-${flyItem.x}`}
+            src={flyItem.p.primaryImage}
+            alt=""
+            aria-hidden
+            initial={{ x: flyItem.x - 32, y: flyItem.y - 32, scale: 1, opacity: 1, rotate: 0 }}
+            animate={{ x: flyItem.tx - 32, y: flyItem.ty - 32, scale: 0.22, opacity: 0.5, rotate: 18 }}
+            transition={{ duration: 0.65, ease: [0.32, 0.72, 0.35, 1] }}
+            onAnimationComplete={() => { const it = flyItem; setFlyItem(null); addToCart(it.p); }}
+            className="fixed top-0 left-0 w-16 h-16 rounded-2xl object-contain bg-white shadow-2xl z-[80] pointer-events-none border border-emerald-900/15"
+          />
         )}
       </AnimatePresence>
 
