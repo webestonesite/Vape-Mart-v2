@@ -92,9 +92,26 @@ export function buildSeoSections(p: ProductItem): SeoSection[] {
   ];
 }
 
+/** Classify a question into a topic so near-duplicate phrasings collapse. */
+function topicOf(q: string): string {
+  const t = q.toLowerCase();
+  if (/cash on delivery|\bcod\b|payment|\bpay\b/i.test(t)) return "payment";
+  if (/damaged|faulty|broken|defect/i.test(t)) return "damaged";
+  if (/puff|how long|last/i.test(t)) return "longevity";
+  if (/authentic|genuine|verify|fake/i.test(t)) return "authenticity";
+  if (/recharge|charge|battery/i.test(t)) return "charging";
+  if (/deliver|shipping|arrive/i.test(t)) return "delivery";
+  if (/nicotine|strength|\bmg\b/i.test(t)) return "nicotine";
+  if (/flavour|flavor|taste/i.test(t)) return "flavour";
+  if (/beginner|new to/i.test(t)) return "beginner";
+  if (/return|exchange|refund/i.test(t)) return "returns";
+  return "other:" + t.slice(0, 40);
+}
+
 /**
  * Product-specific FAQs: the product's own FAQs first, then generated
- * questions covering the topics buyers actually ask about. Capped at 12.
+ * questions covering the topics buyers actually ask about. Near-duplicate
+ * topics collapse; capped at 12.
  */
 export function buildProductFaqs(p: ProductItem): ProductFAQ[] {
   const puffsLabel = p.puffs ? `${p.puffs.toLocaleString()}` : p.puffRange || "high";
@@ -141,15 +158,14 @@ export function buildProductFaqs(p: ProductItem): ProductFAQ[] {
     },
   ];
 
-  const seen = new Set(p.faqs.map((f) => f.q.trim().toLowerCase()));
+  const seenTopics = new Set(p.faqs.map((f) => topicOf(f.q)));
   const merged: ProductFAQ[] = [...p.faqs];
   for (const g of generated) {
     if (merged.length >= 12) break;
-    const key = g.q.trim().toLowerCase();
-    const dup = [...seen].some((s) => s.includes(key.slice(0, 20)) || key.includes(s.slice(0, 20)));
-    if (!dup) {
+    const topic = topicOf(g.q);
+    if (!seenTopics.has(topic)) {
       merged.push(g);
-      seen.add(key);
+      seenTopics.add(topic);
     }
   }
   return merged;
