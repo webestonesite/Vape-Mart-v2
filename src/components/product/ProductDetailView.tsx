@@ -573,26 +573,6 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
           </div>
         </section>
 
-        {/* ============ SPECS TABLE ============ */}
-        <section className="mt-6 sm:mt-10">
-          <h2 className="font-luxury text-2xl sm:text-3xl xl:text-[40px] font-bold text-emerald-950 mb-5">Key Features &amp; Specifications</h2>
-          <div className="rounded-2xl border-2 border-emerald-900/10 overflow-hidden w-full">
-            <div className="grid grid-cols-2 bg-emerald-950 px-5 py-3">
-              <span className="font-cinzel text-[11px] tracking-[0.18em] text-amber-300 font-bold">FEATURE</span>
-              <span className="font-cinzel text-[11px] tracking-[0.18em] text-amber-300 font-bold">DETAILS</span>
-            </div>
-            {product.specifications.map((s, i) => (
-              <div key={i} className={`grid grid-cols-2 px-5 py-3.5 text-sm ${i % 2 ? "bg-emerald-50/50" : "bg-white"}`}>
-                <span className="font-bold text-emerald-950">{s.label}</span>
-                <span className="text-neutral-600">{s.value}</span>
-              </div>
-            ))}
-          </div>
-          <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-emerald-100 px-4 py-2 text-xs font-extrabold text-emerald-800">
-            <BadgeCheck size={15} /> 100% AUTHENTIC UAE CERTIFIED
-          </div>
-        </section>
-
         {/* ============ AVAILABLE FLAVOURS ============ */}
         {product.flavors.length > 0 && (
           <section className="mt-10 sm:mt-14">
@@ -671,6 +651,26 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
             )}
           </section>
         )}
+
+        {/* ============ SPECS TABLE ============ */}
+        <section className="mt-6 sm:mt-10">
+          <h2 className="font-luxury text-2xl sm:text-3xl xl:text-[40px] font-bold text-emerald-950 mb-5">Key Features &amp; Specifications</h2>
+          <div className="rounded-2xl border-2 border-emerald-900/10 overflow-hidden w-full">
+            <div className="grid grid-cols-2 bg-emerald-950 px-5 py-3">
+              <span className="font-cinzel text-[11px] tracking-[0.18em] text-amber-300 font-bold">FEATURE</span>
+              <span className="font-cinzel text-[11px] tracking-[0.18em] text-amber-300 font-bold">DETAILS</span>
+            </div>
+            {product.specifications.map((s, i) => (
+              <div key={i} className={`grid grid-cols-2 px-5 py-3.5 text-sm ${i % 2 ? "bg-emerald-50/50" : "bg-white"}`}>
+                <span className="font-bold text-emerald-950">{s.label}</span>
+                <span className="text-neutral-600">{s.value}</span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-emerald-100 px-4 py-2 text-xs font-extrabold text-emerald-800">
+            <BadgeCheck size={15} /> 100% AUTHENTIC UAE CERTIFIED
+          </div>
+        </section>
 
         {/* ============ REVIEWS ============ */}
         {product.reviews.length > 0 && (
