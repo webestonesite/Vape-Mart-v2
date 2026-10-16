@@ -25,8 +25,10 @@ import {
   Phone,
   Clock,
   Flame,
+  HelpCircle,
 } from "lucide-react";
 import { ProductItem, CartItem } from "@/types/product";
+import { buildSeoSections, buildProductFaqs, SeoSection } from "./productSeo";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
@@ -51,6 +53,27 @@ function Stars({ rating, size = 14 }: { rating: number; size?: number }) {
         <Star key={i} size={size} className={i <= Math.round(rating) ? "fill-amber-400 text-amber-400" : "fill-neutral-200 text-neutral-200"} />
       ))}
     </span>
+  );
+}
+
+function SeoBlock({ section }: { section: SeoSection }) {
+  return (
+    <div className="mt-8">
+      <h3 className="font-cinzel text-xs tracking-[0.2em] text-emerald-900 font-bold mb-4">{section.heading.toUpperCase()}</h3>
+      {section.paragraphs.map((para, i) => (
+        <p key={i} className="mt-3 first:mt-0 text-[15px] xl:text-[17px] leading-relaxed text-neutral-600">{para}</p>
+      ))}
+      {section.list && (
+        <ol className="mt-4 space-y-2.5">
+          {section.list.map((item, i) => (
+            <li key={i} className="flex gap-3 items-start text-neutral-600">
+              <span className="w-7 h-7 shrink-0 rounded-full bg-emerald-100 text-emerald-800 text-xs font-extrabold flex items-center justify-center mt-0.5">{i + 1}</span>
+              <span className="text-[15px] xl:text-[17px] leading-relaxed">{item}</span>
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
   );
 }
 
@@ -99,6 +122,9 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
 
   const discount = product.originalPrice > product.price ? Math.round((1 - product.price / product.originalPrice) * 100) : 0;
   const total = product.price * qty;
+
+  const seoSections = useMemo(() => buildSeoSections(product), [product]);
+  const allFaqs = useMemo(() => buildProductFaqs(product), [product]);
 
   const addToCart = (openDrawer = true) => {
     if (product.flavors.length > 0 && !flavorId) { setFlavorDropOpen(true); setNicotineDropOpen(false); flavorDropRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); return; }
@@ -460,6 +486,8 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
                 <h2 className="font-luxury text-2xl sm:text-3xl xl:text-[40px] font-bold text-emerald-950">{product.title}</h2>
                 <p className="mt-4 text-[15px] xl:text-[17px] leading-relaxed text-neutral-600">{product.fullDescription}</p>
 
+                <SeoBlock section={seoSections[0]} />
+
                 {product.highlights.length > 0 && (
                   <div className="mt-7">
                     <h3 className="font-cinzel text-xs tracking-[0.2em] text-emerald-900 font-bold mb-4">KEY FEATURES</h3>
@@ -478,6 +506,9 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
                     </div>
                   </div>
                 )}
+
+                <SeoBlock section={seoSections[1]} />
+                <SeoBlock section={seoSections[2]} />
 
                 {product.flavors.length > 0 && (
                   <div className="mt-7">
@@ -498,6 +529,11 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
                   </div>
                 )}
 
+                <SeoBlock section={seoSections[3]} />
+                <SeoBlock section={seoSections[4]} />
+                <SeoBlock section={seoSections[5]} />
+                <SeoBlock section={seoSections[6]} />
+
                 <div className="mt-7">
                   <h3 className="font-cinzel text-xs tracking-[0.2em] text-emerald-900 font-bold mb-4">KEY SPECIFICATIONS</h3>
                   <ul className="rounded-2xl border border-emerald-900/10 bg-white divide-y divide-emerald-900/10 overflow-hidden">
@@ -510,29 +546,8 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
                   </ul>
                 </div>
 
-                {product.faqs.length > 0 && (
-                  <div className="mt-8">
-                    <h3 className="font-luxury text-xl sm:text-2xl font-bold text-emerald-950 mb-4">Frequently Asked Questions (FAQs)</h3>
-                    <div className="divide-y divide-emerald-900/10 rounded-2xl border border-emerald-900/10 bg-white overflow-hidden">
-                      {product.faqs.map((f, i) => (
-                        <div key={i}>
-                          <button onClick={() => setOpenFaq(openFaq === i ? null : i)} className="w-full flex items-center gap-4 px-5 min-h-[60px] text-left hover:bg-emerald-50/60 transition-colors">
-                            <span className="w-8 h-8 shrink-0 rounded-full bg-emerald-100 text-emerald-800 text-xs font-extrabold flex items-center justify-center">{i + 1}</span>
-                            <span className="flex-1 text-sm sm:text-[15px] font-bold text-emerald-950">{f.q}</span>
-                            <ChevronDown size={18} className={`shrink-0 text-amber-600 transition-transform ${openFaq === i ? "rotate-180" : ""}`} />
-                          </button>
-                          <AnimatePresence initial={false}>
-                            {openFaq === i && (
-                              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25 }} className="overflow-hidden">
-                                <p className="px-5 pb-5 pl-[68px] text-sm text-neutral-600 leading-relaxed">{f.a}</p>
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                <SeoBlock section={seoSections[7]} />
+                <SeoBlock section={seoSections[8]} />
 
                 <p className="mt-7 text-[15px] xl:text-[17px] leading-relaxed text-neutral-600 border-l-4 border-amber-400 pl-4 italic">
                   Final thoughts: {product.shortDescription} Order today from Vape Mart UAE — 100% authentic, express delivery across all Emirates.
@@ -771,6 +786,54 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
               <Link href="/collections" className="px-6 py-2.5 sm:px-8 sm:py-3 rounded-full text-xs sm:text-sm font-bold shadow-md transition-all flex items-center gap-2 bg-white text-[#064e3b] hover:bg-amber-400 hover:text-neutral-950 hover:scale-105 active:scale-95 group">
                 View All Products <ArrowRight size={15} className="transition-transform duration-300 group-hover:translate-x-1" />
               </Link>
+            </div>
+          </section>
+        )}
+
+        {/* ============ FAQ — home page style, product-specific content ============ */}
+        {allFaqs.length > 0 && (
+          <section className="mt-10 sm:mt-14">
+            <div className="flex flex-col items-center mb-8 sm:mb-12 text-center px-2">
+              <span className="font-cinzel inline-block px-4 py-1.5 rounded-full bg-emerald-900/10 text-emerald-900 font-bold text-xs tracking-[0.25em] uppercase mb-3 sm:mb-4">GOT QUESTIONS?</span>
+              <h2 className="font-luxury text-3xl sm:text-4xl xl:text-5xl font-extrabold text-emerald-950 mb-3 tracking-tight">Frequently Asked Questions</h2>
+              <p className="text-neutral-500 max-w-2xl text-sm sm:text-[17px]">Everything you need to know about the {product.title}.</p>
+            </div>
+            <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 items-start">
+              <div className="w-full lg:w-1/3 flex flex-col items-start bg-gradient-to-br from-[#064e3b] to-[#022c22] p-6 sm:p-8 rounded-[24px] border border-emerald-700/40 shadow-sm h-max">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 flex items-center justify-center mb-5 shadow-lg">
+                  <HelpCircle size={26} className="text-emerald-950" />
+                </div>
+                <h3 className="font-luxury text-xl sm:text-2xl font-bold text-white mb-3">Still have questions?</h3>
+                <p className="text-emerald-100/70 text-sm mb-6 leading-relaxed">Can&apos;t find the answer you&apos;re looking for? Our vape experts reply in minutes on WhatsApp.</p>
+                <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" className="w-full py-3.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-emerald-950 font-bold text-sm hover:brightness-105 transition-all flex items-center justify-center gap-2">
+                  Contact Support <ArrowRight size={16} />
+                </a>
+              </div>
+              <div className="w-full lg:w-2/3 flex flex-col gap-3">
+                {allFaqs.map((faq, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
+                    className={`border border-emerald-900/10 rounded-2xl overflow-hidden transition-all duration-300 ${openFaq === idx ? "bg-white shadow-[0_10px_30px_rgba(6,78,59,0.08)]" : "bg-white/70 hover:bg-white cursor-pointer"}`}
+                  >
+                    <div className="px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between gap-3 sm:gap-4 cursor-pointer">
+                      <div className="flex items-center gap-3 sm:gap-4 flex-1">
+                        <span className={`font-black text-lg sm:text-xl transition-colors duration-300 ${openFaq === idx ? "text-emerald-900" : "text-neutral-300"}`}>{String(idx + 1).padStart(2, "0")}</span>
+                        <h4 className={`font-semibold text-sm sm:text-base transition-colors duration-300 ${openFaq === idx ? "text-emerald-900" : "text-neutral-700"}`}>{faq.q}</h4>
+                      </div>
+                      <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-colors duration-300 ${openFaq === idx ? "bg-emerald-900 text-white" : "bg-neutral-100 text-neutral-400"} shrink-0`}>
+                        <ChevronDown size={16} className={`transition-transform duration-300 ${openFaq === idx ? "rotate-180" : ""}`} />
+                      </div>
+                    </div>
+                    <div
+                      className="px-4 sm:px-6 pl-12 sm:pl-[72px] text-neutral-500 text-xs sm:text-sm leading-relaxed overflow-hidden transition-all duration-500 ease-in-out"
+                      style={{ maxHeight: openFaq === idx ? "500px" : "0", opacity: openFaq === idx ? 1 : 0, paddingBottom: openFaq === idx ? "1.25rem" : "0" }}
+                    >
+                      {faq.a}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </section>
         )}
