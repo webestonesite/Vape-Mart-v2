@@ -174,7 +174,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
     <div className="min-h-screen bg-[#f8fafc] text-neutral-900 flex flex-col">
       <Header onCartClick={() => setIsCartOpen(true)} cartCount={cartItems.reduce((a, i) => a + i.quantity, 0)} />
 
-      <main className="flex-1 w-full max-w-[1240px] mx-auto px-4 sm:px-6 pt-4 sm:pt-6 pb-10">
+      <main className="flex-1 w-full max-w-[1240px] xl:max-w-[1520px] mx-auto px-4 sm:px-6 xl:px-10 pt-4 sm:pt-6 xl:pt-8 pb-10">
         {/* breadcrumb */}
         <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs font-semibold text-neutral-500 mb-5 flex-wrap">
           <Link href="/" className="hover:text-emerald-800">Home</Link>
@@ -185,7 +185,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
         </nav>
 
         {/* ============ 2-COL: GALLERY + BUY BOX ============ */}
-        <div className="grid lg:grid-cols-2 gap-6 lg:gap-10 items-start">
+        <div className="grid lg:grid-cols-2 gap-6 lg:gap-10 xl:gap-16 items-start">
           {/* gallery */}
           <div className="lg:sticky lg:top-24">
             <motion.div
@@ -207,10 +207,10 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
               )}
               {galleryImages.length > 1 && (
                 <>
-                  <button onClick={() => setImgIdx((imgIdx - 1 + galleryImages.length) % galleryImages.length)} aria-label="Previous image" className="absolute left-3 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/90 border border-emerald-900/10 flex items-center justify-center shadow hover:bg-white">
+                  <button onClick={() => setImgIdx((imgIdx - 1 + galleryImages.length) % galleryImages.length)} aria-label="Previous image" className="absolute left-3 top-1/2 -translate-y-1/2 w-11 h-11 xl:w-14 xl:h-14 rounded-full bg-white/90 border border-emerald-900/10 flex items-center justify-center shadow hover:bg-white">
                     <ChevronLeft size={20} className="text-emerald-900" />
                   </button>
-                  <button onClick={() => setImgIdx((imgIdx + 1) % galleryImages.length)} aria-label="Next image" className="absolute right-3 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/90 border border-emerald-900/10 flex items-center justify-center shadow hover:bg-white">
+                  <button onClick={() => setImgIdx((imgIdx + 1) % galleryImages.length)} aria-label="Next image" className="absolute right-3 top-1/2 -translate-y-1/2 w-11 h-11 xl:w-14 xl:h-14 rounded-full bg-white/90 border border-emerald-900/10 flex items-center justify-center shadow hover:bg-white">
                     <ChevronRight size={20} className="text-emerald-900" />
                   </button>
                 </>
@@ -221,7 +221,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
                 {galleryImages.map((src, i) => (
                   <button
                     key={i} onClick={() => setImgIdx(i)} aria-label={`View image ${i + 1}`}
-                    className={`snap-start shrink-0 w-[72px] h-[72px] rounded-2xl border-2 overflow-hidden bg-white transition-all ${i === imgIdx ? "border-amber-500 shadow-md" : "border-emerald-900/10 opacity-70 hover:opacity-100"}`}
+                    className={`snap-start shrink-0 w-[72px] h-[72px] xl:w-[88px] xl:h-[88px] rounded-2xl border-2 overflow-hidden bg-white transition-all ${i === imgIdx ? "border-amber-500 shadow-md" : "border-emerald-900/10 opacity-70 hover:opacity-100"}`}
                   >
                     <Image src={src} alt="" width={72} height={72} className="object-contain w-full h-full p-1.5" />
                   </button>
@@ -233,7 +233,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
           {/* buy box */}
           <div ref={buyBoxRef}>
             <span className="inline-block rounded-full bg-emerald-800 text-amber-300 font-cinzel text-[10px] tracking-[0.2em] font-bold px-3.5 py-1.5">{product.category.toUpperCase()}</span>
-            <h1 className="mt-3 font-luxury text-[26px] sm:text-4xl font-bold text-emerald-950 leading-tight">{product.title}</h1>
+            <h1 className="mt-3 font-luxury text-[26px] sm:text-4xl xl:text-[46px] font-bold text-emerald-950 leading-tight">{product.title}</h1>
             {product.subtitle && <p className="mt-1.5 text-sm text-neutral-500">{product.subtitle}</p>}
 
             <div className="mt-3 flex items-center gap-2.5 flex-wrap">
@@ -260,7 +260,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
             {/* price */}
             <p className="mt-5 text-[11px] font-extrabold tracking-[0.18em] text-neutral-400">PRICE:</p>
             <div className="mt-1 flex items-baseline gap-3 flex-wrap">
-              <span className="text-3xl sm:text-[40px] font-extrabold text-emerald-900">{formatAED(product.price)}</span>
+              <span className="text-3xl sm:text-[40px] xl:text-[52px] font-extrabold text-emerald-900">{formatAED(product.price)}</span>
               {product.originalPrice > product.price && (
                 <>
                   <span className="text-lg text-neutral-400 line-through">{formatAED(product.originalPrice)}</span>
@@ -277,9 +277,9 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4">
                 {keySpecs.map((s) => (
-                  <div key={s.label} className="px-3.5 py-3 border-b border-r border-emerald-900/10">
+                  <div key={s.label} className="px-3.5 py-3 xl:px-5 xl:py-4 border-b border-r border-emerald-900/10">
                     <p className="text-[10px] font-bold tracking-wider text-neutral-400">{s.label}</p>
-                    <p className="mt-0.5 text-[13px] font-bold text-emerald-950 leading-snug">{s.value}</p>
+                    <p className="mt-0.5 text-[13px] xl:text-[15px] font-bold text-emerald-950 leading-snug">{s.value}</p>
                   </div>
                 ))}
               </div>
@@ -291,7 +291,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
                 <p className="text-xs font-extrabold tracking-wider text-emerald-950 mb-2">FLAVORS OPTION:</p>
                 <button
                   onClick={() => { setFlavorDropOpen(!flavorDropOpen); setNicotineDropOpen(false); }}
-                  className={`w-full h-12 rounded-xl border-2 bg-white px-3.5 flex items-center gap-2.5 text-left transition-all ${flavorDropOpen ? "border-amber-500 shadow-[0_8px_24px_-8px_rgba(245,158,11,0.4)]" : "border-emerald-900/15 hover:border-emerald-700"}`}
+                  className={`w-full h-12 xl:h-14 rounded-xl border-2 bg-white px-3.5 flex items-center gap-2.5 text-left transition-all ${flavorDropOpen ? "border-amber-500 shadow-[0_8px_24px_-8px_rgba(245,158,11,0.4)]" : "border-emerald-900/15 hover:border-emerald-700"}`}
                 >
                   {flavorId && (
                     <span className="relative w-8 h-8 rounded-lg overflow-hidden shrink-0 border border-emerald-900/10 bg-emerald-50/50">
@@ -337,7 +337,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
                 <p className="text-xs font-extrabold tracking-wider text-emerald-950 mb-2">NICOTINE STRENGTH:</p>
                 <button
                   onClick={() => { setNicotineDropOpen(!nicotineDropOpen); setFlavorDropOpen(false); }}
-                  className={`w-full h-12 rounded-xl border-2 bg-white px-3.5 flex items-center gap-2.5 text-left transition-all ${nicotineDropOpen ? "border-amber-500 shadow-[0_8px_24px_-8px_rgba(245,158,11,0.4)]" : "border-emerald-900/15 hover:border-emerald-700"}`}
+                  className={`w-full h-12 xl:h-14 rounded-xl border-2 bg-white px-3.5 flex items-center gap-2.5 text-left transition-all ${nicotineDropOpen ? "border-amber-500 shadow-[0_8px_24px_-8px_rgba(245,158,11,0.4)]" : "border-emerald-900/15 hover:border-emerald-700"}`}
                 >
                   <span className={`flex-1 text-sm font-bold ${nicotine ? "text-emerald-950" : "text-neutral-400"}`}>{nicotine || "Select nicotine strength"}</span>
                   {nicotine && <span className="text-[11px] font-semibold text-neutral-400">nicotine salt</span>}
@@ -370,7 +370,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
             <div className="mt-5 flex items-center gap-3">
               <div>
                 <p className="text-[11px] font-extrabold tracking-[0.18em] text-neutral-400 mb-1.5">QTY</p>
-                <div className="flex items-center rounded-2xl border-2 border-emerald-900/15 bg-white h-[56px]">
+                <div className="flex items-center rounded-2xl border-2 border-emerald-900/15 bg-white h-[56px] xl:h-[68px]">
                   <button onClick={() => setQty(Math.max(1, qty - 1))} aria-label="Decrease quantity" className="w-[52px] h-full flex items-center justify-center text-emerald-900 hover:text-amber-600"><Minus size={17} /></button>
                   <span className="w-10 text-center font-extrabold text-lg text-emerald-950">{qty}</span>
                   <button onClick={() => setQty(Math.min(99, qty + 1))} aria-label="Increase quantity" className="w-[52px] h-full flex items-center justify-center text-emerald-900 hover:text-amber-600"><Plus size={17} /></button>
@@ -378,7 +378,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
               </div>
               <div className="flex-1">
                 <p className="text-[11px] font-extrabold tracking-[0.18em] text-neutral-400 mb-1.5">TOTAL PRICE:</p>
-                <div className="h-[56px] rounded-2xl bg-emerald-50 border border-emerald-900/10 flex items-center px-4">
+                <div className="h-[56px] xl:h-[68px] rounded-2xl bg-emerald-50 border border-emerald-900/10 flex items-center px-4 xl:px-5">
                   <span className="text-xl font-extrabold text-emerald-900">{formatAED(total)}</span>
                 </div>
               </div>
@@ -386,7 +386,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
                 <p className="text-[11px] font-extrabold tracking-[0.18em] text-transparent mb-1.5 select-none">.</p>
                 <button
                   onClick={() => setWished(!wished)} aria-label="Add to wishlist"
-                  className={`w-[56px] h-[56px] shrink-0 rounded-2xl border-2 flex items-center justify-center transition-all ${wished ? "border-red-300 bg-red-50" : "border-emerald-900/15 bg-white hover:border-amber-500"}`}
+                  className={`w-[56px] h-[56px] xl:w-[68px] xl:h-[68px] shrink-0 rounded-2xl border-2 flex items-center justify-center transition-all ${wished ? "border-red-300 bg-red-50" : "border-emerald-900/15 bg-white hover:border-amber-500"}`}
                 >
                   <Heart size={20} className={wished ? "fill-red-500 text-red-500" : "text-emerald-900"} />
                 </button>
@@ -399,14 +399,14 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
               <button
                 onClick={() => addToCart(true)}
                 disabled={!product.inStock}
-                className="h-[56px] rounded-2xl border-2 border-emerald-800 text-emerald-900 font-extrabold text-[15px] tracking-wide hover:bg-emerald-50 active:scale-[0.99] transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
+                className="h-[56px] xl:h-[68px] rounded-2xl border-2 border-emerald-800 text-emerald-900 font-extrabold text-[15px] tracking-wide hover:bg-emerald-50 active:scale-[0.99] transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
               >
                 <ShoppingBag size={18} /> ADD TO CART
               </button>
               <button
                 onClick={buyNow}
                 disabled={!product.inStock}
-                className="h-[56px] rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 text-emerald-950 font-extrabold text-[15px] tracking-wide hover:brightness-105 active:scale-[0.99] transition-all shadow-[0_10px_30px_-10px_rgba(245,158,11,0.6)] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
+                className="h-[56px] xl:h-[68px] rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 text-emerald-950 font-extrabold text-[15px] tracking-wide hover:brightness-105 active:scale-[0.99] transition-all shadow-[0_10px_30px_-10px_rgba(245,158,11,0.6)] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
               >
                 <Zap size={18} /> BUY NOW
               </button>
@@ -414,7 +414,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
             <a
               href={`https://wa.me/971551688299?text=${encodeURIComponent(`Hi Vape Mart! I want to order: ${product.title} (${formatAED(product.price)})`)}`}
               target="_blank" rel="noopener noreferrer"
-              className="mt-2.5 h-[52px] rounded-2xl bg-[#25D366] text-white font-bold text-sm tracking-wide hover:brightness-110 active:scale-[0.99] transition-all flex items-center justify-center gap-2"
+              className="mt-2.5 h-[52px] xl:h-[60px] rounded-2xl bg-[#25D366] text-white font-bold text-sm tracking-wide hover:brightness-110 active:scale-[0.99] transition-all flex items-center justify-center gap-2"
             >
               <MessageCircle size={18} /> ORDER ON WHATSAPP
             </a>
@@ -429,7 +429,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
             { icon: Zap, t: "Fast Delivery", d: "UAE-wide in 24–48 hours" },
             { icon: Clock, t: "Same Day Delivery", d: "Within Dubai on most items" },
           ].map((b) => (
-            <div key={b.t} className="rounded-2xl bg-white border border-emerald-900/10 p-4 sm:p-5 text-center shadow-[0_10px_30px_-18px_rgba(6,78,59,0.4)]">
+            <div key={b.t} className="rounded-2xl bg-white border border-emerald-900/10 p-4 sm:p-5 xl:p-7 text-center shadow-[0_10px_30px_-18px_rgba(6,78,59,0.4)]">
               <b.icon size={26} className="mx-auto text-amber-500 mb-2" />
               <p className="text-sm font-extrabold text-emerald-950">{b.t}</p>
               <p className="text-xs text-neutral-500 mt-1">{b.d}</p>
@@ -447,7 +447,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
               <button
                 key={t.id}
                 onClick={() => setTab(t.id)}
-                className={`shrink-0 h-[52px] px-5 sm:px-7 font-cinzel text-[11px] sm:text-xs tracking-[0.16em] font-bold border-b-[3px] -mb-[2px] transition-colors ${tab === t.id ? "border-amber-500 text-emerald-950" : "border-transparent text-neutral-400 hover:text-emerald-800"}`}
+                className={`shrink-0 h-[52px] xl:h-[60px] px-5 sm:px-7 xl:px-9 font-cinzel text-[11px] sm:text-xs tracking-[0.16em] font-bold border-b-[3px] -mb-[2px] transition-colors ${tab === t.id ? "border-amber-500 text-emerald-950" : "border-transparent text-neutral-400 hover:text-emerald-800"}`}
               >
                 {t.label}
               </button>
@@ -457,8 +457,8 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
           <div className="py-6 sm:py-8">
             {tab === "desc" && (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="w-full">
-                <h2 className="font-luxury text-2xl sm:text-3xl font-bold text-emerald-950">{product.title}</h2>
-                <p className="mt-4 text-[15px] leading-relaxed text-neutral-600">{product.fullDescription}</p>
+                <h2 className="font-luxury text-2xl sm:text-3xl xl:text-[40px] font-bold text-emerald-950">{product.title}</h2>
+                <p className="mt-4 text-[15px] xl:text-[17px] leading-relaxed text-neutral-600">{product.fullDescription}</p>
 
                 {product.highlights.length > 0 && (
                   <div className="mt-7">
@@ -534,7 +534,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
                   </div>
                 )}
 
-                <p className="mt-7 text-[15px] leading-relaxed text-neutral-600 border-l-4 border-amber-400 pl-4 italic">
+                <p className="mt-7 text-[15px] xl:text-[17px] leading-relaxed text-neutral-600 border-l-4 border-amber-400 pl-4 italic">
                   Final thoughts: {product.shortDescription} Order today from Vape Mart UAE — 100% authentic, express delivery across all Emirates.
                 </p>
               </motion.div>
@@ -560,7 +560,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
 
         {/* ============ SPECS TABLE ============ */}
         <section className="mt-6 sm:mt-10">
-          <h2 className="font-luxury text-2xl sm:text-3xl font-bold text-emerald-950 mb-5">Key Features &amp; Specifications</h2>
+          <h2 className="font-luxury text-2xl sm:text-3xl xl:text-[40px] font-bold text-emerald-950 mb-5">Key Features &amp; Specifications</h2>
           <div className="rounded-2xl border-2 border-emerald-900/10 overflow-hidden w-full">
             <div className="grid grid-cols-2 bg-emerald-950 px-5 py-3">
               <span className="font-cinzel text-[11px] tracking-[0.18em] text-amber-300 font-bold">FEATURE</span>
@@ -582,7 +582,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
         {product.flavors.length > 0 && (
           <section className="mt-10 sm:mt-14">
             <div className="flex items-center gap-3 mb-2 flex-wrap">
-              <h2 className="font-luxury text-2xl sm:text-3xl font-bold text-emerald-950">Available Flavours</h2>
+              <h2 className="font-luxury text-2xl sm:text-3xl xl:text-[40px] font-bold text-emerald-950">Available Flavours</h2>
               <span className="rounded-full bg-amber-100 text-amber-800 text-[11px] font-extrabold px-3 py-1 tracking-wide">
                 {product.flavors.length} SIGNATURE OPTIONS
               </span>
@@ -662,7 +662,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
           <section className="mt-10 sm:mt-14">
             <p className="font-cinzel text-[11px] tracking-[0.24em] text-amber-600 font-bold mb-2">VERIFIED CUSTOMER FEEDBACK</p>
             <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-              <h2 className="font-luxury text-2xl sm:text-3xl font-bold text-emerald-950">Customer Reviews</h2>
+              <h2 className="font-luxury text-2xl sm:text-3xl xl:text-[40px] font-bold text-emerald-950">Customer Reviews</h2>
               <div className="flex gap-2">
                 <button onClick={() => scrollReviews(-1)} aria-label="Previous reviews" className="w-10 h-10 rounded-full border border-emerald-900/15 bg-white flex items-center justify-center text-emerald-900 hover:border-amber-500 transition-colors">
                   <ChevronLeft size={18} />
@@ -784,7 +784,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
                 <MessageCircle size={26} className="text-amber-300" />
               </div>
               <div>
-                <h2 className="font-luxury text-2xl sm:text-3xl font-bold">Need Help Ordering?</h2>
+                <h2 className="font-luxury text-2xl sm:text-3xl xl:text-4xl font-bold">Need Help Ordering?</h2>
                 <p className="mt-2 text-sm text-emerald-100/85 max-w-xl">Get instant help from our team — authenticity checks, flavor advice, bulk pricing.</p>
                 <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-sm">
                   <span className="inline-flex items-center gap-1.5 text-emerald-100/90"><Phone size={14} className="text-amber-300" /> {WHATSAPP_PHONE}</span>
@@ -797,7 +797,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
                 </div>
               </div>
             </div>
-            <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" className="shrink-0 h-[56px] px-8 rounded-2xl bg-[#25D366] text-white font-extrabold text-sm tracking-wide flex items-center justify-center gap-2.5 hover:brightness-110 active:scale-[0.98] transition-all">
+            <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" className="shrink-0 h-[56px] xl:h-[64px] px-8 xl:px-10 rounded-2xl bg-[#25D366] text-white font-extrabold text-sm tracking-wide flex items-center justify-center gap-2.5 hover:brightness-110 active:scale-[0.98] transition-all">
               <MessageCircle size={20} /> CHAT ON WHATSAPP
             </a>
           </div>
