@@ -456,7 +456,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
 
           <div className="py-6 sm:py-8">
             {tab === "desc" && (
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="max-w-4xl">
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="w-full">
                 <h2 className="font-luxury text-2xl sm:text-3xl font-bold text-emerald-950">{product.title}</h2>
                 <p className="mt-4 text-[15px] leading-relaxed text-neutral-600">{product.fullDescription}</p>
 
@@ -541,7 +541,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
             )}
 
             {tab === "ship" && (
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="max-w-4xl grid sm:grid-cols-3 gap-4">
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="w-full grid sm:grid-cols-3 gap-4">
                 {[
                   { icon: Zap, t: "Dubai Express", d: "Order before 9pm — delivered in 2–3 hours across most Dubai areas. Same-day for Sharjah & Ajman." },
                   { icon: Truck, t: "UAE Nationwide", d: "Next-day delivery to Abu Dhabi, Ras Al Khaimah, Fujairah & all Emirates. Free over AED 350." },
@@ -561,7 +561,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
         {/* ============ SPECS TABLE ============ */}
         <section className="mt-6 sm:mt-10">
           <h2 className="font-luxury text-2xl sm:text-3xl font-bold text-emerald-950 mb-5">Key Features &amp; Specifications</h2>
-          <div className="rounded-2xl border-2 border-emerald-900/10 overflow-hidden max-w-4xl">
+          <div className="rounded-2xl border-2 border-emerald-900/10 overflow-hidden w-full">
             <div className="grid grid-cols-2 bg-emerald-950 px-5 py-3">
               <span className="font-cinzel text-[11px] tracking-[0.18em] text-amber-300 font-bold">FEATURE</span>
               <span className="font-cinzel text-[11px] tracking-[0.18em] text-amber-300 font-bold">DETAILS</span>
