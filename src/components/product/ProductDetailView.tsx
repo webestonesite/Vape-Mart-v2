@@ -714,14 +714,25 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
 
         {/* ============ RELATED ============ */}
         {relatedProducts.length > 0 && (
-          <section className="mt-10 sm:mt-14">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="font-luxury text-2xl sm:text-3xl font-bold text-emerald-950">You May Also Like</h2>
-              <Link href="/collections" className="hidden sm:inline-flex items-center gap-1.5 text-sm font-bold text-amber-600 hover:text-amber-700">
-                View all <ArrowRight size={15} />
-              </Link>
+          <section className="mt-10 sm:mt-14 relative overflow-hidden rounded-[28px] sm:rounded-[36px] bg-gradient-to-br from-[#064e3b] via-[#043e2e] to-[#022c22] border border-emerald-700/60 shadow-[0_24px_60px_-15px_rgba(6,78,59,0.45)] px-4 py-8 sm:p-10 lg:p-12">
+            <div className="absolute -top-24 -left-24 w-80 h-80 rounded-full bg-emerald-400/15 blur-[90px] pointer-events-none" />
+            <div className="absolute -bottom-24 -right-24 w-80 h-80 rounded-full bg-amber-400/15 blur-[90px] pointer-events-none" />
+            {/* centered luxury header */}
+            <div className="relative z-10 text-center mb-6 sm:mb-9">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <span className="w-5 sm:w-6 h-[2px] rounded-full bg-amber-400"></span>
+                <span className="font-cinzel text-[11px] sm:text-xs font-bold tracking-[0.24em] uppercase text-amber-300">Handpicked For You</span>
+                <span className="w-5 sm:w-6 h-[2px] rounded-full bg-amber-400"></span>
+              </div>
+              <h2 className="font-luxury text-2xl sm:text-3xl lg:text-[40px] font-extrabold tracking-tight text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.5)]">You May Also Like</h2>
+              <div className="flex items-center justify-center gap-3 my-2 sm:my-3">
+                <div className="h-px w-12 sm:w-16 bg-gradient-to-r from-transparent to-emerald-300"></div>
+                <div className="w-2 h-2 rotate-45 bg-amber-400"></div>
+                <div className="h-px w-12 sm:w-16 bg-gradient-to-l from-transparent to-emerald-300"></div>
+              </div>
+              <p className="text-xs sm:text-sm max-w-xl mx-auto text-emerald-100/90 font-medium">Pairs perfectly with your pick — authentic bestsellers across the UAE.</p>
             </div>
-            <div className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-4 sm:overflow-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="relative z-10 flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-4 sm:overflow-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {relatedProducts.map((p) => {
                 const d = p.originalPrice > p.price ? Math.round((1 - p.price / p.originalPrice) * 100) : 0;
                 const rw = relatedWished.has(p.id);
@@ -755,6 +766,11 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
                   </article>
                 );
               })}
+            </div>
+            <div className="relative z-10 mt-7 sm:mt-9 flex justify-center">
+              <Link href="/collections" className="px-6 py-2.5 sm:px-8 sm:py-3 rounded-full text-xs sm:text-sm font-bold shadow-md transition-all flex items-center gap-2 bg-white text-[#064e3b] hover:bg-amber-400 hover:text-neutral-950 hover:scale-105 active:scale-95 group">
+                View All Products <ArrowRight size={15} className="transition-transform duration-300 group-hover:translate-x-1" />
+              </Link>
             </div>
           </section>
         )}
