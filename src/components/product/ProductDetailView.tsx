@@ -482,24 +482,29 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
                 {product.flavors.length > 0 && (
                   <div className="mt-7">
                     <h3 className="font-cinzel text-xs tracking-[0.2em] text-emerald-900 font-bold mb-4">FLAVOR NOTES</h3>
-                    <ol className="space-y-2.5">
+                    <div className="rounded-2xl border border-emerald-900/10 bg-white divide-y divide-emerald-900/10 overflow-hidden">
                       {product.flavors.slice(0, 6).map((f, i) => (
-                        <li key={f.id} className="flex gap-3 items-start text-[15px] text-neutral-600">
-                          <span className="w-7 h-7 shrink-0 rounded-full bg-amber-100 text-amber-800 text-xs font-extrabold flex items-center justify-center">{i + 1}</span>
-                          <span><strong className="text-emerald-950">{f.name}</strong> — a signature {product.flavorFamily.replace("_", " ")} blend crafted for all-day vaping.</span>
-                        </li>
+                        <div key={f.id} className="flex gap-4 px-5 py-4 items-start">
+                          <span className="w-8 h-8 shrink-0 rounded-full bg-amber-100 text-amber-800 text-sm font-extrabold flex items-center justify-center">{i + 1}</span>
+                          <div className="min-w-0">
+                            <p className="text-[15px] font-extrabold text-emerald-950 leading-snug">{f.name}</p>
+                            <p className="mt-1 text-sm text-neutral-500 leading-relaxed">
+                              {product.sensoryProfile.topNote}{product.sensoryProfile.heartNote ? `, ${product.sensoryProfile.heartNote}` : ""}{product.sensoryProfile.baseNote ? ` — ${product.sensoryProfile.baseNote}` : ""}
+                            </p>
+                          </div>
+                        </div>
                       ))}
-                    </ol>
+                    </div>
                   </div>
                 )}
 
                 <div className="mt-7">
                   <h3 className="font-cinzel text-xs tracking-[0.2em] text-emerald-900 font-bold mb-4">KEY SPECIFICATIONS</h3>
-                  <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-2.5">
+                  <ul className="rounded-2xl border border-emerald-900/10 bg-white divide-y divide-emerald-900/10 overflow-hidden">
                     {product.specifications.slice(0, 8).map((s, i) => (
-                      <li key={i} className="flex gap-2.5 text-[15px] text-neutral-600">
+                      <li key={i} className="flex gap-3 px-5 py-3.5 items-start">
                         <Check size={16} className="text-amber-500 shrink-0 mt-1" strokeWidth={3} />
-                        <span><strong className="text-emerald-950">{s.label}:</strong> {s.value}</span>
+                        <p className="text-[15px] text-neutral-600 leading-relaxed"><strong className="text-emerald-950 font-bold">{s.label}:</strong> {s.value}</p>
                       </li>
                     ))}
                   </ul>
