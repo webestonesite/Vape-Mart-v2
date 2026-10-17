@@ -430,7 +430,7 @@ export function Header({ onCartClick, cartCount = 0 }: HeaderProps) {
                                   <li key={sIdx}>
                                     <Link
                                       href={sub.href || "#"}
-                                      className="group/item flex items-center justify-between gap-2 rounded-lg border border-transparent hover:border-emerald-200 bg-white/60 hover:bg-white px-3 py-2 transition-all hover:shadow-[0_4px_14px_rgba(6,78,59,0.08)]"
+                                      className="group/item flex items-center justify-between gap-2 rounded-xl border border-emerald-200 bg-white px-3 py-2 transition-all hover:shadow-[0_4px_14px_rgba(6,78,59,0.12)] hover:border-emerald-500"
                                     >
                                       <span className="min-w-0">
                                         <span className="block text-[13px] font-bold text-neutral-900 truncate group-hover/item:text-emerald-800 transition-colors">
