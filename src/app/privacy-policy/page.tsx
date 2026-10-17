@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { PageHero } from "@/components/PageHero";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 
 export const metadata: Metadata = {
   title: "Privacy Policy | Vape Mart UAE",
@@ -61,41 +63,45 @@ const sections = [
 
 export default function PrivacyPolicyPage() {
   return (
-    <main className="min-h-screen bg-white pb-16 sm:pb-24">
-      <PageHero
-        badge="Legal"
-        title="Privacy Policy"
-        subtitle="Your privacy matters. Here is exactly what we collect, why we collect it, and how we protect it."
-        crumbs={[{ label: "Home", href: "/" }, { label: "Privacy Policy" }]}
-      />
+    <>
+      <Header />
+      <main className="min-h-screen bg-white">
+        <PageHero
+          badge="Legal"
+          title="Privacy Policy"
+          subtitle="Your privacy matters. Here is exactly what we collect, why we collect it, and how we protect it."
+          crumbs={[{ label: "Home", href: "/" }, { label: "Privacy Policy" }]}
+        />
 
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 mt-8 sm:mt-12">
-        <p className="text-slate-400 text-xs sm:text-sm mb-8">
-          Effective date: October 18, 2026 · Vape Mart UAE
-        </p>
-        <div className="flex flex-col gap-6">
-          {sections.map((s) => (
-            <section
-              key={s.title}
-              className="rounded-[20px] border border-slate-200 bg-white p-6 sm:p-8 shadow-sm"
-            >
-              <h2 className="font-luxury text-slate-900 text-lg sm:text-xl font-bold mb-3">
-                {s.title}
-              </h2>
-              {s.body.map((p, i) => (
-                <p key={i} className="text-slate-600 text-[15px] leading-relaxed mb-3 last:mb-0">
-                  {p}
-                </p>
-              ))}
-            </section>
-          ))}
-        </div>
-        <div className="mt-8 rounded-[20px] bg-emerald-50 border border-emerald-200 p-6 text-center">
-          <p className="text-emerald-800 text-sm font-semibold">
-            Questions about your data? Email us at support@vapemart.ae
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 mt-8 sm:mt-12 pb-16 sm:pb-24">
+          <p className="text-slate-400 text-xs sm:text-sm mb-8">
+            Effective date: October 18, 2026 · Vape Mart UAE
           </p>
+          <div className="flex flex-col gap-6">
+            {sections.map((s) => (
+              <section
+                key={s.title}
+                className="rounded-[20px] border border-slate-200 bg-white p-6 sm:p-8 shadow-sm"
+              >
+                <h2 className="font-luxury text-slate-900 text-lg sm:text-xl font-bold mb-3">
+                  {s.title}
+                </h2>
+                {s.body.map((p, i) => (
+                  <p key={i} className="text-slate-600 text-[15px] leading-relaxed mb-3 last:mb-0">
+                    {p}
+                  </p>
+                ))}
+              </section>
+            ))}
+          </div>
+          <div className="mt-8 rounded-[20px] bg-emerald-50 border border-emerald-200 p-6 text-center">
+            <p className="text-emerald-800 text-sm font-semibold">
+              Questions about your data? Email us at support@vapemart.ae
+            </p>
+          </div>
         </div>
-      </div>
-    </main>
+      </main>
+      <Footer />
+    </>
   );
 }
