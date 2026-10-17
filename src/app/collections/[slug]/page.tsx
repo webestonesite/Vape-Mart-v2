@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import {
   categories,
@@ -95,11 +96,13 @@ export default async function CollectionSlugPage({ params }: CollectionSlugPageP
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
-      <CollectionPageView
-        category={category}
-        allCategories={categories}
-        products={categoryProducts.length > 0 ? categoryProducts : allProducts}
-      />
+      <Suspense fallback={null}>
+        <CollectionPageView
+          category={category}
+          allCategories={categories}
+          products={categoryProducts.length > 0 ? categoryProducts : allProducts}
+        />
+      </Suspense>
     </>
   );
 }

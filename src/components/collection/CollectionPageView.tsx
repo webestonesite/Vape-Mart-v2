@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronRight,
@@ -152,7 +153,13 @@ function QuizDropdown({
 
 export function CollectionPageView({ category, allCategories, products }: CollectionPageViewProps) {
   // ---- filter state ----
-  const [searchQuery, setSearchQuery] = useState("");
+  // Menu links like /collections?search=elf+bar pre-fill the search box
+  const searchParams = useSearchParams();
+  const urlSearchQuery = searchParams.get("search") ?? "";
+  const [searchQuery, setSearchQuery] = useState(urlSearchQuery);
+  useEffect(() => {
+    setSearchQuery(urlSearchQuery);
+  }, [urlSearchQuery]);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [priceMinInput, setPriceMinInput] = useState("");
   const [priceMaxInput, setPriceMaxInput] = useState("");
