@@ -87,6 +87,36 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/about" className="text-emerald-100/60 hover:text-amber-400 transition-colors flex items-center gap-1.5">
+                  <ChevronRight size={13} className="text-amber-400" />
+                  About Us
+                </Link>
+              </li>
+              <li>
+                <Link href="/blog" className="text-emerald-100/60 hover:text-amber-400 transition-colors flex items-center gap-1.5">
+                  <ChevronRight size={13} className="text-amber-400" />
+                  Blog & Guides
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact" className="text-emerald-100/60 hover:text-amber-400 transition-colors flex items-center gap-1.5">
+                  <ChevronRight size={13} className="text-amber-400" />
+                  Contact Us
+                </Link>
+              </li>
+              <li>
+                <Link href="/privacy-policy" className="text-emerald-100/60 hover:text-amber-400 transition-colors flex items-center gap-1.5">
+                  <ChevronRight size={13} className="text-amber-400" />
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/terms-conditions" className="text-emerald-100/60 hover:text-amber-400 transition-colors flex items-center gap-1.5">
+                  <ChevronRight size={13} className="text-amber-400" />
+                  Terms & Conditions
+                </Link>
+              </li>
+              <li>
                 <Link href="/admin" className="text-emerald-100/60 hover:text-amber-400 transition-colors flex items-center gap-1.5">
                   <ChevronRight size={13} className="text-amber-400" />
                   Theme Customizer
