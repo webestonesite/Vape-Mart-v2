@@ -30,6 +30,7 @@ export interface SubMenuItem {
 
 export interface MegaMenuColumn {
   heading: string;
+  badge?: string;
   items: SubMenuItem[];
 }
 
@@ -378,7 +379,7 @@ export function Header({ onCartClick, cartCount = 0 }: HeaderProps) {
                     )}
                   </Link>
 
-                  {/* Mega Menu Flyout Dropdown */}
+                  {/* Mega Menu Flyout Dropdown — white card, emerald/gold grading */}
                   <AnimatePresence>
                     {hoveredNavIdx === i && item.hasDropdown && (
                       <motion.div
@@ -386,9 +387,20 @@ export function Header({ onCartClick, cartCount = 0 }: HeaderProps) {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 6, scale: 0.98 }}
                         transition={{ duration: 0.2, ease: "easeOut" }}
-                        className="absolute top-[50px] left-1/2 -translate-x-1/2 w-[95vw] max-w-[1240px] bg-[#02241b]/98 backdrop-blur-2xl border border-emerald-700/80 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.7)] p-6 z-50 overflow-hidden"
+                        className={`absolute top-[50px] left-1/2 -translate-x-1/2 w-[95vw] bg-white rounded-2xl shadow-[0_25px_60px_rgba(6,78,59,0.18)] border border-emerald-100 p-4 sm:p-5 z-50 ${
+                          (item.columns?.length || 0) >= 3
+                            ? "max-w-[1020px]"
+                            : (item.columns?.length || 0) === 2
+                              ? "max-w-[720px]"
+                              : "max-w-[420px]"
+                        }`}
                       >
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-left">
+                        <div
+                          className="grid gap-3 text-left"
+                          style={{
+                            gridTemplateColumns: `repeat(${Math.min(item.columns?.length || 1, 3)}, minmax(0, 1fr))`
+                          }}
+                        >
                           {/* Columns */}
                           {(item.columns && item.columns.length > 0
                             ? item.columns
@@ -399,25 +411,47 @@ export function Header({ onCartClick, cartCount = 0 }: HeaderProps) {
                                 }
                               ]
                           ).map((col, cIdx) => (
-                            <div key={cIdx} className="space-y-3">
-                              <h4 className="text-xs font-bold text-amber-300 tracking-widest uppercase border-b border-emerald-800/80 pb-2">
-                                {col.heading}
-                              </h4>
-                              <ul className="space-y-2">
+                            <div
+                              key={cIdx}
+                              className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-3"
+                            >
+                              <div className="flex items-center justify-between px-1 pb-2">
+                                <h4 className="text-[11px] font-extrabold text-emerald-800 tracking-[0.14em] uppercase">
+                                  {col.heading}
+                                </h4>
+                                {col.badge && (
+                                  <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-400 text-neutral-900">
+                                    {col.badge}
+                                  </span>
+                                )}
+                              </div>
+                              <ul className="space-y-1.5">
                                 {col.items.map((sub, sIdx) => (
                                   <li key={sIdx}>
                                     <Link
                                       href={sub.href || "#"}
-                                      className="group/item flex items-center justify-between text-xs font-medium text-emerald-100 hover:text-white transition-colors py-1.5 px-2 rounded-lg hover:bg-emerald-900/60"
+                                      className="group/item flex items-center justify-between gap-2 rounded-lg border border-transparent hover:border-emerald-200 bg-white/60 hover:bg-white px-3 py-2 transition-all hover:shadow-[0_4px_14px_rgba(6,78,59,0.08)]"
                                     >
-                                      <span className="group-hover/item:translate-x-1 transition-transform">
-                                        {sub.title}
-                                      </span>
-                                      {sub.badge && (
-                                        <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
-                                          {sub.badge}
+                                      <span className="min-w-0">
+                                        <span className="block text-[13px] font-bold text-neutral-900 truncate group-hover/item:text-emerald-800 transition-colors">
+                                          {sub.title}
                                         </span>
-                                      )}
+                                        {sub.desc && (
+                                          <span className="block text-[11px] text-neutral-500 truncate">
+                                            {sub.desc}
+                                          </span>
+                                        )}
+                                      </span>
+                                      <span className="flex items-center gap-2 shrink-0">
+                                        {sub.badge && (
+                                          <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                                            {sub.badge}
+                                          </span>
+                                        )}
+                                        <span className="w-7 h-7 rounded-full border border-emerald-200 text-emerald-700 flex items-center justify-center group-hover/item:bg-emerald-700 group-hover/item:text-white group-hover/item:border-emerald-700 transition-all">
+                                          <ArrowRight size={13} strokeWidth={2.5} />
+                                        </span>
+                                      </span>
                                     </Link>
                                   </li>
                                 ))}
@@ -425,46 +459,53 @@ export function Header({ onCartClick, cartCount = 0 }: HeaderProps) {
                             </div>
                           ))}
 
-                          {/* Featured Right Banner Card */}
+                          {/* Featured promo card */}
                           {item.featuredBanner && (
-                            <div className="relative rounded-xl overflow-hidden border border-emerald-700/60 bg-gradient-to-br from-[#064e3b] to-[#022c22] p-4 flex flex-col justify-between group/banner">
-                              <div className="space-y-2">
+                            <div className="relative rounded-xl overflow-hidden bg-gradient-to-br from-[#064e3b] via-[#065f46] to-[#022c22] p-4 flex flex-col justify-between min-h-[220px]">
+                              <div className="absolute -top-10 -right-10 w-40 h-40 bg-amber-400/15 rounded-full blur-2xl pointer-events-none" />
+                              <div className="space-y-1.5 relative">
                                 {item.featuredBanner.badge && (
-                                  <span className="inline-block text-[10px] font-black tracking-widest uppercase px-2.5 py-1 rounded-full bg-amber-400 text-black">
+                                  <span className="inline-block text-[10px] font-black tracking-[0.14em] uppercase px-2.5 py-1 rounded-full bg-amber-400 text-neutral-900">
                                     {item.featuredBanner.badge}
                                   </span>
                                 )}
-                                <h5 className="text-sm font-bold text-white group-hover/banner:text-amber-300 transition-colors">
+                                <h5 className="text-base font-extrabold text-white">
                                   {item.featuredBanner.title}
                                 </h5>
                                 {item.featuredBanner.subtitle && (
-                                  <p className="text-[11px] text-emerald-200/80 line-clamp-2">
+                                  <p className="text-[11px] text-emerald-100/80 line-clamp-2">
                                     {item.featuredBanner.subtitle}
                                   </p>
                                 )}
                               </div>
-
-                              {item.featuredBanner.image && (
-                                <div className="my-3 h-28 relative rounded-lg overflow-hidden bg-black/20 flex items-center justify-center">
-                                  <Image
-                                    src={item.featuredBanner.image}
-                                    alt={item.featuredBanner.title}
-                                    width={180}
-                                    height={110}
-                                    className="max-h-full w-auto object-contain transition-transform duration-500 group-hover/banner:scale-105"
-                                    unoptimized
-                                  />
-                                </div>
-                              )}
-
                               <Link
                                 href={item.featuredBanner.href || "#"}
-                                className="mt-2 w-full py-2 px-3 text-center rounded-lg text-xs font-bold bg-white/10 hover:bg-white text-white hover:text-black border border-white/20 transition-all"
+                                className="relative mt-3 w-full py-2.5 px-3 text-center rounded-full text-xs font-extrabold bg-amber-400 hover:bg-amber-300 text-neutral-900 transition-colors"
                               >
-                                Shop Now →
+                                SHOP NOW →
                               </Link>
                             </div>
                           )}
+                        </div>
+
+                        {/* Bottom trust strip */}
+                        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-emerald-50/70 border border-emerald-100 px-4 py-2.5">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-800 bg-white border border-emerald-200 rounded-full px-2.5 py-1">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                              100% Genuine UAE Verified Stock
+                            </span>
+                            <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-800 bg-white border border-emerald-200 rounded-full px-2.5 py-1">
+                              <Truck size={11} className="text-amber-600" />
+                              Dubai Express 3-Hour Delivery
+                            </span>
+                          </div>
+                          <Link
+                            href={item.href || "/collections"}
+                            className="text-[11px] font-extrabold tracking-wider text-neutral-900 bg-amber-400 hover:bg-amber-300 rounded-full px-5 py-2 transition-colors"
+                          >
+                            VIEW ALL →
+                          </Link>
                         </div>
                       </motion.div>
                     )}
