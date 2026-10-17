@@ -15,11 +15,11 @@
       "links": [
         {
           "label": "About Us",
-          "href": "#"
+          "href": "/about"
         },
         {
           "label": "Contact Us",
-          "href": "#"
+          "href": "/contact"
         }
       ]
     },
@@ -35,125 +35,128 @@
     "navItems": [
       {
         "label": "HOME",
-        "href": "/",
-        "badge": "",
-        "hasDropdown": false,
-        "columns": [
-          {
-            "heading": "Popular Categories",
-            "items": [
-              {
-                "title": "Best Sellers",
-                "href": "#",
-                "badge": ""
-              },
-              {
-                "title": "New Arrivals",
-                "href": "#"
-              }
-            ]
-          },
-          {
-            "heading": "Shop By Type",
-            "items": [
-              {
-                "title": "Premium Series",
-                "href": "#"
-              },
-              {
-                "title": "Standard Kits",
-                "href": "#"
-              }
-            ]
-          }
-        ],
-        "featuredBanner": {
-          "title": "HOME Special",
-          "subtitle": "Exclusive deals with same-day delivery in UAE",
-          "badge": "SALE",
-          "image": "/images/disposable_vape.png",
-          "href": "#"
-        }
+        "href": "/"
       },
       {
         "label": "SHOP",
-        "href": "/collections",
-        "badge": ""
+        "href": "/collections"
       },
       {
-        "label": "DISPOSABLE VAPE",
+        "label": "JUUL",
+        "href": "/collections?search=juul",
+        "hasDropdown": true,
+        "columns": [
+          {
+            "heading": "Juul Devices",
+            "items": [
+              {
+                "title": "Juul 1",
+                "href": "/collections?search=juul+1"
+              },
+              {
+                "title": "Juul 2",
+                "href": "/collections?search=juul+2"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "label": "TEREA",
+        "href": "/collections?search=terea",
+        "hasDropdown": true,
+        "columns": [
+          {
+            "heading": "Terea",
+            "items": [
+              {
+                "title": "Terea Device",
+                "href": "/collections?search=terea+device"
+              },
+              {
+                "title": "Terea Flavor",
+                "href": "/collections?search=terea+flavor"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "label": "IQOS",
+        "href": "/collections?search=iqos",
+        "hasDropdown": true,
+        "columns": [
+          {
+            "heading": "IQOS",
+            "items": [
+              {
+                "title": "IQOS Iluma",
+                "href": "/collections?search=iluma"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "label": "DISPOSABLE",
         "href": "/collections/disposable-vape",
-        "badge": "",
-        "hasDropdown": false,
+        "hasDropdown": true,
         "columns": [
           {
             "heading": "Top Brands",
             "items": [
               {
-                "title": "Elf Bar (BC10000 & Raya)",
-                "href": "#",
-                "badge": "HOT"
+                "title": "Al Fakher",
+                "href": "/collections/disposable-vape?search=al+fakher"
               },
               {
-                "title": "Yuoto (Thanos 5000)",
-                "href": "#"
+                "title": "Elf Bar",
+                "href": "/collections/disposable-vape?search=elf+bar"
               },
               {
-                "title": "Tugboat (Super 24000)",
-                "href": "#",
-                "badge": "NEW"
+                "title": "Yuoto",
+                "href": "/collections/disposable-vape?search=yuoto"
               },
               {
-                "title": "Vozol (Star 12000)",
-                "href": "#"
+                "title": "Waka",
+                "href": "/collections/disposable-vape?search=waka"
               },
               {
-                "title": "Myle Drip & Meta",
-                "href": "#"
+                "title": "Pod Salt",
+                "href": "/collections/disposable-vape?search=pod+salt"
+              },
+              {
+                "title": "Kief King",
+                "href": "/collections/disposable-vape?search=kief+king"
               }
             ]
           },
           {
-            "heading": "By Puff Count",
+            "heading": "More Brands",
             "items": [
               {
-                "title": "2,500 – 5,000 Puffs",
-                "href": "#"
+                "title": "Tugboat",
+                "href": "/collections/disposable-vape?search=tugboat"
               },
               {
-                "title": "6,000 – 10,000 Puffs",
-                "href": "#",
-                "badge": "POPULAR"
+                "title": "Oxbar",
+                "href": "/collections/disposable-vape?search=oxbar"
               },
               {
-                "title": "12,000 – 25,000 Puffs",
-                "href": "#",
-                "badge": "MAX"
+                "title": "Mazaya",
+                "href": "/collections/disposable-vape?search=mazaya"
               },
               {
-                "title": "Rechargeable Disposables",
-                "href": "#"
-              }
-            ]
-          },
-          {
-            "heading": "Best-Selling Flavors",
-            "items": [
-              {
-                "title": "Double Apple Ice",
-                "href": "#"
+                "title": "Vozol",
+                "href": "/collections/disposable-vape?search=vozol"
               },
               {
-                "title": "Lush Watermelon",
-                "href": "#"
+                "title": "SPRK",
+                "href": "/collections/disposable-vape?search=sprk"
               },
               {
-                "title": "Blue Razz Lemonade",
-                "href": "#"
-              },
-              {
-                "title": "Cool Mint & Spearmint",
-                "href": "#"
+                "title": "HQD",
+                "href": "/collections/disposable-vape?search=hqd"
               }
             ]
           }
@@ -163,190 +166,8 @@
           "subtitle": "24,000 Puffs with Smart Screen Display",
           "image": "/images/disposable_vape.png",
           "badge": "SPECIAL OFFER",
-          "href": "#"
+          "href": "/collections/disposable-vape?search=tugboat"
         }
-      },
-      {
-        "label": "SHISHA/HOOKAH",
-        "href": "/collections/shisha-hookah",
-        "badge": "",
-        "hasDropdown": true,
-        "columns": [
-          {
-            "heading": "Electronic Shisha",
-            "items": [
-              {
-                "title": "Ooka E-Shisha Devices",
-                "href": "#",
-                "badge": "HOT"
-              },
-              {
-                "title": "Portable Hookah Pods",
-                "href": "#"
-              },
-              {
-                "title": "Zero Charcoal E-Heads",
-                "href": "#"
-              }
-            ]
-          },
-          {
-            "heading": "Flavors & Mixes",
-            "items": [
-              {
-                "title": "Two Apples (Al Fakher)",
-                "href": "#"
-              },
-              {
-                "title": "Grape with Mint",
-                "href": "#"
-              },
-              {
-                "title": "Gum & Fresh Berries",
-                "href": "#"
-              }
-            ]
-          },
-          {
-            "heading": "Accessories",
-            "items": [
-              {
-                "title": "Coconut Charcoal Briquettes",
-                "href": "#"
-              },
-              {
-                "title": "Silicone Hoses & Mouthpieces",
-                "href": "#"
-              },
-              {
-                "title": "Bowls & Heat Managers",
-                "href": "#"
-              }
-            ]
-          }
-        ],
-        "featuredBanner": {
-          "title": "Smart E-Shisha Kit",
-          "subtitle": "No coal, no mess. Clean cloud delivery.",
-          "image": "/images/hero_slide_2.jpg",
-          "badge": "LUXURY",
-          "href": "#"
-        }
-      },
-      {
-        "label": "PODS SYSTEM",
-        "href": "/collections/pods-system",
-        "badge": "",
-        "hasDropdown": true,
-        "columns": [
-          {
-            "heading": "Pod Kits",
-            "items": [
-              {
-                "title": "JUUL2 Starter Kit",
-                "href": "/product/juul2-starter-kit-slate-grey",
-                "badge": ""
-              },
-              {
-                "title": "IQOS ILUMA Prime",
-                "href": "/product/iqos-terea-amber-indonesian-uae",
-                "badge": ""
-              },
-              {
-                "title": "Uwell Caliburn G2 & G3",
-                "href": "/product/uwell-caliburn-g2-pod-system"
-              },
-              {
-                "title": "Myle Meta Pod Device",
-                "href": "/product/myle-meta-max-18000-disposable"
-              }
-            ]
-          },
-          {
-            "heading": "Replacement Pods",
-            "items": [
-              {
-                "title": "JUUL2 Crisp Menthol & Tobacco",
-                "href": "/product/juul2-starter-kit-slate-grey"
-              },
-              {
-                "title": "TEREA Indonesian & Italian Sticks",
-                "href": "/product/iqos-terea-amber-indonesian-uae"
-              }
-            ]
-          }
-        ],
-        "featuredBanner": {
-          "title": "IQOS ILUMA & TEREA",
-          "subtitle": "Authentic induction heated tobacco in UAE",
-          "image": "/images/terea_heets.jpg",
-          "badge": "OFFICIAL",
-          "href": "/collections/heated-tobacco"
-        }
-      },
-      {
-        "label": "E-LIQUID",
-        "href": "/collections/e-liquid",
-        "badge": "",
-        "hasDropdown": true,
-        "columns": [
-          {
-            "heading": "Nicotine Types",
-            "items": [
-              {
-                "title": "Salt Nicotine (20mg – 50mg)",
-                "href": "/collections/e-liquid",
-                "badge": ""
-              },
-              {
-                "title": "Freebase E-Juice (3mg – 18mg)",
-                "href": "/collections/e-liquid"
-              }
-            ]
-          },
-          {
-            "heading": "Top Brands",
-            "items": [
-              {
-                "title": "Nasty Juice Worldwide",
-                "href": "/product/nasty-juice-asap-grape-60ml",
-                "badge": ""
-              },
-              {
-                "title": "Juice Head California",
-                "href": "/product/juice-head-blueberry-lemon-100ml"
-              }
-            ]
-          }
-        ],
-        "featuredBanner": {
-          "title": "Premium Vape E-Juice",
-          "subtitle": "100% Original imported American & UK blends.",
-          "image": "/images/hero_slide_3.jpg",
-          "badge": "FLAVOR LAB",
-          "href": "/collections/e-liquid"
-        }
-      },
-      {
-        "label": "JUUL",
-        "href": "/collections",
-        "badge": ""
-      },
-      {
-        "label": "Myle",
-        "href": "#",
-        "badge": "",
-        "hasDropdown": false
-      },
-      {
-        "label": "VAPE KIT",
-        "href": "/collections/vape-kits",
-        "badge": ""
-      },
-      {
-        "label": "BRANDS",
-        "href": "/collections",
-        "badge": ""
       }
     ],
     "actions": {

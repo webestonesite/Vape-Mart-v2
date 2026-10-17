@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { categories, allProducts } from "@/data/products";
 import { CollectionPageView } from "@/components/collection/CollectionPageView";
 
@@ -29,7 +30,9 @@ export default function AllCollectionsPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <CollectionPageView allCategories={categories} products={allProducts} />
+      <Suspense fallback={null}>
+        <CollectionPageView allCategories={categories} products={allProducts} />
+      </Suspense>
     </>
   );
 }
