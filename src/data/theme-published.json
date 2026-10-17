@@ -168,6 +168,168 @@
           "badge": "SPECIAL OFFER",
           "href": "/collections/disposable-vape?search=tugboat"
         }
+      },
+      {
+        "label": "NICOTINE POUCHES",
+        "href": "/collections?search=nicotine+pouch"
+      },
+      {
+        "label": "SHISHA/HOOKAH",
+        "href": "/collections/shisha-hookah",
+        "hasDropdown": true,
+        "columns": [
+          {
+            "heading": "Electronic Shisha",
+            "items": [
+              {
+                "title": "Ooka E-Shisha Devices",
+                "href": "/collections/shisha-hookah?search=ooka",
+                "badge": "HOT"
+              },
+              {
+                "title": "Portable Hookah Pods",
+                "href": "/collections/shisha-hookah?search=hookah+pod"
+              },
+              {
+                "title": "Zero Charcoal E-Heads",
+                "href": "/collections/shisha-hookah?search=e-head"
+              }
+            ]
+          },
+          {
+            "heading": "Flavors & Mixes",
+            "items": [
+              {
+                "title": "Two Apples (Al Fakher)",
+                "href": "/collections/shisha-hookah?search=two+apples"
+              },
+              {
+                "title": "Grape with Mint",
+                "href": "/collections/shisha-hookah?search=grape+mint"
+              },
+              {
+                "title": "Gum & Fresh Berries",
+                "href": "/collections/shisha-hookah?search=berries"
+              }
+            ]
+          },
+          {
+            "heading": "Accessories",
+            "items": [
+              {
+                "title": "Coconut Charcoal Briquettes",
+                "href": "/collections/shisha-hookah?search=charcoal"
+              },
+              {
+                "title": "Silicone Hoses & Mouthpieces",
+                "href": "/collections/shisha-hookah?search=hose"
+              },
+              {
+                "title": "Bowls & Heat Managers",
+                "href": "/collections/shisha-hookah?search=bowl"
+              }
+            ]
+          }
+        ],
+        "featuredBanner": {
+          "title": "Smart E-Shisha Kit",
+          "subtitle": "No coal, no mess. Clean cloud delivery.",
+          "image": "/images/hero_slide_2.jpg",
+          "badge": "LUXURY",
+          "href": "/collections/shisha-hookah"
+        }
+      },
+      {
+        "label": "PODS SYSTEM",
+        "href": "/collections/pods-system",
+        "hasDropdown": true,
+        "columns": [
+          {
+            "heading": "Pod Kits",
+            "items": [
+              {
+                "title": "JUUL2 Starter Kit",
+                "href": "/product/juul2-starter-kit-slate-grey"
+              },
+              {
+                "title": "IQOS ILUMA Prime",
+                "href": "/product/iqos-terea-amber-indonesian-uae"
+              },
+              {
+                "title": "Uwell Caliburn G2 & G3",
+                "href": "/product/uwell-caliburn-g2-pod-system"
+              },
+              {
+                "title": "Myle Meta Pod Device",
+                "href": "/product/myle-meta-max-18000-disposable"
+              }
+            ]
+          },
+          {
+            "heading": "Replacement Pods",
+            "items": [
+              {
+                "title": "JUUL2 Crisp Menthol & Tobacco",
+                "href": "/product/juul2-starter-kit-slate-grey"
+              },
+              {
+                "title": "TEREA Indonesian & Italian Sticks",
+                "href": "/product/iqos-terea-amber-indonesian-uae"
+              }
+            ]
+          }
+        ],
+        "featuredBanner": {
+          "title": "IQOS ILUMA & TEREA",
+          "subtitle": "Authentic induction heated tobacco in UAE",
+          "image": "/images/terea_heets.jpg",
+          "badge": "OFFICIAL",
+          "href": "/collections/heated-tobacco"
+        }
+      },
+      {
+        "label": "E-LIQUID",
+        "href": "/collections/e-liquid",
+        "hasDropdown": true,
+        "columns": [
+          {
+            "heading": "Nicotine Types",
+            "items": [
+              {
+                "title": "Salt Nicotine (20mg - 50mg)",
+                "href": "/collections/e-liquid"
+              },
+              {
+                "title": "Freebase E-Juice (3mg - 18mg)",
+                "href": "/collections/e-liquid"
+              }
+            ]
+          },
+          {
+            "heading": "Top Brands",
+            "items": [
+              {
+                "title": "Nasty Juice Worldwide",
+                "href": "/product/nasty-juice-asap-grape-60ml"
+              },
+              {
+                "title": "Juice Head California",
+                "href": "/product/juice-head-blueberry-lemon-100ml"
+              }
+            ]
+          }
+        ],
+        "featuredBanner": {
+          "title": "Premium Vape E-Juice",
+          "subtitle": "100% Original imported American & UK blends.",
+          "image": "/images/hero_slide_3.jpg",
+          "badge": "FLAVOR LAB",
+          "href": "/collections/e-liquid"
+        }
+      },
+      {
+        "label": "VAPE KIT",
+        "href": "/collections/vape-kits"
       }
     ],
     "actions": {
