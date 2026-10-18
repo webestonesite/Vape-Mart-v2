@@ -5,6 +5,9 @@ export interface BlogPost {
   category: string;
   date: string;
   readTime: string;
+  cover?: string;
+  quickAnswer: string;
+  tags: string[];
   content: string[];
 }
 
@@ -17,6 +20,8 @@ export const blogPosts: BlogPost[] = [
     category: "Buying Guides",
     date: "October 12, 2026",
     readTime: "6 min read",
+    quickAnswer: "Daily vapers save money with a pod system; occasional vapers and beginners should start with a disposable for zero-maintenance convenience.",
+    tags: ["disposable vape", "pod system", "buying guide", "UAE"],
     content: [
       "Walk into any vape shop in Dubai and you will face the same question every vaper asks sooner or later: disposable or pod system? Both get the job done, but they serve very different kinds of vapers. Here is the honest breakdown.",
       "Disposables win on simplicity. There is nothing to charge, nothing to fill, nothing to learn. You open the pack, you vape, and when it is done you replace it. For travellers, occasional vapers, or anyone trying vaping for the first time, that zero-effort experience is hard to beat. Modern disposables now stretch to tens of thousands of puffs, so a single device can last weeks.",
@@ -33,6 +38,8 @@ export const blogPosts: BlogPost[] = [
     category: "Safety",
     date: "October 8, 2026",
     readTime: "5 min read",
+    quickAnswer: "Check the seal, print quality, scratch-and-verify code, price, and seller reputation — fakes usually fail at least two of these five checks.",
+    tags: ["fake vapes", "authenticity", "safety", "UAE"],
     content: [
       "The UAE's vape market has a counterfeit problem. Fake devices look convincing on the shelf, but inside they carry mislabelled nicotine, unknown e-liquid, and batteries with no safety testing. Here are the five checks we run on every batch.",
       "First, the seal. Original products arrive factory-sealed with tight, even shrink wrap. Loose, wrinkled, or re-glued packaging is the most common giveaway.",
@@ -50,6 +57,8 @@ export const blogPosts: BlogPost[] = [
     category: "Education",
     date: "October 3, 2026",
     readTime: "7 min read",
+    quickAnswer: "20mg (2%) is the UAE standard and suits most vapers; 50mg (5%) hits harder for heavy ex-smokers. Start at 20mg and step up only if needed.",
+    tags: ["nicotine strength", "nic salts", "20mg", "50mg"],
     content: [
       "Nicotine labels look like maths homework: 20mg, 50mg, 2%, 5%. Here is what they actually mean for your vape.",
       "The percentage and the milligrams describe the same thing. 20mg/ml equals 2% nicotine, and 50mg/ml equals 5%. In the UAE, 20mg (2%) is the standard strength you will see on most shelves, in line with local regulations.",
@@ -67,6 +76,8 @@ export const blogPosts: BlogPost[] = [
     category: "Safety",
     date: "September 27, 2026",
     readTime: "5 min read",
+    quickAnswer: "Use the right charger, never charge overnight on soft surfaces, keep devices away from heat, and bin any swollen or damaged battery immediately.",
+    tags: ["battery safety", "charging", "safety tips"],
     content: [
       "Lithium batteries are safe when treated properly and dangerous when they are not. Nearly every vape battery incident we have ever heard about traces back to one of these mistakes.",
       "Use the right charger. For USB-C devices, a standard 5V phone charger is fine; avoid cheap fast chargers that push more current than the device expects. For pod systems with docks, use the dock that came in the box.",
@@ -85,6 +96,8 @@ export const blogPosts: BlogPost[] = [
     category: "Buying Guides",
     date: "September 20, 2026",
     readTime: "6 min read",
+    quickAnswer: "Start with tobacco or menthol for familiarity, avoid dessert flavours on day one, and explore fruit flavours after two to four weeks.",
+    tags: ["flavours", "ex-smokers", "switching", "buying guide"],
     content: [
       "The number one reason smokers go back to cigarettes after trying vaping is simple: they picked the wrong flavour first. Here is how to get it right.",
       "Start with tobacco or menthol. It sounds boring, but familiarity is the point. Your brain associates the taste of tobacco with nicotine satisfaction, so a good tobacco flavour makes the switch feel natural instead of strange. Menthol works the same way for menthol cigarette smokers.",
@@ -102,6 +115,8 @@ export const blogPosts: BlogPost[] = [
     category: "Regulations",
     date: "September 14, 2026",
     readTime: "8 min read",
+    quickAnswer: "You must be 21+, vape only where smoking is allowed, and buy ESMA-certified tax-paid products — grey-market devices are illegal.",
+    tags: ["UAE law", "regulations", "ESMA", "age limit"],
     content: [
       "Vaping is legal in the UAE, but it is regulated. Here is what the law actually says, in plain language.",
       "Age limit: you must be 21 or older to buy or use vaping products. Retailers are required to verify age, and delivery couriers check Emirates ID or passport at the door. There are no exceptions.",

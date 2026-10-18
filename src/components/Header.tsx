@@ -569,17 +569,14 @@ export function Header({ onCartClick, cartCount = 0 }: HeaderProps) {
                     const isExpanded = expandedMobileMenuIdx === idx;
                     return (
                       <li key={idx} className="rounded-xl overflow-hidden bg-white/[0.03]">
-                        <div
-                          onClick={() => {
-                            if (item.hasDropdown) {
-                              setExpandedMobileMenuIdx(isExpanded ? null : idx);
-                            } else {
-                              setIsMobileMenuOpen(false);
-                            }
-                          }}
-                          className="flex items-center justify-between px-3.5 py-3 hover:bg-white/10 transition-colors text-sm font-semibold text-emerald-50 hover:text-white cursor-pointer"
-                        >
-                          <span>{item.label}</span>
+                        <div className="flex items-center justify-between px-3.5 py-3 hover:bg-white/10 transition-colors text-sm font-semibold text-emerald-50 hover:text-white">
+                          <Link
+                            href={item.href || "/"}
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="flex-1 cursor-pointer"
+                          >
+                            {item.label}
+                          </Link>
                           <div className="flex items-center gap-2">
                             {item.badge && (
                               <span className="text-[10px] font-black tracking-wider uppercase px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
@@ -587,12 +584,18 @@ export function Header({ onCartClick, cartCount = 0 }: HeaderProps) {
                               </span>
                             )}
                             {item.hasDropdown ? (
-                              <ChevronDown
-                                size={16}
-                                className={`text-emerald-400/80 transition-transform duration-300 ${
-                                  isExpanded ? "rotate-180 text-amber-400" : ""
-                                }`}
-                              />
+                              <button
+                                onClick={() => setExpandedMobileMenuIdx(isExpanded ? null : idx)}
+                                aria-label={isExpanded ? "Collapse submenu" : "Expand submenu"}
+                                className="w-8 h-8 -mr-1 flex items-center justify-center rounded-full hover:bg-white/10 cursor-pointer"
+                              >
+                                <ChevronDown
+                                  size={16}
+                                  className={`text-emerald-400/80 transition-transform duration-300 ${
+                                    isExpanded ? "rotate-180 text-amber-400" : ""
+                                  }`}
+                                />
+                              </button>
                             ) : (
                               <ChevronRight size={15} className="text-emerald-400/60" />
                             )}
