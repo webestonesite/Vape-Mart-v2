@@ -7,6 +7,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { BlogCard, CoverImage, categoryBadge } from "@/components/blog/BlogCard";
 import { ShareButtons } from "@/components/blog/ShareButtons";
+import { RelatedProducts } from "@/components/blog/RelatedProducts";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -124,8 +125,11 @@ export default async function BlogArticlePage({ params }: Props) {
               </Link>
             </div>
 
+            {/* Related products */}
+            <RelatedProducts slugs={post.productSlugs} />
+
             {/* CTA */}
-            <div className="rounded-[20px] bg-gradient-to-br from-[#022c22] to-[#065f46] p-8 text-center relative overflow-hidden">
+            <div className="rounded-[20px] bg-gradient-to-br from-[#022c22] to-[#065f46] p-8 text-center relative overflow-hidden mt-10">
               <div className="absolute -top-16 -right-16 w-56 h-56 bg-amber-400/15 rounded-full blur-[60px] pointer-events-none" />
               <h3 className="text-white text-xl sm:text-2xl font-extrabold mb-2 relative z-10">
                 Ready to Shop Original?
