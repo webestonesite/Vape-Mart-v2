@@ -41,7 +41,7 @@ export default async function BlogArticlePage({ params }: Props) {
     <>
       <Header />
       <main className="min-h-screen bg-[#f7f8f7]">
-        <div className="max-w-[1140px] mx-auto px-4 sm:px-6 py-8 sm:py-10">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-8 sm:py-10">
           {/* Article card — white, bordered, separated from the page background */}
           <article className="bg-white rounded-[24px] border border-slate-200 shadow-sm p-6 sm:p-10">
             <nav className="flex items-center gap-1.5 text-xs sm:text-sm text-slate-400 mb-5 flex-wrap">
