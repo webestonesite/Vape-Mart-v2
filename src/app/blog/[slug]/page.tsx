@@ -40,8 +40,9 @@ export default async function BlogArticlePage({ params }: Props) {
     <>
       <Header />
       <main className="min-h-screen bg-[#f7f8f7]">
-        <div className="bg-white border-b border-slate-200">
-          <div className="max-w-[860px] mx-auto px-4 sm:px-6 pt-8 sm:pt-10 pb-8">
+        <div className="max-w-[1140px] mx-auto px-4 sm:px-6 py-8 sm:py-10">
+          {/* Article card — white, bordered, separated from the page background */}
+          <article className="bg-white rounded-[24px] border border-slate-200 shadow-sm p-6 sm:p-10">
             <nav className="flex items-center gap-1.5 text-xs sm:text-sm text-slate-400 mb-5 flex-wrap">
               <Link href="/" className="hover:text-emerald-700 transition-colors">
                 Home
@@ -61,7 +62,7 @@ export default async function BlogArticlePage({ params }: Props) {
             <h1 className="text-slate-900 text-2xl sm:text-4xl font-extrabold leading-tight tracking-tight mb-4">
               {post.title}
             </h1>
-            <div className="flex items-center gap-4 text-slate-400 text-xs sm:text-sm flex-wrap">
+            <div className="flex items-center gap-4 text-slate-400 text-xs sm:text-sm flex-wrap mb-8">
               <span className="flex items-center gap-1.5">
                 <CalendarDays size={14} /> {post.date}
               </span>
@@ -70,78 +71,76 @@ export default async function BlogArticlePage({ params }: Props) {
               </span>
               <span className="text-emerald-700 font-semibold">By Vape Mart Experts</span>
             </div>
-          </div>
-        </div>
 
-        <div className="max-w-[860px] mx-auto px-4 sm:px-6 py-8 sm:py-10">
-          {/* Featured image */}
-          <div className="relative aspect-[16/9] rounded-[20px] overflow-hidden bg-slate-100 border border-slate-200 mb-8">
-            <CoverImage post={post} />
-          </div>
+            {/* Featured image */}
+            <div className="relative aspect-[16/9] rounded-[20px] overflow-hidden bg-slate-100 border border-slate-200 mb-8">
+              <CoverImage post={post} />
+            </div>
 
-          {/* Quick Answer — signature summary box */}
-          <div className="rounded-2xl border-l-4 border-amber-400 bg-amber-50 p-5 sm:p-6 mb-8">
-            <p className="flex items-center gap-2 text-amber-800 font-extrabold text-sm uppercase tracking-wide mb-2">
-              <Zap size={15} /> Quick Answer
-            </p>
-            <p className="text-slate-700 text-[15px] sm:text-base leading-relaxed">{post.quickAnswer}</p>
-          </div>
-
-          {/* Body */}
-          <article className="flex flex-col gap-5 mb-10">
-            {post.content.map((para, i) => (
-              <p
-                key={i}
-                className={
-                  i === 0
-                    ? "text-slate-800 text-lg sm:text-xl leading-relaxed font-medium"
-                    : "text-slate-600 text-[15px] sm:text-base leading-[1.8]"
-                }
-              >
-                {para}
+            {/* Quick Answer — signature summary box */}
+            <div className="rounded-2xl border-l-4 border-amber-400 bg-amber-50 p-5 sm:p-6 mb-8">
+              <p className="flex items-center gap-2 text-amber-800 font-extrabold text-sm uppercase tracking-wide mb-2">
+                <Zap size={15} /> Quick Answer
               </p>
-            ))}
-          </article>
+              <p className="text-slate-700 text-[15px] sm:text-base leading-relaxed">{post.quickAnswer}</p>
+            </div>
 
-          {/* Tags */}
-          <div className="flex flex-wrap gap-2 mb-8">
-            {post.tags.map((t) => (
-              <span
-                key={t}
-                className="px-3 py-1.5 rounded-full bg-white border border-slate-200 text-slate-500 text-xs font-semibold"
+            {/* Body */}
+            <div className="flex flex-col gap-5 mb-10">
+              {post.content.map((para, i) => (
+                <p
+                  key={i}
+                  className={
+                    i === 0
+                      ? "text-slate-800 text-lg sm:text-xl leading-relaxed font-medium"
+                      : "text-slate-600 text-[15px] sm:text-base leading-[1.8]"
+                  }
+                >
+                  {para}
+                </p>
+              ))}
+            </div>
+
+            {/* Tags */}
+            <div className="flex flex-wrap gap-2 mb-8">
+              {post.tags.map((t) => (
+                <span
+                  key={t}
+                  className="px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200 text-slate-500 text-xs font-semibold"
+                >
+                  #{t}
+                </span>
+              ))}
+            </div>
+
+            {/* Share */}
+            <div className="flex items-center justify-between bg-slate-50 rounded-2xl border border-slate-200 px-5 py-4 mb-10">
+              <ShareButtons title={post.title} />
+              <Link
+                href="/blog"
+                className="text-sm font-bold text-emerald-700 hover:text-emerald-900 transition-colors hidden sm:inline"
               >
-                #{t}
-              </span>
-            ))}
-          </div>
+                ← All Articles
+              </Link>
+            </div>
 
-          {/* Share */}
-          <div className="flex items-center justify-between bg-white rounded-2xl border border-slate-200 px-5 py-4 mb-10">
-            <ShareButtons title={post.title} />
-            <Link
-              href="/blog"
-              className="text-sm font-bold text-emerald-700 hover:text-emerald-900 transition-colors hidden sm:inline"
-            >
-              ← All Articles
-            </Link>
-          </div>
-
-          {/* CTA */}
-          <div className="rounded-[20px] bg-gradient-to-br from-[#022c22] to-[#065f46] p-8 text-center relative overflow-hidden mb-12">
-            <div className="absolute -top-16 -right-16 w-56 h-56 bg-amber-400/15 rounded-full blur-[60px] pointer-events-none" />
-            <h3 className="text-white text-xl sm:text-2xl font-extrabold mb-2 relative z-10">
-              Ready to Shop Original?
-            </h3>
-            <p className="text-emerald-100/70 text-sm mb-5 relative z-10">
-              100% authentic, ESMA certified, delivered across the UAE.
-            </p>
-            <Link
-              href="/collections"
-              className="inline-flex items-center gap-2 bg-amber-400 hover:bg-amber-300 text-emerald-950 font-bold text-sm px-6 py-3 rounded-xl transition-colors relative z-10"
-            >
-              Shop All Collections <ArrowRight size={16} />
-            </Link>
-          </div>
+            {/* CTA */}
+            <div className="rounded-[20px] bg-gradient-to-br from-[#022c22] to-[#065f46] p-8 text-center relative overflow-hidden">
+              <div className="absolute -top-16 -right-16 w-56 h-56 bg-amber-400/15 rounded-full blur-[60px] pointer-events-none" />
+              <h3 className="text-white text-xl sm:text-2xl font-extrabold mb-2 relative z-10">
+                Ready to Shop Original?
+              </h3>
+              <p className="text-emerald-100/70 text-sm mb-5 relative z-10">
+                100% authentic, ESMA certified, delivered across the UAE.
+              </p>
+              <Link
+                href="/collections"
+                className="inline-flex items-center gap-2 bg-amber-400 hover:bg-amber-300 text-emerald-950 font-bold text-sm px-6 py-3 rounded-xl transition-colors relative z-10"
+              >
+                Shop All Collections <ArrowRight size={16} />
+              </Link>
+            </div>
+          </article>
         </div>
 
         {/* Related articles */}
