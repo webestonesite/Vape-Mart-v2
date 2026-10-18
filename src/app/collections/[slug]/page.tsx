@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import {
-  categories,
-  getCategoryBySlug,
-  getProductsByCategory,
-  allProducts
-} from "@/data/products";
+  fetchCategories,
+  fetchProductsByCategory,
+  fetchAllProducts,
+  getCategoryBySlugSync,
+} from "@/data/products-shopify";
 import { CollectionPageView } from "@/components/collection/CollectionPageView";
 
 interface CollectionSlugPageProps {
@@ -15,7 +15,8 @@ interface CollectionSlugPageProps {
 
 export async function generateMetadata({ params }: CollectionSlugPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const category = getCategoryBySlug(slug);
+  const categories = await fetchCategories();
+  const category = categories.find((c) => c.slug === slug) || getCategoryBySlugSync(slug);
 
   if (!category) {
     return {
@@ -44,14 +45,15 @@ export async function generateMetadata({ params }: CollectionSlugPageProps): Pro
 
 export default async function CollectionSlugPage({ params }: CollectionSlugPageProps) {
   const { slug } = await params;
-  const category = getCategoryBySlug(slug);
+  const [categories, allProducts] = await Promise.all([fetchCategories(), fetchAllProducts()]);
+  const category = categories.find((c) => c.slug === slug) || getCategoryBySlugSync(slug);
 
   if (!category) {
     // If not matching a category, fallback to all products
-    return <CollectionPageView allCategories={categories} products={allProducts} />;
+    return <CollectionPageView allCategories={categories} products={allProducts} catalogProducts={allProducts} />;
   }
 
-  const categoryProducts = getProductsByCategory(category.slug);
+  const categoryProducts = await fetchProductsByCategory(category.slug);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -101,6 +103,7 @@ export default async function CollectionSlugPage({ params }: CollectionSlugPageP
           category={category}
           allCategories={categories}
           products={categoryProducts.length > 0 ? categoryProducts : allProducts}
+          catalogProducts={allProducts}
         />
       </Suspense>
     </>

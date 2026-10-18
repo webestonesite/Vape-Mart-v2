@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { categories, allProducts } from "@/data/products";
+import { fetchAllProducts, fetchCategories } from "@/data/products-shopify";
 import { CollectionPageView } from "@/components/collection/CollectionPageView";
 
 export const metadata: Metadata = {
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   }
 };
 
-export default function AllCollectionsPage() {
+export default async function AllCollectionsPage() {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
@@ -24,6 +24,8 @@ export default function AllCollectionsPage() {
     url: "https://vapemart.ae/collections"
   };
 
+  const [categories, allProducts] = await Promise.all([fetchCategories(), fetchAllProducts()]);
+
   return (
     <>
       <script
@@ -31,7 +33,7 @@ export default function AllCollectionsPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <Suspense fallback={null}>
-        <CollectionPageView allCategories={categories} products={allProducts} />
+        <CollectionPageView allCategories={categories} products={allProducts} catalogProducts={allProducts} />
       </Suspense>
     </>
   );

@@ -116,6 +116,31 @@ export function Header({ onCartClick, cartCount = 0 }: HeaderProps) {
       .catch(() => {});
   }, []);
 
+  // Shopify menu (vape-mart-main-menu) overrides nav items when available.
+  // Falls back to the baked-in nav on any failure — design never changes.
+  useEffect(() => {
+    fetch("/api/menu")
+      .then((res) => res.json())
+      .then((data) => {
+        const items = data?.items;
+        if (!Array.isArray(items) || items.length === 0) return;
+        const navItems: HeaderNavItem[] = items.map((it: any) => ({
+          label: it.title,
+          href: it.url || "#",
+          hasDropdown: Array.isArray(it.children) && it.children.length > 0,
+          columns: (it.children || []).map((col: any) => ({
+            heading: col.title,
+            items: (col.children || []).map((link: any) => ({
+              title: link.title,
+              href: link.url || "#",
+            })),
+          })),
+        }));
+        setHeaderData((prev) => (prev ? { ...prev, navItems } : prev));
+      })
+      .catch(() => {});
+  }, []);
+
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {

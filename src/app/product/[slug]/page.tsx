@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getProductBySlug, getRelatedProducts, allProducts } from "@/data/products";
+import { fetchProductBySlug, fetchRelatedProducts, fetchAllProducts } from "@/data/products-shopify";
 import { ProductDetailView } from "@/components/product/ProductDetailView";
 
 interface ProductPageProps {
@@ -9,7 +9,7 @@ interface ProductPageProps {
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const product = getProductBySlug(slug) || allProducts[0];
+  const product = (await fetchProductBySlug(slug)) || (await fetchAllProducts())[0];
 
   if (!product) {
     return {
@@ -38,13 +38,13 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
-  const product = getProductBySlug(slug) || allProducts[0];
+  const product = (await fetchProductBySlug(slug)) || (await fetchAllProducts())[0];
 
   if (!product) {
     notFound();
   }
 
-  const related = getRelatedProducts(product.slug);
+  const related = await fetchRelatedProducts(product.slug);
 
   // JSON-LD Structured Data for Google Rich Snippets & #1 Ranking
   const jsonLd = {
