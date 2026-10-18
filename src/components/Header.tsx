@@ -87,6 +87,7 @@ export function Header({ onCartClick, cartCount = 0 }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [hoveredNavIdx, setHoveredNavIdx] = useState<number | null>(null);
+  const [dropPos, setDropPos] = useState<{ left: number; top: number; width: number } | null>(null);
   const [expandedMobileMenuIdx, setExpandedMobileMenuIdx] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [headerData, setHeaderData] = useState<ThemeHeaderConfig | undefined>(
@@ -353,7 +354,21 @@ export function Header({ onCartClick, cartCount = 0 }: HeaderProps) {
                 <li
                   key={i}
                   className="h-full flex items-center group cursor-pointer"
-                  onMouseEnter={() => setHoveredNavIdx(i)}
+                  onMouseEnter={(e) => {
+                    setHoveredNavIdx(i);
+                    if (item.hasDropdown) {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const cols = item.columns?.length || 0;
+                      const baseW = cols >= 3 ? 1020 : cols === 2 ? 720 : 420;
+                      const width = Math.min(baseW, window.innerWidth * 0.94);
+                      const center = rect.left + rect.width / 2;
+                      const left = Math.min(
+                        Math.max(12, center - width / 2),
+                        Math.max(12, window.innerWidth - width - 12)
+                      );
+                      setDropPos({ left, top: rect.bottom + 6, width });
+                    }
+                  }}
                   onMouseLeave={() => setHoveredNavIdx(null)}
                 >
                   <Link
@@ -387,13 +402,12 @@ export function Header({ onCartClick, cartCount = 0 }: HeaderProps) {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 6, scale: 0.98 }}
                         transition={{ duration: 0.2, ease: "easeOut" }}
-                        className={`absolute top-[50px] left-1/2 -translate-x-1/2 w-[95vw] bg-white rounded-2xl shadow-[0_25px_60px_rgba(6,78,59,0.18)] border border-emerald-100 p-4 sm:p-5 z-50 ${
-                          (item.columns?.length || 0) >= 3
-                            ? "max-w-[1020px]"
-                            : (item.columns?.length || 0) === 2
-                              ? "max-w-[720px]"
-                              : "max-w-[420px]"
-                        }`}
+                        className="fixed bg-white rounded-2xl shadow-[0_25px_60px_rgba(6,78,59,0.18)] border border-emerald-100 p-4 sm:p-5 z-50"
+                        style={{
+                          left: dropPos?.left ?? 0,
+                          top: dropPos?.top ?? 0,
+                          width: dropPos?.width ?? 420,
+                        }}
                       >
                         <div
                           className="grid gap-3 text-left"
