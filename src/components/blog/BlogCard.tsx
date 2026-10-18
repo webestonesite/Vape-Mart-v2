@@ -32,7 +32,7 @@ export function CoverImage({ post, className }: { post: BlogPost; className?: st
   const Icon = categoryIcon[post.category] ?? Newspaper;
   return (
     <div
-      className={`relative flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#022c22] via-[#065f46] to-[#022c22] ${className ?? ""}`}
+      className={`absolute inset-0 flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#022c22] via-[#065f46] to-[#022c22] ${className ?? ""}`}
     >
       <div className="absolute -top-10 -right-10 w-40 h-40 bg-amber-400/10 rounded-full blur-[50px] pointer-events-none" />
       <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-emerald-400/10 rounded-full blur-[60px] pointer-events-none" />
