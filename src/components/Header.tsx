@@ -430,14 +430,14 @@ export function Header({ onCartClick, cartCount = 0 }: HeaderProps) {
                                   <li key={sIdx}>
                                     <Link
                                       href={sub.href || "#"}
-                                      className="group/item flex items-center justify-between gap-2 rounded-xl border border-emerald-200 bg-white px-3 py-2 transition-all hover:shadow-[0_4px_14px_rgba(6,78,59,0.12)] hover:border-emerald-500"
+                                      className="group/item flex items-center justify-between gap-2 rounded-xl border border-emerald-200 bg-white px-3 py-2 transition-all duration-300 hover:bg-emerald-600 hover:border-emerald-600 hover:shadow-[0_8px_20px_rgba(6,95,70,0.28)] hover:translate-x-1"
                                     >
                                       <span className="min-w-0">
-                                        <span className="block text-[13px] font-bold text-neutral-900 truncate group-hover/item:text-emerald-800 transition-colors">
+                                        <span className="block text-[13px] font-bold text-neutral-900 truncate group-hover/item:text-white transition-colors duration-300">
                                           {sub.title}
                                         </span>
                                         {sub.desc && (
-                                          <span className="block text-[11px] text-neutral-500 truncate">
+                                          <span className="block text-[11px] text-neutral-500 truncate group-hover/item:text-emerald-100 transition-colors duration-300">
                                             {sub.desc}
                                           </span>
                                         )}
@@ -448,8 +448,8 @@ export function Header({ onCartClick, cartCount = 0 }: HeaderProps) {
                                             {sub.badge}
                                           </span>
                                         )}
-                                        <span className="w-7 h-7 rounded-full border border-emerald-200 text-emerald-700 flex items-center justify-center group-hover/item:bg-emerald-700 group-hover/item:text-white group-hover/item:border-emerald-700 transition-all">
-                                          <ArrowRight size={13} strokeWidth={2.5} />
+                                        <span className="w-7 h-7 rounded-full border border-emerald-200 text-emerald-700 flex items-center justify-center transition-all duration-300 group-hover/item:bg-white group-hover/item:text-emerald-700 group-hover/item:border-white">
+                                          <ArrowRight size={13} strokeWidth={2.5} className="transition-transform duration-300 group-hover/item:translate-x-0.5" />
                                         </span>
                                       </span>
                                     </Link>
