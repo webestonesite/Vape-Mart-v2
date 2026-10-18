@@ -1,13 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Star, ArrowRight, ShoppingBag } from "lucide-react";
-import { getProductBySlug } from "@/data/products";
+import { fetchProductBySlug } from "@/data/products-shopify";
 
-export function RelatedProducts({ slugs, title }: { slugs: string[]; title?: string }) {
-  const products = slugs
-    .map((s) => getProductBySlug(s))
-    .filter((p): p is NonNullable<typeof p> => Boolean(p))
-    .slice(0, 4);
+export async function RelatedProducts({ slugs, title }: { slugs: string[]; title?: string }) {
+  const found = await Promise.all(slugs.map((s) => fetchProductBySlug(s)));
+  const products = found.filter((p): p is NonNullable<typeof p> => Boolean(p)).slice(0, 4);
   if (products.length === 0) return null;
 
   return (

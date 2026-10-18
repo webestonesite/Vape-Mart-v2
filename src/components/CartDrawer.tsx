@@ -64,17 +64,41 @@ export function CartDrawer({
     setStep("checkout");
   };
 
-  const handlePlaceOrder = (e: React.FormEvent) => {
+  const [orderError, setOrderError] = useState("");
+
+  const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    setTimeout(() => {
-      const generatedId = `VM-${Math.floor(100000 + Math.random() * 900000)}`;
-      setPlacedOrderId(generatedId);
-      setIsSubmitting(false);
+    setOrderError("");
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: customerName,
+          phone: customerPhone,
+          city: customerCity,
+          address: customerAddress,
+          paymentMethod,
+          items: items.map((i) => ({
+            title: i.title,
+            quantity: i.quantity,
+            price: i.price,
+            flavor: i.flavor,
+            nicotine: i.nicotine,
+          })),
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.ok) throw new Error(json.error || "Order failed");
+      setPlacedOrderId(json.orderName || "VM-ORDER");
       setStep("success");
       if (onClearCart) onClearCart();
-    }, 600);
+    } catch (err: any) {
+      setOrderError(err?.message || "Order failed. Please try WhatsApp ordering.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleReset = () => {
@@ -448,6 +472,11 @@ export function CartDrawer({
 
                 {/* Submit Action */}
                 <div className="p-4 sm:p-5 border-t border-neutral-200/80 bg-neutral-50/80 space-y-2 shrink-0">
+                  {orderError && (
+                    <p className="text-[11px] text-center text-red-600 font-semibold bg-red-50 border border-red-200 rounded-xl px-3 py-2">
+                      {orderError}
+                    </p>
+                  )}
                   <button
                     type="submit"
                     disabled={isSubmitting}

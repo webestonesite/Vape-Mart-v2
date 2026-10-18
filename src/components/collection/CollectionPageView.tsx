@@ -37,7 +37,6 @@ import {
   CreditCard,
 } from "lucide-react";
 import { ProductItem, CollectionCategory, CartItem } from "@/types/product";
-import { allProducts as catalogProducts } from "@/data/products";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
@@ -47,6 +46,7 @@ interface CollectionPageViewProps {
   category?: CollectionCategory;
   allCategories: CollectionCategory[];
   products: ProductItem[];
+  catalogProducts?: ProductItem[];
 }
 
 const WHATSAPP_LINK = "https://wa.me/971551688299?text=Hi%20Vape%20Mart!%20I%20need%20help%20choosing%20a%20vape.";
@@ -151,7 +151,8 @@ function QuizDropdown({
   );
 }
 
-export function CollectionPageView({ category, allCategories, products }: CollectionPageViewProps) {
+export function CollectionPageView({ category, allCategories, products, catalogProducts }: CollectionPageViewProps) {
+  const catalog = catalogProducts ?? products;
   // ---- filter state ----
   // Menu links like /collections?search=elf+bar pre-fill the search box
   const searchParams = useSearchParams();
@@ -239,12 +240,12 @@ export function CollectionPageView({ category, allCategories, products }: Collec
   // ---- discovery sections: catalog-wide counts (always full catalog) ----
   const catalogCategoryCounts = useMemo(() => {
     const c: Record<string, number> = {};
-    catalogProducts.forEach((p) => { c[p.categorySlug] = (c[p.categorySlug] || 0) + 1; });
+    catalog.forEach((p) => { c[p.categorySlug] = (c[p.categorySlug] || 0) + 1; });
     return c;
   }, []);
   const flavorFamilyCounts = useMemo(() => {
     const c: Record<string, number> = {};
-    catalogProducts.forEach((p) => { c[p.flavorFamily] = (c[p.flavorFamily] || 0) + 1; });
+    catalog.forEach((p) => { c[p.flavorFamily] = (c[p.flavorFamily] || 0) + 1; });
     return c;
   }, []);
   const flavorFamilies = useMemo(() => {
@@ -256,7 +257,7 @@ export function CollectionPageView({ category, allCategories, products }: Collec
     ] as const;
     return defs.map((d) => ({
       ...d,
-      image: catalogProducts.find((p) => p.flavorFamily === d.id)?.primaryImage ?? "",
+      image: catalog.find((p) => p.flavorFamily === d.id)?.primaryImage ?? "",
     }));
   }, []);
 
