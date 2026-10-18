@@ -87,7 +87,7 @@ export function Header({ onCartClick, cartCount = 0 }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [hoveredNavIdx, setHoveredNavIdx] = useState<number | null>(null);
-  const [dropPos, setDropPos] = useState<{ left: number; top: number; width: number } | null>(null);
+  const [dropPositions, setDropPositions] = useState<Record<number, { left: number; top: number; width: number }>>({});
   const [expandedMobileMenuIdx, setExpandedMobileMenuIdx] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [headerData, setHeaderData] = useState<ThemeHeaderConfig | undefined>(
@@ -366,7 +366,7 @@ export function Header({ onCartClick, cartCount = 0 }: HeaderProps) {
                         Math.max(12, center - width / 2),
                         Math.max(12, window.innerWidth - width - 12)
                       );
-                      setDropPos({ left, top: rect.bottom + 6, width });
+                      setDropPositions((prev) => ({ ...prev, [i]: { left, top: rect.bottom - 2, width } }));
                     }
                   }}
                   onMouseLeave={() => setHoveredNavIdx(null)}
@@ -398,15 +398,15 @@ export function Header({ onCartClick, cartCount = 0 }: HeaderProps) {
                   <AnimatePresence>
                     {hoveredNavIdx === i && item.hasDropdown && (
                       <motion.div
-                        initial={{ opacity: 0, y: 10, scale: 0.98 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 6, scale: 0.98 }}
-                        transition={{ duration: 0.2, ease: "easeOut" }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.15, ease: "easeOut" }}
                         className="fixed bg-white rounded-2xl shadow-[0_25px_60px_rgba(6,78,59,0.18)] border border-emerald-100 p-4 sm:p-5 z-50"
                         style={{
-                          left: dropPos?.left ?? 0,
-                          top: dropPos?.top ?? 0,
-                          width: dropPos?.width ?? 420,
+                          left: dropPositions[i]?.left ?? 0,
+                          top: dropPositions[i]?.top ?? 0,
+                          width: dropPositions[i]?.width ?? 420,
                         }}
                       >
                         <div
