@@ -68,7 +68,6 @@ const VAPE_KEYS = [
   "base_note", "vg_pg_ratio", "rating", "review_count",
 ];
 
-const META_IDENTIFIERS = VAPE_KEYS.map((key) => `{namespace:"vape",key:"${key}"}`).join(",");
 
 /* ------------------------------------------------------------------ */
 /*  Shopify -> ProductItem adapter                                     */
@@ -102,7 +101,7 @@ const PRODUCT_FRAGMENT = `
   images(first: 8) { nodes { url altText } }
   variants(first: 3) { nodes { id sku price compareAtPrice inventoryQuantity } }
   collections(first: 6) { nodes { id title handle } }
-  metafields(identifiers: [${META_IDENTIFIERS}]) {
+  metafields(first: 40, namespace: "vape") {
     nodes { namespace key type value }
   }
 `;
@@ -318,12 +317,7 @@ export interface ShopSettings {
 const SHOP_META_QUERY = `
   query ShopMeta {
     shop {
-      metafields(identifiers: [
-        {namespace:"store",key:"announcements"},
-        {namespace:"store",key:"phone"},
-        {namespace:"store",key:"footer_text"},
-        {namespace:"store",key:"logo"}
-      ]) { nodes { namespace key type value } }
+      metafields(first: 20, namespace: "store") { nodes { namespace key type value } }
     }
   }
 `;
