@@ -261,9 +261,11 @@ export async function fetchShopifyProductByHandle(handle: string): Promise<Produ
 
 export interface MenuLink { title: string; url: string; children?: MenuLink[] }
 
+const MENU_ID = "gid://shopify/Menu/274787336240";
+
 const MENU_QUERY = `
-  query GetMenu($handle: String!) {
-    menu(handle: $handle) {
+  query GetMenu($id: ID!) {
+    menu(id: $id) {
       items {
         title url
         items {
@@ -294,7 +296,7 @@ function mapMenuItems(items: any[]): MenuLink[] {
 
 export async function fetchShopifyMenu(): Promise<MenuLink[]> {
   try {
-    const data = await shopifyAdmin<{ menu: { items: any[] } | null }>(MENU_QUERY, { handle: "vape-mart-main-menu" }, 600);
+    const data = await shopifyAdmin<{ menu: { items: any[] } | null }>(MENU_QUERY, { id: MENU_ID }, 600);
     if (!data.menu) return [];
     return mapMenuItems(data.menu.items);
   } catch {
@@ -361,9 +363,11 @@ export interface BlogPost {
   tags: string[];
 }
 
+const BLOG_ID = "gid://shopify/Blog/85628715056";
+
 const BLOG_QUERY = `
-  query BlogPosts($first: Int!, $after: String) {
-    blog(handle: "news") {
+  query BlogPosts($id: ID!, $first: Int!, $after: String) {
+    blog(id: $id) {
       articles(first: $first, after: $after, sortKey: PUBLISHED_AT, reverse: true) {
         pageInfo { hasNextPage endCursor }
         nodes {
@@ -393,7 +397,7 @@ export async function fetchBlogPosts(): Promise<BlogPost[]> {
   const out: BlogPost[] = [];
   let after: string | null = null;
   for (let page = 0; page < 3; page++) {
-    const data: any = await shopifyAdmin<any>(BLOG_QUERY, { first: 50, after }, 600);
+    const data: any = await shopifyAdmin<any>(BLOG_QUERY, { id: BLOG_ID, first: 50, after }, 600);
     const conn: any = data.blog?.articles;
     if (!conn) break;
     out.push(...conn.nodes.map((n: any) => toBlogPost(n)));
@@ -405,12 +409,12 @@ export async function fetchBlogPosts(): Promise<BlogPost[]> {
 
 export async function fetchBlogPost(handle: string): Promise<BlogPost | null> {
   const data = await shopifyAdmin<any>(
-    `query Article($handle: String!) {
-       blog(handle: "news") {
+    `query Article($id: ID!, $handle: String!) {
+       blog(id: $id) {
          articleByHandle(handle: $handle) { handle title bodyHtml excerpt publishedAt tags image { url } }
        }
      }`,
-    { handle }, 600
+    { id: BLOG_ID, handle }, 600
   );
   const node = data.blog?.articleByHandle;
   return node ? toBlogPost(node) : null;
@@ -423,10 +427,10 @@ export async function fetchBlogPost(handle: string): Promise<BlogPost | null> {
 export async function fetchShopifyPage(handle: string): Promise<{ title: string; bodyHtml: string } | null> {
   try {
     const data = await shopifyAdmin<any>(
-      `query Page($handle: String!) { pageByHandle(handle: $handle) { title body } }`,
-      { handle }, 600
+      `query Page($q: String!) { pages(first: 1, query: $q) { nodes { title body } } }`,
+      { q: `handle:${handle}` }, 600
     );
-    const p = data.pageByHandle;
+    const p = data.pages?.nodes?.[0];
     return p ? { title: p.title, bodyHtml: p.body || "" } : null;
   } catch {
     return null;
