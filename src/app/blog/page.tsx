@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ChevronRight, ShieldCheck, Truck, BadgeCheck } from "lucide-react";
+import { ShieldCheck, Truck, BadgeCheck } from "lucide-react";
 import { blogPosts } from "@/data/blog";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -17,24 +16,15 @@ export default function BlogPage() {
     <>
       <Header />
       <main className="min-h-screen bg-[#f7f8f7]">
-        {/* Page header */}
-        <div className="bg-white border-b border-slate-200">
-          <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-8 sm:py-12">
-            <nav className="flex items-center gap-1.5 text-xs sm:text-sm text-slate-400 mb-4">
-              <Link href="/" className="hover:text-emerald-700 transition-colors">
-                Home
-              </Link>
-              <ChevronRight size={13} />
-              <span className="text-slate-700 font-semibold">Blog</span>
-            </nav>
-            <h1 className="text-slate-900 text-3xl sm:text-4xl font-extrabold tracking-tight mb-2">
-              Blog & Buying Guides
-            </h1>
-            <p className="text-slate-500 text-sm sm:text-base max-w-2xl">
-              Honest advice from people who vape: buying guides, safety tips, flavour picks and
-              UAE regulation updates.
-            </p>
-          </div>
+        {/* Page header — simple title + subtitle, no hero band */}
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 pt-10 sm:pt-14 pb-2">
+          <h1 className="text-slate-900 text-3xl sm:text-4xl font-extrabold tracking-tight mb-2">
+            Blog & Buying Guides
+          </h1>
+          <p className="text-slate-500 text-sm sm:text-base max-w-2xl">
+            Honest advice from people who vape: buying guides, safety tips, flavour picks and
+            UAE regulation updates.
+          </p>
         </div>
 
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-8 sm:py-12">
