@@ -89,6 +89,23 @@ export async function fetchRelatedProducts(slug: string): Promise<ProductItem[]>
   return all.filter((p) => p.slug !== slug).slice(0, 4);
 }
 
+/** Category cards on the shop pages follow the sheet-organised structure:
+    the main categories, their sub-categories and the brand collections.
+    Legacy collections (pod systems, vape kits, shisha, per-origin Terea,
+    Lambda, ...) stay in Shopify but no longer surface as cards. */
+const ORGANIZED_CATEGORY_SLUGS = new Set([
+  "juul", "terea", "iqos", "disposable-vape", "e-liquid",
+  "juul-1", "juul-2", "terea-device", "terea-flavor", "iqos-iluma",
+]);
+
+function isOrganizedCategory(slug: string): boolean {
+  return (
+    ORGANIZED_CATEGORY_SLUGS.has(slug) ||
+    slug.endsWith("-disposable") ||
+    slug.endsWith("-e-liquid")
+  );
+}
+
 /** Categories: local rich metadata first, then auto entries for new Shopify collections. */
 export async function fetchCategories(): Promise<CollectionCategory[]> {
   const all = await fetchAllProducts();
@@ -122,11 +139,13 @@ export async function fetchCategories(): Promise<CollectionCategory[]> {
       description: `Explore our ${info.title.toLowerCase()} collection — 100% authentic products with express delivery across Dubai and the UAE.`,
     });
   }
-  const withCounts = local.map((c) => ({
-    ...c,
-    count: seen.get(c.slug)?.count ?? c.count,
-  }));
-  return [...withCounts, ...extra];
+  const withCounts = local
+    .filter((c) => isOrganizedCategory(c.slug))
+    .map((c) => ({
+      ...c,
+      count: seen.get(c.slug)?.count ?? c.count,
+    }));
+  return [...withCounts, ...extra.filter((c) => isOrganizedCategory(c.slug))];
 }
 
 export function getCategoryBySlugSync(slug: string): CollectionCategory | undefined {
