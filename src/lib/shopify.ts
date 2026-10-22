@@ -9,18 +9,87 @@ const SHOP_DOMAIN = "vf4iap-u5.myshopify.com";
 const API_VERSION = "2025-07";
 const REVALIDATE_SECS = 300; // 5 min cache on product/catalog reads
 
-async function shopifyAdmin<T>(query: string, variables: Record<string, unknown> = {}, revalidate = REVALIDATE_SECS): Promise<T> {
-  const token = process.env.SHOPIFY_ADMIN_TOKEN;
-  if (!token) throw new Error("SHOPIFY_ADMIN_TOKEN is not configured");
-  const res = await fetch(`https://${SHOP_DOMAIN}/admin/api/${API_VERSION}/graphql.json`, {
+/* ------------------------------------------------------------------ */
+/*  Access-token provider                                              */
+/*                                                                     */
+/*  Preferred mode: if SHOPIFY_CLIENT_ID + SHOPIFY_CLIENT_SECRET are   */
+/*  set, the site mints its own Admin API token via the OAuth          */
+/*  client_credentials grant and refreshes it before it expires        */
+/*  (those tokens live ~24h, so a static token silently dies).        */
+/*  Fallback: the static SHOPIFY_ADMIN_TOKEN env var, as before.       */
+/* ------------------------------------------------------------------ */
+
+const TOKEN_REFRESH_MARGIN_MS = 5 * 60 * 1000; // refresh when <5 min of validity remain
+
+let tokenCache: { value: string; expiresAt: number } | null = null;
+let tokenInFlight: Promise<string> | null = null;
+
+async function requestNewToken(clientId: string, clientSecret: string): Promise<string> {
+  const res = await fetch(`https://${SHOP_DOMAIN}/admin/oauth/access_token`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Shopify-Access-Token": token,
-    },
-    body: JSON.stringify({ query, variables }),
-    next: { revalidate },
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      client_id: clientId,
+      client_secret: clientSecret,
+      grant_type: "client_credentials",
+    }),
+    cache: "no-store",
   });
+  if (!res.ok) throw new Error(`Shopify OAuth token request failed: HTTP ${res.status}`);
+  const json = await res.json();
+  const accessToken = json.access_token as string | undefined;
+  if (!accessToken) throw new Error("Shopify OAuth token response missing access_token");
+  const expiresInSecs =
+    typeof json.expires_in === "number" && json.expires_in > 0 ? json.expires_in : 3600;
+  tokenCache = { value: accessToken, expiresAt: Date.now() + expiresInSecs * 1000 };
+  return accessToken;
+}
+
+async function getShopifyAccessToken(forceRefresh = false): Promise<string> {
+  const clientId = process.env.SHOPIFY_CLIENT_ID;
+  const clientSecret = process.env.SHOPIFY_CLIENT_SECRET;
+  if (!clientId || !clientSecret) {
+    const token = process.env.SHOPIFY_ADMIN_TOKEN;
+    if (!token) throw new Error("SHOPIFY_ADMIN_TOKEN is not configured");
+    return token;
+  }
+  if (
+    !forceRefresh &&
+    tokenCache &&
+    tokenCache.expiresAt - Date.now() > TOKEN_REFRESH_MARGIN_MS
+  ) {
+    return tokenCache.value;
+  }
+  if (!tokenInFlight) {
+    tokenInFlight = requestNewToken(clientId, clientSecret).finally(() => {
+      tokenInFlight = null;
+    });
+  }
+  return tokenInFlight;
+}
+
+function invalidateShopifyTokenCache(): void {
+  tokenCache = null;
+}
+
+async function shopifyAdmin<T>(query: string, variables: Record<string, unknown> = {}, revalidate = REVALIDATE_SECS): Promise<T> {
+  const doRequest = (token: string) =>
+    fetch(`https://${SHOP_DOMAIN}/admin/api/${API_VERSION}/graphql.json`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Shopify-Access-Token": token,
+      },
+      body: JSON.stringify({ query, variables }),
+      next: { revalidate },
+    });
+
+  let res = await doRequest(await getShopifyAccessToken());
+  if (res.status === 401) {
+    // Token rejected (expired/revoked): drop the cache, mint a fresh one, retry once.
+    invalidateShopifyTokenCache();
+    res = await doRequest(await getShopifyAccessToken(true));
+  }
   if (!res.ok) throw new Error(`Shopify Admin API HTTP ${res.status}`);
   const json = await res.json();
   if (json.errors) throw new Error(`Shopify GraphQL errors: ${JSON.stringify(json.errors).slice(0, 500)}`);
