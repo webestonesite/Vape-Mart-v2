@@ -65,6 +65,8 @@ export interface ProductItem {
   brand: string;
   category: string;
   categorySlug: string;
+  /** All Shopify collections this product belongs to (slug + title), when Shopify-backed. */
+  shopifyCollections?: { slug: string; title: string }[];
   subCategory?: string;
   price: number;
   originalPrice: number;

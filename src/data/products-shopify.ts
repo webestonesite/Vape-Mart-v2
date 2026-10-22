@@ -27,7 +27,11 @@ function normalizeCategorySlug(handle: string): string {
 }
 
 function withNormalizedCategories(products: ProductItem[]): ProductItem[] {
-  return products.map((p) => ({ ...p, categorySlug: normalizeCategorySlug(p.categorySlug) }));
+  return products.map((p) => ({
+    ...p,
+    categorySlug: normalizeCategorySlug(p.categorySlug),
+    shopifyCollections: p.shopifyCollections?.map((c) => ({ ...c, slug: normalizeCategorySlug(c.slug) })),
+  }));
 }
 
 export async function fetchAllProducts(): Promise<ProductItem[]> {
@@ -63,7 +67,9 @@ export async function fetchProductsByCategory(categorySlug: string): Promise<Pro
   const all = await fetchAllProducts();
   if (!categorySlug || categorySlug === "all") return all;
   const norm = normalizeCategorySlug(categorySlug);
-  const filtered = all.filter((p) => p.categorySlug === norm);
+  const filtered = all.filter(
+    (p) => p.categorySlug === norm || (p.shopifyCollections || []).some((c) => c.slug === norm)
+  );
   return filtered.length ? filtered : all;
 }
 
@@ -88,15 +94,22 @@ export async function fetchCategories(): Promise<CollectionCategory[]> {
   const all = await fetchAllProducts();
   const seen = new Map<string, { title: string; count: number }>();
   for (const p of all) {
-    const s = seen.get(p.categorySlug) || { title: p.category, count: 0 };
-    s.count += 1;
-    seen.set(p.categorySlug, s);
+    const cols = p.shopifyCollections?.length
+      ? p.shopifyCollections
+      : [{ slug: p.categorySlug, title: p.category }];
+    for (const c of cols) {
+      const s = seen.get(c.slug) || { title: c.title, count: 0 };
+      s.count += 1;
+      seen.set(c.slug, s);
+    }
   }
   const local = localCategories;
   const extra: CollectionCategory[] = [];
   for (const [slug, info] of seen) {
     if (local.some((c) => c.slug === slug)) continue;
-    const sample = all.find((p) => p.categorySlug === slug);
+    const sample =
+      all.find((p) => p.categorySlug === slug) ||
+      all.find((p) => (p.shopifyCollections || []).some((c) => c.slug === slug));
     extra.push({
       slug,
       name: info.title,

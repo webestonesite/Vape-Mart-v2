@@ -149,7 +149,7 @@ interface ShopifyVariant {
 }
 interface ShopifyCollectionRef { id: string; title: string; handle: string }
 interface ShopifyProductNode {
-  id: string; title: string; handle: string;
+  id: string; title: string; handle: string; status: string;
   vendor: string; productType: string; tags: string[];
   descriptionHtml: string;
   priceRangeV2: { minVariantPrice: { amount: string } };
@@ -165,7 +165,7 @@ interface FlavorMetaobject {
 }
 
 const PRODUCT_FRAGMENT = `
-  id title handle vendor productType tags descriptionHtml
+  id title handle status vendor productType tags descriptionHtml
   priceRangeV2 { minVariantPrice { amount } }
   images(first: 8) { nodes { url altText } }
   variants(first: 3) { nodes { id sku price compareAtPrice inventoryQuantity } }
@@ -227,6 +227,9 @@ function toProductItem(node: ShopifyProductNode, flavorObjects: FlavorMetaobject
     brand: (node.vendor || "VAPE MART").toUpperCase(),
     category: col?.title || node.productType || "Vapes",
     categorySlug: col?.handle || "all",
+    shopifyCollections: node.collections.nodes
+      .filter((c) => c.handle !== "frontpage")
+      .map((c) => ({ slug: c.handle, title: c.title })),
     price,
     originalPrice: compareAt > price ? compareAt : price,
     revs: parseInt(mf["vape.review_count"] || "0", 10) || 0,
@@ -288,7 +291,13 @@ export async function fetchAllShopifyProducts(): Promise<ProductItem[]> {
       await shopifyAdmin<{ products: { pageInfo: { hasNextPage: boolean; endCursor: string | null }; nodes: ShopifyProductNode[] } }>(
         LIST_QUERY, { first: 100, after }
       );
-    out.push(...data.products.nodes.map((n: ShopifyProductNode) => toProductItem(n)));
+    // Only ACTIVE products are live on the site; drafts stay hidden
+    // (the Admin API returns drafts too, unlike the storefront).
+    out.push(
+      ...data.products.nodes
+        .filter((n: ShopifyProductNode) => n.status === "ACTIVE")
+        .map((n: ShopifyProductNode) => toProductItem(n))
+    );
     if (!data.products.pageInfo.hasNextPage) break;
     after = data.products.pageInfo.endCursor;
   }
@@ -318,7 +327,7 @@ export async function fetchShopifyProductByHandle(handle: string): Promise<Produ
     productByHandle: (ShopifyProductNode & { flavorRefs: { references: { nodes: FlavorMetaobject[] } } | null }) | null;
   }>(DETAIL_QUERY, { handle }, 120);
   const node = data.productByHandle;
-  if (!node) return null;
+  if (!node || node.status !== "ACTIVE") return null;
   const flavors = node.flavorRefs?.references?.nodes ?? [];
   return toProductItem(node, flavors);
 }
