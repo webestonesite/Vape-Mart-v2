@@ -249,19 +249,19 @@
             "items": [
               {
                 "title": "JUUL2 Starter Kit",
-                "href": "/product/juul2-starter-kit-slate-grey"
+                "href": "/product/juul-2-starter-kit"
               },
               {
                 "title": "IQOS ILUMA Prime",
-                "href": "/product/iqos-terea-amber-indonesian-uae"
+                "href": "/product/terea-indonesia-sticks"
               },
               {
                 "title": "Uwell Caliburn G2 & G3",
-                "href": "/product/uwell-caliburn-g2-pod-system"
+                "href": "/product/juul-slate-device"
               },
               {
                 "title": "Myle Meta Pod Device",
-                "href": "/product/myle-meta-max-18000-disposable"
+                "href": "/product/elfbar-bc10000-puffs-disposable-vape"
               }
             ]
           },
@@ -270,11 +270,11 @@
             "items": [
               {
                 "title": "JUUL2 Crisp Menthol & Tobacco",
-                "href": "/product/juul2-starter-kit-slate-grey"
+                "href": "/product/juul-2-starter-kit"
               },
               {
                 "title": "TEREA Indonesian & Italian Sticks",
-                "href": "/product/iqos-terea-amber-indonesian-uae"
+                "href": "/product/terea-indonesia-sticks"
               }
             ]
           }
@@ -310,11 +310,11 @@
             "items": [
               {
                 "title": "Nasty Juice Worldwide",
-                "href": "/product/nasty-juice-asap-grape-60ml"
+                "href": "/product/nasty-juice-3mg-freebase-e-liquid-60ml"
               },
               {
                 "title": "Juice Head California",
-                "href": "/product/juice-head-blueberry-lemon-100ml"
+                "href": "/product/vgod-25-50mg-salt"
               }
             ]
           }
@@ -349,29 +349,29 @@
     "products": [
       {
         "id": "1",
-        "name": "Obsidian Elite Pen",
-        "price": 89.99,
-        "image": "/images/product-1.png",
-        "category": "Hardware"
+        "name": "KIEF King 35000 Puffs Disposable Vape",
+        "price": 45,
+        "image": "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/KIEFKing35000PuffsDisposableVape.webp?v=1781160145",
+        "category": "Disposable"
       },
       {
         "id": "2",
-        "name": "Midnight Berry E-Liquid",
-        "price": 24.99,
-        "image": "/images/product-2.png",
+        "name": "VGOD SaltNic e-liquids 25\u202fmg and 50\u202fmg",
+        "price": 30,
+        "image": "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/IcedCherryLime.jpg?v=1753208462",
         "category": "E-Liquid"
       },
       {
         "id": "3",
-        "name": "Neon Genesis Mod",
-        "price": 149.99,
-        "image": "/images/product-3.png",
-        "category": "Hardware"
+        "name": "JUUL 2 Starter Kit",
+        "price": 90,
+        "image": "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/Juul_2_Starter_Kit_packaging_with_device_and_USB_cable.jpg?v=1786199894",
+        "category": "JUUL"
       }
     ]
   },
   "footer": {
-    "text": "© 2026 Vape Mart. All rights reserved. Must be 21+ to purchase."
+    "text": "\u00a9 2026 Vape Mart. All rights reserved. Must be 21+ to purchase."
   },
   "tereaHeets": {
     "title": "TEREA & HEETS",
@@ -380,7 +380,7 @@
     "products": [
       {
         "title": "IQOS Terea Amber Selection Indonesian in UAE",
-        "price": "125.00",
+        "price": "100.00",
         "revs": 84,
         "badge": "BEST SELLER",
         "brand": "TEREA INDO",
@@ -388,7 +388,7 @@
       },
       {
         "title": "IQOS Terea Bronze Selection Indonesian Sticks",
-        "price": "125.00",
+        "price": "100.00",
         "revs": 67,
         "badge": "POPULAR",
         "brand": "TEREA INDO",
@@ -396,7 +396,7 @@
       },
       {
         "title": "IQOS Terea Purple Wave Menthol Heated Sticks",
-        "price": "130.00",
+        "price": "100.00",
         "revs": 92,
         "badge": "COOL",
         "brand": "TEREA INDO",
@@ -404,7 +404,7 @@
       },
       {
         "title": "IQOS Terea Sienna Balanced Warm Tobacco",
-        "price": "125.00",
+        "price": "100.00",
         "revs": 48,
         "badge": "",
         "brand": "TEREA ILUMA",
@@ -412,7 +412,7 @@
       },
       {
         "title": "IQOS Terea Green Zing Crisp Herbal Menthol",
-        "price": "130.00",
+        "price": "100.00",
         "revs": 53,
         "badge": "FRESH",
         "brand": "TEREA ILUMA",
@@ -420,7 +420,7 @@
       },
       {
         "title": "IQOS Heets Bronze Selection Arabic Version",
-        "price": "115.00",
+        "price": "100.00",
         "revs": 76,
         "badge": "CLASSIC",
         "brand": "HEETS DUO",
@@ -428,7 +428,7 @@
       },
       {
         "title": "IQOS Heets Amber Selection Smooth Rich Flavor",
-        "price": "115.00",
+        "price": "100.00",
         "revs": 61,
         "badge": "",
         "brand": "HEETS DUO",
@@ -436,7 +436,7 @@
       },
       {
         "title": "IQOS Heets Silver Selection Subtle Refined Tobacco",
-        "price": "115.00",
+        "price": "100.00",
         "revs": 39,
         "badge": "",
         "brand": "HEETS DUO",
@@ -451,7 +451,7 @@
     "products": [
       {
         "title": "JUUL 2 Starter Kit with Slate Grey Device & 2 Pods",
-        "price": "145.00",
+        "price": "90.00",
         "revs": 110,
         "badge": "STARTER KIT",
         "brand": "JUUL OFFICIAL",
@@ -459,7 +459,7 @@
       },
       {
         "title": "JUUL 2 Device with USB Magnetic Charging Dock",
-        "price": "95.00",
+        "price": "80.00",
         "revs": 88,
         "badge": "DEVICE ONLY",
         "brand": "JUUL OFFICIAL",
@@ -467,7 +467,7 @@
       },
       {
         "title": "JUUL 2 Virginia Tobacco Pods 18mg (Pack of 2)",
-        "price": "45.00",
+        "price": "65.00",
         "revs": 142,
         "badge": "TOP RATED",
         "brand": "JUUL2 PODS",
@@ -475,7 +475,7 @@
       },
       {
         "title": "JUUL 2 Crisp Menthol Pods 18mg Nicotine 2-Pack",
-        "price": "45.00",
+        "price": "65.00",
         "revs": 96,
         "badge": "ICE",
         "brand": "JUUL2 PODS",
@@ -483,7 +483,7 @@
       },
       {
         "title": "JUUL 2 Polar Menthol Pods 18mg Extra Fresh",
-        "price": "45.00",
+        "price": "65.00",
         "revs": 74,
         "badge": "POPULAR",
         "brand": "JUUL2 PODS",
@@ -491,7 +491,7 @@
       },
       {
         "title": "JUUL 2 Ruby Menthol Wild Berry Pods 2-Pack",
-        "price": "48.00",
+        "price": "65.00",
         "revs": 81,
         "badge": "NEW",
         "brand": "JUUL2 PODS",
@@ -499,18 +499,18 @@
       },
       {
         "title": "JUUL 2 Autumn Tobacco Rich Blend Pods 2-Pack",
-        "price": "45.00",
+        "price": "65.00",
         "revs": 58,
         "badge": "",
         "brand": "JUUL2 PODS",
         "img": "/images/juul_product.jpg"
       },
       {
-        "title": "JUUL USB Magnetic Rapid Charging Cable",
-        "price": "35.00",
+        "title": "JUUL 2 Tropical Medley Pods 18mg (Pack of 2)",
+        "price": "65.00",
         "revs": 43,
-        "badge": "ACCESSORY",
-        "brand": "JUUL GEAR",
+        "badge": "NEW",
+        "brand": "JUUL2 PODS",
         "img": "/images/juul_product.jpg"
       }
     ]

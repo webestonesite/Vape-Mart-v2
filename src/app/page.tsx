@@ -205,17 +205,34 @@ const staggerContainer = {
 
 function getProductHref(title: string): string {
   const t = title.toLowerCase();
-  if (t.includes("kief")) return "/product/kief-king-35000-disposable-vape";
-  if (t.includes("vozol")) return "/product/vozol-star-40000-nicotine-vape";
-  if (t.includes("myle")) return "/product/myle-meta-max-18000-disposable";
-  if (t.includes("elf bar") || t.includes("joinone")) return "/product/elf-bar-joinone-25000-pod-kit";
-  if (t.includes("juul")) return "/product/juul2-starter-kit-slate-grey";
-  if (t.includes("terea") || t.includes("heets")) return "/product/iqos-terea-amber-indonesian-uae";
-  if (t.includes("caliburn")) return "/product/uwell-caliburn-g2-pod-system";
-  if (t.includes("juice head")) return "/product/juice-head-blueberry-lemon-100ml";
-  if (t.includes("nasty")) return "/product/nasty-juice-asap-grape-60ml";
-  if (t.includes("crown bar") || t.includes("fakher")) return "/product/al-fakher-crown-bar-8000-shisha";
-  return "/product/kief-king-35000-disposable-vape";
+  if (t.includes("kief king")) return "/product/kief-king-35000-puffs-disposable-vape";
+  if (t.includes("hypermax")) return "/product/al-fakher-hypermax-15k-puffs";
+  if (t.includes("mega max")) return "/product/al-fakher-mega-max-40000-puffs-disposable-vape";
+  if (t.includes("fakher") || t.includes("crown bar")) return "/product/al-fakher-hypermax-15k-puffs";
+  if (t.includes("vozol") && t.includes("35000")) return "/product/vozol-star-35000-puffs-disposable-vape";
+  if (t.includes("vozol")) return "/product/vozol-star-40000-puffs-disposable-vape";
+  if (t.includes("waka") && t.includes("sopro")) return "/product/waka-sopro-20000-puffs-50mg-in-dubai-uae";
+  if (t.includes("waka")) return "/product/waka-blade-50k-puffs-50mg-in-dubai-uae";
+  if (t.includes("elfbar") || t.includes("elf bar")) return "/product/elfbar-bc10000-puffs-disposable-vape";
+  if (t.includes("oxbar")) return "/product/oxbar-tri-fusion-45k-disposable-vape";
+  if (t.includes("mazaya")) return "/product/mazaya-50k-cloud-aura";
+  if (t.includes("nasty")) return "/product/nasty-juice-3mg-freebase-e-liquid-60ml";
+  if (t.includes("vgod")) return "/product/vgod-25-50mg-salt";
+  if (t.includes("starter kit") && t.includes("juul")) return "/product/juul-2-starter-kit";
+  if (t.includes("slate")) return "/product/juul-slate-device";
+  if (t.includes("juul")) return "/product/juul-2-pods";
+  if (t.includes("uzbekistan")) return "/product/iqos-terea-uzbekistan";
+  if (t.includes("terea") || t.includes("heets")) return "/product/terea-indonesia-sticks";
+  if (t.includes("onyx")) return "/product/pod-salt-onyx-cloud-25000-puffs-disposable-vape";
+  if (t.includes("pearl")) return "/product/pod-salt-pearl-pro-10000-puffs-disposable-vape";
+  if (t.includes("pod salt go")) return "/product/pod-salt-go-2500-puffs-disposable-vape";
+  if (t.includes("pod salt")) return "/product/pod-salt-pearl-pro-10000-puffs-disposable-vape";
+  if (t.includes("lost mary")) return "/product/lost-mary-35000-puffs-disposable-vape";
+  if (t.includes("geek bar")) return "/product/geek-bar-50000-puffs-disposable-vape";
+  if (t.includes("hqd")) return "/product/hqd-cuvie-slick-6000-puff-disposable-vape";
+  if (t.includes("tugboat")) return "/product/tugboat-t12000-puffs-disposable-vape";
+  if (t.includes("yuoto")) return "/product/yuoto-xxl-2500-puffs-disposable-vape";
+  return "/collections";
 }
 
 function ProductCard({ prod }: { prod: Product }) {
@@ -385,59 +402,59 @@ function ProductCarousel({
 }
 
 const bestSellingProducts: Product[] = [
-  { title: "Kief King 35000 Puffs 3mg Disposable Vape in UAE", price: "49.00", revs: 57, badge: "VAPOR UAE", img: "/images/cat_vape_kits.png" },
-  { title: "Vozol Star 40000 puff 20mg nicotine vape in UAE", price: "45.00", revs: 55, badge: "BEST SELLER", img: "/images/prod_disposable.png" },
-  { title: "Myle Meta Max 18000 Puff 50mg Disposable Vape in UAE", price: "50.00", revs: 50, badge: "", img: "/images/product-2.png" },
-  { title: "Elf bar JoinOne Ice 25000 Puffs 50mg Pod Kit in UAE", price: "50.00", revs: 54, badge: "7% OFF", img: "/images/prod_pod.png" },
-  { title: "Geekvape Aegis Legend 3 200W Starter Kit", price: "185.00", revs: 42, badge: "POPULAR", img: "/images/cat_vape_kits.png" },
-  { title: "Juice Head Blueberry Lemon 100ml E-Liquid", price: "55.00", revs: 39, badge: "", img: "/images/prod_eliquid.png" },
-  { title: "Vaporesso Luxe XR Max 80W Pod Mod Kit", price: "165.00", revs: 48, badge: "TOP", img: "/images/product-3.png" },
-  { title: "Nasty ModMate Grape & Mixed Berries 60ml", price: "45.00", revs: 62, badge: "", img: "/images/prod_eliquid.png" }
+  { title: "KIEF King 35000 Puffs Disposable Vape", price: "45.00", revs: 57, badge: "VAPOR UAE", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/KIEFKing35000PuffsDisposableVape.webp?v=1781160145" },
+  { title: "Vozol Star 40000 Puffs Disposable Vape", price: "40.00", revs: 55, badge: "BEST SELLER", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/Vozol_Star_40000_Puffs_Disposable_Vape_devices_3_different_flavor.webp?v=1785160523" },
+  { title: "Waka Blade 50K Puffs 50mg in Dubai, UAE", price: "55.00", revs: 50, badge: "", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/WakaBlade50KPuffs50mginDubai_UAE.webp?v=1776947486" },
+  { title: "ELFBAR BC10000 Puffs Disposable Vape 20mg Nicotine/50 mg nicotine", price: "35.00", revs: 54, badge: "7% OFF", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/ELFBAR_BC10000_Puffs_Disposable_Vape_20mg_Nicotine_with_peach_and_mango_slices.jpg?v=1780560836" },
+  { title: "OXBAR Tri Fusion 45K Disposable Vape", price: "45.00", revs: 42, badge: "POPULAR", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/OXBARTriFusion45KDisposableVape.webp?v=1781421347" },
+  { title: "VGOD SaltNic e-liquids 25 mg and 50 mg", price: "30.00", revs: 39, badge: "", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/IcedCherryLime.jpg?v=1753208462" },
+  { title: "Mazaya 50K Cloud Aura", price: "49.00", revs: 48, badge: "TOP", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/Mazaya50KCloudAura.webp?v=1781098994" },
+  { title: "Nasty Juice 3MG Freebase E-Liquid 60ml", price: "30.00", revs: 62, badge: "", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/Nasty_Juice_3mg_e-liquid_bottle_Blackcurrant_Bad_Blood_flavors_device_with_box.jpg?v=1783152654" }
 ];
 
 const tereaHeetsProducts: Product[] = themeData.tereaHeets?.products ?? [
-  { title: "IQOS Terea Amber Selection Indonesian in UAE", price: "125.00", revs: 84, badge: "BEST SELLER", brand: "TEREA INDO", img: "/images/terea_heets.jpg" },
-  { title: "IQOS Terea Bronze Selection Indonesian Sticks", price: "125.00", revs: 67, badge: "POPULAR", brand: "TEREA INDO", img: "/images/terea_heets.jpg" },
-  { title: "IQOS Terea Purple Wave Menthol Heated Sticks", price: "130.00", revs: 92, badge: "COOL", brand: "TEREA INDO", img: "/images/terea_heets.jpg" },
-  { title: "IQOS Terea Sienna Balanced Warm Tobacco", price: "125.00", revs: 48, badge: "", brand: "TEREA ILUMA", img: "/images/terea_heets.jpg" },
-  { title: "IQOS Terea Green Zing Crisp Herbal Menthol", price: "130.00", revs: 53, badge: "FRESH", brand: "TEREA ILUMA", img: "/images/terea_heets.jpg" },
-  { title: "IQOS Heets Bronze Selection Arabic Version", price: "115.00", revs: 76, badge: "CLASSIC", brand: "HEETS DUO", img: "/images/terea_heets.jpg" },
-  { title: "IQOS Heets Amber Selection Smooth Rich Flavor", price: "115.00", revs: 61, badge: "", brand: "HEETS DUO", img: "/images/terea_heets.jpg" },
-  { title: "IQOS Heets Silver Selection Subtle Refined Tobacco", price: "115.00", revs: 39, badge: "", brand: "HEETS DUO", img: "/images/terea_heets.jpg" }
+  { title: "IQOS Terea Amber Selection Indonesian in UAE", price: "100.00", revs: 84, badge: "BEST SELLER", brand: "TEREA INDO", img: "/images/terea_heets.jpg" },
+  { title: "IQOS Terea Bronze Selection Indonesian Sticks", price: "100.00", revs: 67, badge: "POPULAR", brand: "TEREA INDO", img: "/images/terea_heets.jpg" },
+  { title: "IQOS Terea Purple Wave Menthol Heated Sticks", price: "100.00", revs: 92, badge: "COOL", brand: "TEREA INDO", img: "/images/terea_heets.jpg" },
+  { title: "IQOS Terea Sienna Balanced Warm Tobacco", price: "100.00", revs: 48, badge: "", brand: "TEREA ILUMA", img: "/images/terea_heets.jpg" },
+  { title: "IQOS Terea Green Zing Crisp Herbal Menthol", price: "100.00", revs: 53, badge: "FRESH", brand: "TEREA ILUMA", img: "/images/terea_heets.jpg" },
+  { title: "IQOS Heets Bronze Selection Arabic Version", price: "100.00", revs: 76, badge: "CLASSIC", brand: "HEETS DUO", img: "/images/terea_heets.jpg" },
+  { title: "IQOS Heets Amber Selection Smooth Rich Flavor", price: "100.00", revs: 61, badge: "", brand: "HEETS DUO", img: "/images/terea_heets.jpg" },
+  { title: "IQOS Heets Silver Selection Subtle Refined Tobacco", price: "100.00", revs: 39, badge: "", brand: "HEETS DUO", img: "/images/terea_heets.jpg" }
 ];
 
 const juulProductsList: Product[] = themeData.juulProducts?.products ?? [
-  { title: "JUUL 2 Starter Kit with Slate Grey Device & 2 Pods", price: "145.00", revs: 110, badge: "STARTER KIT", brand: "JUUL OFFICIAL", img: "/images/juul_product.jpg" },
-  { title: "JUUL 2 Device with USB Magnetic Charging Dock", price: "95.00", revs: 88, badge: "DEVICE ONLY", brand: "JUUL OFFICIAL", img: "/images/juul_product.jpg" },
-  { title: "JUUL 2 Virginia Tobacco Pods 18mg (Pack of 2)", price: "45.00", revs: 142, badge: "TOP RATED", brand: "JUUL2 PODS", img: "/images/juul_product.jpg" },
-  { title: "JUUL 2 Crisp Menthol Pods 18mg Nicotine 2-Pack", price: "45.00", revs: 96, badge: "ICE", brand: "JUUL2 PODS", img: "/images/juul_product.jpg" },
-  { title: "JUUL 2 Polar Menthol Pods 18mg Extra Fresh", price: "45.00", revs: 74, badge: "POPULAR", brand: "JUUL2 PODS", img: "/images/juul_product.jpg" },
-  { title: "JUUL 2 Ruby Menthol Wild Berry Pods 2-Pack", price: "48.00", revs: 81, badge: "NEW", brand: "JUUL2 PODS", img: "/images/juul_product.jpg" },
-  { title: "JUUL 2 Autumn Tobacco Rich Blend Pods 2-Pack", price: "45.00", revs: 58, badge: "", brand: "JUUL2 PODS", img: "/images/juul_product.jpg" },
-  { title: "JUUL USB Magnetic Rapid Charging Cable", price: "35.00", revs: 43, badge: "ACCESSORY", brand: "JUUL GEAR", img: "/images/juul_product.jpg" }
+  { title: "JUUL 2 Starter Kit with Slate Grey Device & 2 Pods", price: "90.00", revs: 110, badge: "STARTER KIT", brand: "JUUL OFFICIAL", img: "/images/juul_product.jpg" },
+  { title: "JUUL 2 Device with USB Magnetic Charging Dock", price: "80.00", revs: 88, badge: "DEVICE ONLY", brand: "JUUL OFFICIAL", img: "/images/juul_product.jpg" },
+  { title: "JUUL 2 Virginia Tobacco Pods 18mg (Pack of 2)", price: "65.00", revs: 142, badge: "TOP RATED", brand: "JUUL2 PODS", img: "/images/juul_product.jpg" },
+  { title: "JUUL 2 Crisp Menthol Pods 18mg Nicotine 2-Pack", price: "65.00", revs: 96, badge: "ICE", brand: "JUUL2 PODS", img: "/images/juul_product.jpg" },
+  { title: "JUUL 2 Polar Menthol Pods 18mg Extra Fresh", price: "65.00", revs: 74, badge: "POPULAR", brand: "JUUL2 PODS", img: "/images/juul_product.jpg" },
+  { title: "JUUL 2 Ruby Menthol Wild Berry Pods 2-Pack", price: "65.00", revs: 81, badge: "NEW", brand: "JUUL2 PODS", img: "/images/juul_product.jpg" },
+  { title: "JUUL 2 Autumn Tobacco Rich Blend Pods 2-Pack", price: "65.00", revs: 58, badge: "", brand: "JUUL2 PODS", img: "/images/juul_product.jpg" },
+  { title: "JUUL 2 Tropical Medley Pods 18mg (Pack of 2)", price: "65.00", revs: 43, badge: "NEW", brand: "JUUL2 PODS", img: "/images/juul_product.jpg" }
 ];
 
 
 const newArrivalsProducts: Product[] = [
-  { title: "Lost Mary OS5000 Disposable Pod Device", price: "35.00", revs: 12, badge: "NEW", img: "/images/cat_vape_kits.png" },
-  { title: "Geek Bar Pulse 15000 Puffs Disposable", price: "55.00", revs: 18, badge: "NEW", img: "/images/prod_disposable.png" },
-  { title: "Vaporesso XROS 3 Mini Pod Kit", price: "110.00", revs: 22, badge: "", img: "/images/product-3.png" },
-  { title: "Nasty Juice Cush Man 60ml E-Liquid", price: "45.00", revs: 41, badge: "", img: "/images/prod_eliquid.png" },
-  { title: "OXVA Xlim Pro 2 Pod System Kit 30W", price: "125.00", revs: 15, badge: "NEW", img: "/images/prod_pod.png" },
-  { title: "Waka soPro PA10000 Dual Mesh Disposable", price: "48.00", revs: 29, badge: "NEW", img: "/images/product-1.png" },
-  { title: "Voopoo Drag S2 Pod Kit 60W Vape Device", price: "145.00", revs: 31, badge: "NEW", img: "/images/product-2.png" },
-  { title: "Loaded Glazed Donuts 120ml Premium E-Juice", price: "65.00", revs: 24, badge: "NEW", img: "/images/prod_eliquid.png" }
+  { title: "Lost Mary 35000 Puffs Disposable Vape", price: "40.00", revs: 12, badge: "NEW", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/LostMary35KAll.jpg?v=1751907873" },
+  { title: "Geek Bar 50000 Puffs Disposable Vape", price: "45.00", revs: 18, badge: "NEW", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/GeekBar50000PuffsDisposableVape.webp?v=1781109060" },
+  { title: "HQD Cuvie Slick 6000 Puff Disposable Vape", price: "45.00", revs: 22, badge: "", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/HQD6kPuffsStrawberryBanana.jpg?v=1751791607" },
+  { title: "Pod Salt Go 2500 Puffs Disposable Vape", price: "30.00", revs: 41, badge: "", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/Pod_Salt_Go_2500_Puffs_Disposable_Vape_Banana_Ice.jpg?v=1783234943" },
+  { title: "Tugboat T12000 Puffs Disposable Vape 50MG Rechargeable", price: "35.00", revs: 15, badge: "NEW", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/Tugboat_T12000_Puffs_Disposable_Vape_50mg_salt_nicotine_Black_Ice_Flavor.jpg?v=1778391844" },
+  { title: "Waka SoPro 20000 Puffs 50mg in Dubai, UAE", price: "50.00", revs: 29, badge: "NEW", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/WakaSoPro20000Puffs50mginDubai_UAE.webp?v=1776946302" },
+  { title: "Pod Salt Onyx Cloud 25000 Puffs Disposable Vape", price: "40.00", revs: 31, badge: "NEW", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/Pod_Salt_Onyx_Cloud_25000_Puffs_Disposable_Vape_Blue_Mist_Flavor.jpg?v=1781358608" },
+  { title: "Pod Salt Pearl Pro 10000 Puffs Disposable Vape", price: "35.00", revs: 24, badge: "NEW", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/Pod_Salt_Pearl_Pro_10000_Puffs_Disposable_Vape_device_Berry_Menthol_flavor.jpg?v=1781355904" }
 ];
 
 const mostPopularProducts: Product[] = [
-  { title: "Smok Nord 4 80W Pod Kit", price: "120.00", revs: 85, badge: "HOT", img: "/images/product-1.png" },
-  { title: "Juice Head Blueberry Lemon 100ml", price: "55.00", revs: 43, badge: "", img: "/images/prod_eliquid.png" },
-  { title: "Uwell Caliburn G2 Pod System", price: "95.00", revs: 112, badge: "HOT", img: "/images/prod_pod.png" },
-  { title: "Dinner Lady Lemon Tart 60ml", price: "50.00", revs: 67, badge: "", img: "/images/product-2.png" },
-  { title: "Vozol Gear 10000 Puffs Disposable Vape", price: "42.00", revs: 76, badge: "TRENDING", img: "/images/prod_disposable.png" },
-  { title: "Al Fakher Crown Bar 8000 Puffs DTL", price: "40.00", revs: 91, badge: "HOT", img: "/images/cat_vape_kits.png" },
-  { title: "Geekvape Wenax K1 Pod System 16W", price: "75.00", revs: 98, badge: "HOT", img: "/images/product-3.png" },
-  { title: "Tokyo Iced Mango 30ml Saltnic Premium E-Liquid", price: "45.00", revs: 88, badge: "POPULAR", img: "/images/prod_disposable.png" }
+  { title: "Yuoto XXL 2500 Puffs Disposable Vape", price: "20.00", revs: 85, badge: "HOT", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/117e2871-5a8f-42ab-a108-21939a2e6bc8.jpg?v=1750872314" },
+  { title: "IQOS TEREA Uzbekistan", price: "110.00", revs: 43, badge: "", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/IQOS_TEREA_Uzbekistan_Twilight_Pearl_flavor_pack.png?v=1784621433" },
+  { title: "JUUL 2 Starter Kit", price: "90.00", revs: 112, badge: "HOT", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/Juul_2_Starter_Kit_packaging_with_device_and_USB_cable.jpg?v=1786199894" },
+  { title: "Nasty Juice 3MG Freebase E-Liquid 60ml", price: "30.00", revs: 67, badge: "", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/Nasty_Juice_3mg_e-liquid_bottle_Blackcurrant_Bad_Blood_flavors_device_with_box.jpg?v=1783152654" },
+  { title: "Vozol Star 35000 Puffs Disposable Vape", price: "45.00", revs: 76, badge: "TRENDING", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/Vozol_Star_35000_Puffs_Disposable_Vape_Appricot_Watermelon_Ice_Flavor.jpg?v=1789477966" },
+  { title: "AL Fakher Hypermax 15k Puffs", price: "50.00", revs: 91, badge: "HOT", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/ALFakherHypermax15kPuffs.webp?v=1781161964" },
+  { title: "Al Fakher Mega Max 40000 Puffs Disposable Vape", price: "50.00", revs: 98, badge: "HOT", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/AlFakherMegaMax40000PuffsDisposableVape.webp?v=1781161097" },
+  { title: "Geek Bar 50000 Puffs Disposable Vape", price: "45.00", revs: 88, badge: "POPULAR", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/GeekBar50000PuffsDisposableVape.webp?v=1781109060" }
 ];
 
 interface MatchedFlavorProduct {
@@ -490,8 +507,8 @@ const flavorsData: FlavorItem[] = [
     ratio: "70 VG / 30 PG",
     family: "berries",
     matchedProducts: [
-      { title: "Tokyo Iced Strawberry 30ml Saltnic", price: "45.00", rating: 4.9, revs: 88, img: "/images/prod_eliquid.png", badge: "TOP SELLER" },
-      { title: "Vozol Gear 10000 Strawberry Kiwi", price: "42.00", rating: 4.8, revs: 76, img: "/images/prod_disposable.png", badge: "TRENDING" }
+      { title: "VGOD SaltNic e-liquids 25 mg and 50 mg", price: "30.00", rating: 4.9, revs: 88, badge: "TOP SELLER", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/IcedCherryLime.jpg?v=1753208462" },
+      { title: "Vozol Star 35000 Puffs Disposable Vape", price: "45.00", rating: 4.8, revs: 76, badge: "TRENDING", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/Vozol_Star_35000_Puffs_Disposable_Vape_Appricot_Watermelon_Ice_Flavor.jpg?v=1789477966" }
     ]
   },
   {
@@ -513,8 +530,8 @@ const flavorsData: FlavorItem[] = [
     ratio: "70 VG / 30 PG",
     family: "berries",
     matchedProducts: [
-      { title: "Juice Head Watermelon Lime 100ml", price: "55.00", rating: 4.9, revs: 94, img: "/images/prod_eliquid.png", badge: "BEST SELLER" },
-      { title: "Al Fakher Crown Bar 8000 Watermelon Ice", price: "40.00", rating: 5.0, revs: 112, img: "/images/cat_vape_kits.png", badge: "HOT" }
+      { title: "Pod Salt Onyx Cloud 25000 Puffs Disposable Vape", price: "40.00", rating: 4.9, revs: 94, badge: "BEST SELLER", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/Pod_Salt_Onyx_Cloud_25000_Puffs_Disposable_Vape_Blue_Mist_Flavor.jpg?v=1781358608" },
+      { title: "Waka Blade 50K Puffs 50mg in Dubai, UAE", price: "55.00", rating: 5.0, revs: 112, badge: "HOT", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/WakaBlade50KPuffs50mginDubai_UAE.webp?v=1776947486" }
     ]
   },
   {
@@ -536,8 +553,8 @@ const flavorsData: FlavorItem[] = [
     ratio: "50 VG / 50 PG",
     family: "menthol",
     matchedProducts: [
-      { title: "Mighty Mint Saltnic 30ml Arctic Edition", price: "45.00", rating: 4.9, revs: 83, img: "/images/prod_eliquid.png", badge: "ARCTIC" },
-      { title: "Uwell Caliburn G2 Pod System Starter Kit", price: "95.00", rating: 4.9, revs: 112, img: "/images/prod_pod.png", badge: "RECOMMENDED" }
+      { title: "Nasty Juice 3MG Freebase E-Liquid 60ml", price: "30.00", rating: 4.9, revs: 83, badge: "ARCTIC", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/Nasty_Juice_3mg_e-liquid_bottle_Blackcurrant_Bad_Blood_flavors_device_with_box.jpg?v=1783152654" },
+      { title: "JUUL Slate Device", price: "80.00", rating: 4.9, revs: 112, badge: "RECOMMENDED", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/IMG_3894JUUL_Slate_device_and_packaging.jpg?v=1786259181" }
     ]
   },
   {
@@ -559,8 +576,8 @@ const flavorsData: FlavorItem[] = [
     ratio: "70 VG / 30 PG",
     family: "berries",
     matchedProducts: [
-      { title: "Tokyo Iced Peach 30ml Premium Saltnic", price: "45.00", rating: 4.8, revs: 64, img: "/images/prod_eliquid.png", badge: "NEW" },
-      { title: "Vozol Gear 10000 Juicy Peach Burst", price: "42.00", rating: 4.8, revs: 71, img: "/images/prod_disposable.png", badge: "POPULAR" }
+      { title: "Pod Salt Pearl Pro 10000 Puffs Disposable Vape", price: "35.00", rating: 4.8, revs: 64, badge: "NEW", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/Pod_Salt_Pearl_Pro_10000_Puffs_Disposable_Vape_device_Berry_Menthol_flavor.jpg?v=1781355904" },
+      { title: "Vozol Star 40000 Puffs Disposable Vape", price: "40.00", rating: 4.8, revs: 71, badge: "POPULAR", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/Vozol_Star_40000_Puffs_Disposable_Vape_devices_3_different_flavor.webp?v=1785160523" }
     ]
   },
   {
@@ -582,8 +599,8 @@ const flavorsData: FlavorItem[] = [
     ratio: "70 VG / 30 PG",
     family: "berries",
     matchedProducts: [
-      { title: "Nasty Juice ASAP Grape 60ml High VG", price: "48.00", rating: 4.9, revs: 91, img: "/images/prod_eliquid.png", badge: "CLASSIC" },
-      { title: "Al Fakher Crown Bar Grape Mint 8000", price: "40.00", rating: 4.9, revs: 85, img: "/images/cat_vape_kits.png", badge: "HOT" }
+      { title: "Pod Salt Go 2500 Puffs Disposable Vape", price: "30.00", rating: 4.9, revs: 91, badge: "CLASSIC", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/Pod_Salt_Go_2500_Puffs_Disposable_Vape_Banana_Ice.jpg?v=1783234943" },
+      { title: "AL Fakher Hypermax 15k Puffs", price: "50.00", rating: 4.9, revs: 85, badge: "HOT", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/ALFakherHypermax15kPuffs.webp?v=1781161964" }
     ]
   },
   {
@@ -605,8 +622,8 @@ const flavorsData: FlavorItem[] = [
     ratio: "70 VG / 30 PG",
     family: "menthol",
     matchedProducts: [
-      { title: "Juice Head Blueberry Lemon 100ml", price: "55.00", rating: 4.9, revs: 79, img: "/images/prod_eliquid.png", badge: "TOP RATED" },
-      { title: "Geekvape Wenax K1 Pod Kit 16W", price: "75.00", rating: 4.8, revs: 98, img: "/images/product-3.png", badge: "HOT" }
+      { title: "Yuoto XXL 2500 Puffs Disposable Vape", price: "20.00", rating: 4.9, revs: 79, badge: "TOP RATED", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/117e2871-5a8f-42ab-a108-21939a2e6bc8.jpg?v=1750872314" },
+      { title: "Geek Bar 50000 Puffs Disposable Vape", price: "45.00", rating: 4.8, revs: 98, badge: "HOT", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/GeekBar50000PuffsDisposableVape.webp?v=1781109060" }
     ]
   },
   {
@@ -628,8 +645,8 @@ const flavorsData: FlavorItem[] = [
     ratio: "70 VG / 30 PG",
     family: "tropical",
     matchedProducts: [
-      { title: "Tokyo Iced Pineapple 30ml Island", price: "45.00", rating: 4.9, revs: 58, img: "/images/prod_eliquid.png", badge: "EXOTIC" },
-      { title: "Vozol Gear 10000 Pineapple Mango", price: "42.00", rating: 4.7, revs: 63, img: "/images/prod_disposable.png", badge: "POPULAR" }
+      { title: "HQD Cuvie Slick 6000 Puff Disposable Vape", price: "45.00", rating: 4.9, revs: 58, badge: "EXOTIC", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/HQD6kPuffsStrawberryBanana.jpg?v=1751791607" },
+      { title: "Mazaya 50K Cloud Aura", price: "49.00", rating: 4.7, revs: 63, badge: "POPULAR", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/Mazaya50KCloudAura.webp?v=1781098994" }
     ]
   },
   {
@@ -651,8 +668,8 @@ const flavorsData: FlavorItem[] = [
     ratio: "50 VG / 50 PG",
     family: "tropical",
     matchedProducts: [
-      { title: "Skwezed Iced Lychee 30ml Saltnic", price: "46.00", rating: 4.9, revs: 52, img: "/images/prod_eliquid.png", badge: "RARE GOURMET" },
-      { title: "Uwell Caliburn G2 Pod System Kit", price: "95.00", rating: 4.9, revs: 112, img: "/images/prod_pod.png", badge: "POPULAR" }
+      { title: "Lost Mary 35000 Puffs Disposable Vape", price: "40.00", rating: 4.9, revs: 52, badge: "RARE GOURMET", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/LostMary35KAll.jpg?v=1751907873" },
+      { title: "JUUL 2 Starter Kit", price: "90.00", rating: 4.9, revs: 112, badge: "POPULAR", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/Juul_2_Starter_Kit_packaging_with_device_and_USB_cable.jpg?v=1786199894" }
     ]
   },
   {
@@ -674,8 +691,8 @@ const flavorsData: FlavorItem[] = [
     ratio: "70 VG / 30 PG",
     family: "berries",
     matchedProducts: [
-      { title: "Vampire Vape Pinkman Forest Berries 60ml", price: "48.00", rating: 4.9, revs: 92, img: "/images/prod_eliquid.png", badge: "FAVORITE" },
-      { title: "Al Fakher Crown Bar Mixed Berries 8000", price: "40.00", rating: 4.8, revs: 84, img: "/images/cat_vape_kits.png", badge: "HOT" }
+      { title: "Waka SoPro 20000 Puffs 50mg in Dubai, UAE", price: "50.00", rating: 4.9, revs: 92, badge: "FAVORITE", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/WakaSoPro20000Puffs50mginDubai_UAE.webp?v=1776946302" },
+      { title: "Al Fakher Mega Max 40000 Puffs Disposable Vape", price: "50.00", rating: 4.8, revs: 84, badge: "HOT", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/AlFakherMegaMax40000PuffsDisposableVape.webp?v=1781161097" }
     ]
   },
   {
@@ -697,8 +714,8 @@ const flavorsData: FlavorItem[] = [
     ratio: "80 VG / 20 PG",
     family: "dessert",
     matchedProducts: [
-      { title: "Dinner Lady Vanilla Custard Tart 60ml", price: "50.00", rating: 5.0, revs: 67, img: "/images/product-2.png", badge: "AWARD WINNER" },
-      { title: "Geekvape Wenax K1 Luxury Pod Kit", price: "75.00", rating: 4.8, revs: 98, img: "/images/product-3.png", badge: "RESERVE" }
+      { title: "Tugboat T12000 Puffs Disposable Vape 50MG Rechargeable", price: "35.00", rating: 5.0, revs: 67, badge: "AWARD WINNER", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/Tugboat_T12000_Puffs_Disposable_Vape_50mg_salt_nicotine_Black_Ice_Flavor.jpg?v=1778391844" },
+      { title: "OXBAR Tri Fusion 45K Disposable Vape", price: "45.00", rating: 4.8, revs: 98, badge: "RESERVE", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/OXBARTriFusion45KDisposableVape.webp?v=1781421347" }
     ]
   },
   {
@@ -720,8 +737,8 @@ const flavorsData: FlavorItem[] = [
     ratio: "70 VG / 30 PG",
     family: "tropical",
     matchedProducts: [
-      { title: "Tokyo Iced Citrus Orange Soda 30ml", price: "45.00", rating: 4.8, revs: 55, img: "/images/prod_eliquid.png", badge: "REFRESHING" },
-      { title: "Vozol Gear 10000 Tangerine Blast", price: "42.00", rating: 4.7, revs: 49, img: "/images/prod_disposable.png", badge: "POPULAR" }
+      { title: "ELFBAR BC10000 Puffs Disposable Vape 20mg Nicotine/50 mg nicotine", price: "35.00", rating: 4.8, revs: 55, badge: "REFRESHING", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/ELFBAR_BC10000_Puffs_Disposable_Vape_20mg_Nicotine_with_peach_and_mango_slices.jpg?v=1780560836" },
+      { title: "Vozol Star 35000 Puffs Disposable Vape", price: "45.00", rating: 4.7, revs: 49, badge: "POPULAR", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/Vozol_Star_35000_Puffs_Disposable_Vape_Appricot_Watermelon_Ice_Flavor.jpg?v=1789477966" }
     ]
   },
   {
@@ -743,8 +760,8 @@ const flavorsData: FlavorItem[] = [
     ratio: "80 VG / 20 PG",
     family: "dessert",
     matchedProducts: [
-      { title: "Dinner Lady Caramel Cheesecake 60ml", price: "50.00", rating: 4.9, revs: 43, img: "/images/product-2.png", badge: "GOURMET" },
-      { title: "Uwell Caliburn G2 Pod System", price: "95.00", rating: 4.9, revs: 112, img: "/images/prod_pod.png", badge: "POPULAR" }
+      { title: "VGOD SaltNic e-liquids 25 mg and 50 mg", price: "30.00", rating: 4.9, revs: 43, badge: "GOURMET", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/IcedCherryLime.jpg?v=1753208462" },
+      { title: "JUUL Slate Device", price: "80.00", rating: 4.9, revs: 112, badge: "POPULAR", img: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/IMG_3894JUUL_Slate_device_and_packaging.jpg?v=1786259181" }
     ]
   }
 ];
@@ -764,58 +781,58 @@ interface BlogPost {
 const blogPostsData: BlogPost[] = [
   {
     id: 1,
-    title: "The Ultimate Guide to Selecting Your First Vape Kit",
-    category: "STARTER GUIDE",
-    readTime: "5 min read",
-    date: "Oct 24, 2026",
-    excerpt: "Starting your vaping journey can be overwhelming. Learn how to choose the perfect starter kit that suits your lifestyle.",
+    title: "Disposable vs Pod System: Which Is Right for You?",
+    category: "BUYING GUIDES",
+    readTime: "6 min read",
+    date: "October 12, 2026",
+    excerpt: "Torn between a grab-and-go disposable and a refillable pod system? We break down cost, flavour, convenience and who each one suits best in the UAE.",
     image: "/images/blog_1.png",
     badgeBg: "bg-emerald-600 text-white",
-    author: "Alex Morgan"
+    author: "Vape Mart Team"
   },
   {
     id: 2,
-    title: "Top 5 Disposable Vapes of 2026: Flavor & Longevity",
-    category: "DEVICE REVIEWS",
-    readTime: "4 min read",
-    date: "Oct 18, 2026",
-    excerpt: "We put the newest disposable vapes to the test. Discover which devices offer the best flavor consistency and puff count.",
+    title: "Best Disposable Vapes in UAE 2026: Top Picks and Buying Guide",
+    category: "BUYING GUIDES",
+    readTime: "8 min read",
+    date: "October 18, 2026",
+    excerpt: "We tested the best-selling disposables in the Emirates for flavour, puff count, battery life and value. Here are our top 5 picks for 2026, plus how to choose and how to spot fakes.",
     image: "/images/blog_2.png",
     badgeBg: "bg-amber-600 text-white",
-    author: "Elena Rostova"
+    author: "Vape Mart Team"
   },
   {
     id: 3,
-    title: "Understanding E-Liquid Ratios: PG vs VG Explained",
-    category: "E-LIQUID SCIENCE",
-    readTime: "6 min read",
-    date: "Oct 12, 2026",
-    excerpt: "Confused about Propylene Glycol and Vegetable Glycerin? We break down the differences and how they affect your vape.",
+    title: "How to Spot Fake Vapes in the UAE (5 Checks)",
+    category: "SAFETY",
+    readTime: "5 min read",
+    date: "October 8, 2026",
+    excerpt: "Counterfeit vapes are everywhere in the Emirates. Learn the five quick checks our team uses to verify every product before it reaches your hands.",
     image: "/images/blog_3.png",
     badgeBg: "bg-blue-600 text-white",
-    author: "Dr. K. Vance"
+    author: "Vape Mart Team"
   },
   {
     id: 4,
-    title: "IQOS ILUMA vs Traditional Vaping: The Complete UAE Comparison",
-    category: "HEATED TOBACCO",
+    title: "Nicotine Strength Guide: 20mg vs 50mg Explained",
+    category: "EDUCATION",
     readTime: "7 min read",
-    date: "Oct 05, 2026",
-    excerpt: "An in-depth breakdown of TEREA smartcore induction sticks vs standard pod systems for adult smokers in Dubai and UAE.",
+    date: "October 3, 2026",
+    excerpt: "Confused by 2% vs 5%, 20mg vs 50mg? This plain-English guide explains nicotine salts, what each strength feels like, and how to pick yours.",
     image: "/images/hero_slide_1.jpg",
     badgeBg: "bg-purple-600 text-white",
-    author: "Tariq Al-Mansoor"
+    author: "Vape Mart Team"
   },
   {
     id: 5,
-    title: "Nicotine Salt vs Freebase: Which Delivers Better Satisfaction?",
-    category: "INSIGHTS",
-    readTime: "5 min read",
-    date: "Sep 28, 2026",
-    excerpt: "Explore the smoother absorption and instant satisfaction of saltnic formulations compared to standard freebase nicotine blends.",
+    title: "UAE Vape Laws in 2026: What Every Vaper Must Know",
+    category: "REGULATIONS",
+    readTime: "8 min read",
+    date: "September 14, 2026",
+    excerpt: "Age limits, where you can vape, import rules, and ESMA certification — the essential legal guide for vapers in the Emirates.",
     image: "/images/hero_slide_3.jpg",
     badgeBg: "bg-rose-600 text-white",
-    author: "Sarah Jenkins"
+    author: "Vape Mart Team"
   }
 ];
 
@@ -1196,12 +1213,12 @@ export default function Home() {
             variants={staggerContainer}
           >
             {[
-              { title: "Vape Kits", subtitle: "BEST SELLERS", num: "01", img: "/images/cat_vape_kits.png", color: "from-blue-900/80 to-black/90", tag: "POPULAR" },
+              { title: "JUUL", subtitle: "PODS & DEVICES", num: "01", img: "/images/juul_product.jpg", color: "from-blue-900/80 to-black/90", tag: "POPULAR" },
               { title: "Disposables", subtitle: "NEW ARRIVALS", num: "02", img: "/images/cat_disposables.png", color: "from-emerald-900/80 to-black/90", tag: "TRENDING" },
               { title: "E-Liquids", subtitle: "TOP RATED", num: "03", img: "/images/vape_hero_sky.png", color: "from-amber-900/80 to-black/90", tag: "HOT" },
-              { title: "Pod Systems", subtitle: "COMPACT & SLEEK", num: "04", img: "/images/prod_pod.png", color: "from-purple-900/80 to-black/90", tag: "FEATURED" },
-              { title: "Nicotine Pouches", subtitle: "ALL DAY FRESH", num: "05", img: "/images/prod_disposable.png", color: "from-teal-900/80 to-black/90", tag: "NEW" },
-              { title: "Accessories & Coils", subtitle: "ESSENTIAL GEAR", num: "06", img: "/images/product-2.png", color: "from-rose-900/80 to-black/90", tag: "SUPPLIES" },
+              { title: "TEREA", subtitle: "HEATED TOBACCO", num: "04", img: "/images/terea_heets.jpg", color: "from-purple-900/80 to-black/90", tag: "FEATURED" },
+              { title: "IQOS", subtitle: "ILUMA DEVICES", num: "05", img: "/images/prod_pod.png", color: "from-teal-900/80 to-black/90", tag: "NEW" },
+              { title: "Shop All", subtitle: "FULL COLLECTION", num: "06", img: "/images/cat_disposables.png", color: "from-rose-900/80 to-black/90", tag: "EXPLORE" },
             ].map((cat, idx) => (
               <motion.div
                 key={idx}
@@ -1345,12 +1362,12 @@ export default function Home() {
             <div className="fb-right">
               <motion.div className="fb-grid" variants={staggerContainer}>
                 {[
-                  { title: "Al Fakher crown bar ultra 25000 puff 5mg in UAE", price: "45.00", oldPrice: "50.00", discount: "10% OFF" },
-                  { title: "Al Fakher 30mg Salt Nicotine E Liquid 30ml in UAE", price: "35.00", oldPrice: "45.00", discount: "22% OFF" },
-                  { title: "Al Fakher Crown Bar E Hose X 60000 puff 6mg vape", price: "55.00", oldPrice: "", discount: "15% OFF" },
-                  { title: "Elf bar Ice King Pro 40k Puffs 50mg Disposable", price: "48.00", oldPrice: "50.00", discount: "4% OFF" },
-                  { title: "Elf bar Raya D3 25k Puffs Disposable Vape 50mg", price: "45.00", oldPrice: "50.00", discount: "10% OFF" },
-                  { title: "Waka Blade 50000 puffs 50mg Nicotine Adjustable", price: "50.00", oldPrice: "55.00", discount: "9% OFF" },
+                  { title: "AL Fakher Hypermax 15k Puffs", price: "50.00", oldPrice: "", discount: "" },
+                  { title: "Al Fakher Mega Max 40000 Puffs Disposable Vape", price: "50.00", oldPrice: "", discount: "" },
+                  { title: "Waka Blade 50K Puffs 50mg in Dubai, UAE", price: "55.00", oldPrice: "", discount: "" },
+                  { title: "ELFBAR BC10000 Puffs Disposable Vape", price: "35.00", oldPrice: "", discount: "" },
+                  { title: "Waka SoPro 20000 Puffs 50mg in Dubai, UAE", price: "50.00", oldPrice: "", discount: "" },
+                  { title: "KIEF King 35000 Puffs Disposable Vape", price: "45.00", oldPrice: "", discount: "" },
                 ].map((prod, idx) => (
                   <motion.div
                     className="fb-product-card"
