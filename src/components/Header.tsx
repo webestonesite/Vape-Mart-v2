@@ -110,7 +110,12 @@ export function Header({ onCartClick, cartCount = 0 }: HeaderProps) {
       .then((res) => res.json())
       .then((resData) => {
         if (resData?.data?.header) {
-          setHeaderData(resData.data.header);
+          // The nav always comes from the Shopify menu (or the baked-in copy
+          // of it). The theme payload must never overwrite navItems, or the
+          // header races between two different menus on every page load.
+          setHeaderData((prev) =>
+            prev ? { ...resData.data.header, navItems: prev.navItems } : resData.data.header
+          );
         }
       })
       .catch(() => {});
@@ -212,12 +217,6 @@ export function Header({ onCartClick, cartCount = 0 }: HeaderProps) {
                 {lnk.label}
               </a>
             ))}
-            <a
-              href="/admin"
-              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold hover:bg-emerald-500/30 transition-colors no-underline"
-            >
-              Admin Panel
-            </a>
           </div>
         </div>
       )}

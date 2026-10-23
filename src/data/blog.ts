@@ -23,7 +23,7 @@ export const blogPosts: BlogPost[] = [
     readTime: "6 min read",
     quickAnswer: "Daily vapers save money with a pod system; occasional vapers and beginners should start with a disposable for zero-maintenance convenience.",
     tags: ["disposable vape", "pod system", "buying guide", "UAE"],
-    productSlugs: ["kief-king-35000-disposable-vape", "vozol-star-40000-nicotine-vape", "juul2-starter-kit-slate-grey", "uwell-caliburn-g2-pod-system"],
+    productSlugs: ["kief-king-35000-puffs-disposable-vape", "vozol-star-40000-puffs-disposable-vape", "juul-2-starter-kit", "juul-slate-device"],
     content: [
       "Walk into any vape shop in Dubai and you will face the same question every vaper asks sooner or later: disposable or pod system? Both get the job done, but they serve very different kinds of vapers. Here is the honest breakdown.",
       "Disposables win on simplicity. There is nothing to charge, nothing to fill, nothing to learn. You open the pack, you vape, and when it is done you replace it. For travellers, occasional vapers, or anyone trying vaping for the first time, that zero-effort experience is hard to beat. Modern disposables now stretch to tens of thousands of puffs, so a single device can last weeks.",
@@ -42,7 +42,7 @@ export const blogPosts: BlogPost[] = [
     readTime: "5 min read",
     quickAnswer: "Check the seal, print quality, scratch-and-verify code, price, and seller reputation — fakes usually fail at least two of these five checks.",
     tags: ["fake vapes", "authenticity", "safety", "UAE"],
-    productSlugs: ["kief-king-35000-disposable-vape", "elf-bar-joinone-25000-pod-kit", "iqos-terea-amber-indonesian-uae", "al-fakher-crown-bar-8000-shisha"],
+    productSlugs: ["kief-king-35000-puffs-disposable-vape", "elfbar-bc10000-puffs-disposable-vape", "terea-indonesia-sticks", "al-fakher-hypermax-15k-puffs"],
     content: [
       "The UAE's vape market has a counterfeit problem. Fake devices look convincing on the shelf, but inside they carry mislabelled nicotine, unknown e-liquid, and batteries with no safety testing. Here are the five checks we run on every batch.",
       "First, the seal. Original products arrive factory-sealed with tight, even shrink wrap. Loose, wrinkled, or re-glued packaging is the most common giveaway.",
@@ -62,7 +62,7 @@ export const blogPosts: BlogPost[] = [
     readTime: "7 min read",
     quickAnswer: "20mg (2%) is the UAE standard and suits most vapers; 50mg (5%) hits harder for heavy ex-smokers. Start at 20mg and step up only if needed.",
     tags: ["nicotine strength", "nic salts", "20mg", "50mg"],
-    productSlugs: ["myle-meta-max-18000-disposable", "juice-head-blueberry-lemon-100ml", "nasty-juice-asap-grape-60ml", "vozol-star-40000-nicotine-vape"],
+    productSlugs: ["waka-blade-50k-puffs-50mg-in-dubai-uae", "vgod-25-50mg-salt", "nasty-juice-3mg-freebase-e-liquid-60ml", "vozol-star-40000-puffs-disposable-vape"],
     content: [
       "Nicotine labels look like maths homework: 20mg, 50mg, 2%, 5%. Here is what they actually mean for your vape.",
       "The percentage and the milligrams describe the same thing. 20mg/ml equals 2% nicotine, and 50mg/ml equals 5%. In the UAE, 20mg (2%) is the standard strength you will see on most shelves, in line with local regulations.",
@@ -82,7 +82,7 @@ export const blogPosts: BlogPost[] = [
     readTime: "5 min read",
     quickAnswer: "Use the right charger, never charge overnight on soft surfaces, keep devices away from heat, and bin any swollen or damaged battery immediately.",
     tags: ["battery safety", "charging", "safety tips"],
-    productSlugs: ["juul2-starter-kit-slate-grey", "uwell-caliburn-g2-pod-system", "kief-king-35000-disposable-vape", "elf-bar-joinone-25000-pod-kit"],
+    productSlugs: ["juul-2-starter-kit", "juul-slate-device", "kief-king-35000-puffs-disposable-vape", "elfbar-bc10000-puffs-disposable-vape"],
     content: [
       "Lithium batteries are safe when treated properly and dangerous when they are not. Nearly every vape battery incident we have ever heard about traces back to one of these mistakes.",
       "Use the right charger. For USB-C devices, a standard 5V phone charger is fine; avoid cheap fast chargers that push more current than the device expects. For pod systems with docks, use the dock that came in the box.",
@@ -103,7 +103,7 @@ export const blogPosts: BlogPost[] = [
     readTime: "6 min read",
     quickAnswer: "Start with tobacco or menthol for familiarity, avoid dessert flavours on day one, and explore fruit flavours after two to four weeks.",
     tags: ["flavours", "ex-smokers", "switching", "buying guide"],
-    productSlugs: ["juul2-starter-kit-slate-grey", "myle-meta-max-18000-disposable", "juice-head-blueberry-lemon-100ml", "elf-bar-joinone-25000-pod-kit"],
+    productSlugs: ["juul-2-starter-kit", "waka-blade-50k-puffs-50mg-in-dubai-uae", "vgod-25-50mg-salt", "elfbar-bc10000-puffs-disposable-vape"],
     content: [
       "The number one reason smokers go back to cigarettes after trying vaping is simple: they picked the wrong flavour first. Here is how to get it right.",
       "Start with tobacco or menthol. It sounds boring, but familiarity is the point. Your brain associates the taste of tobacco with nicotine satisfaction, so a good tobacco flavour makes the switch feel natural instead of strange. Menthol works the same way for menthol cigarette smokers.",
@@ -123,7 +123,7 @@ export const blogPosts: BlogPost[] = [
     readTime: "8 min read",
     quickAnswer: "You must be 21+, vape only where smoking is allowed, and buy ESMA-certified tax-paid products — grey-market devices are illegal.",
     tags: ["UAE law", "regulations", "ESMA", "age limit"],
-    productSlugs: ["iqos-terea-amber-indonesian-uae", "kief-king-35000-disposable-vape", "al-fakher-crown-bar-8000-shisha", "vozol-star-40000-nicotine-vape"],
+    productSlugs: ["terea-indonesia-sticks", "kief-king-35000-puffs-disposable-vape", "al-fakher-hypermax-15k-puffs", "vozol-star-40000-puffs-disposable-vape"],
     content: [
       "Vaping is legal in the UAE, but it is regulated. Here is what the law actually says, in plain language.",
       "Age limit: you must be 21 or older to buy or use vaping products. Retailers are required to verify age, and delivery couriers check Emirates ID or passport at the door. There are no exceptions.",
@@ -145,7 +145,7 @@ export const blogPosts: BlogPost[] = [
     readTime: "8 min read",
     quickAnswer: "For most vapers in 2026: pick a 20,000+ puff rechargeable disposable from an established brand (Kief King, Vozol, Elf Bar, Myle), 20mg nicotine if you are a regular smoker, and buy only sealed stock from a reputable UAE retailer.",
     tags: ["disposable vape", "best of 2026", "buying guide", "UAE"],
-    productSlugs: ["kief-king-35000-disposable-vape", "vozol-star-40000-nicotine-vape", "myle-meta-max-18000-disposable", "elf-bar-joinone-25000-pod-kit"],
+    productSlugs: ["kief-king-35000-puffs-disposable-vape", "vozol-star-40000-puffs-disposable-vape", "waka-blade-50k-puffs-50mg-in-dubai-uae", "elfbar-bc10000-puffs-disposable-vape"],
     content: [
       "Walk into any vape shop in Dubai in 2026 and the wall of disposables will stop you in your tracks. Elf Bar, Vozol, Kief King, Myle, Tugboat, Al Fakher, each promising tens of thousands of puffs, each in a dozen flavours. Choice is good, but too much choice without guidance is how people end up with a device that tastes burnt by day three or dies at half the promised puffs. This guide is our honest, hands-on breakdown of the best disposable vapes you can buy in the UAE right now: what actually matters when choosing one, our top five picks for 2026, and how to avoid the fakes that flood this market.",
       "A quick note on how we picked these. We sell these devices every day, we hear back from customers weeks later, and we see which ones come back with complaints and which ones get reordered. Our ranking weighs flavour consistency from first puff to last, whether the puff count holds up in real use, battery and charging behaviour, build quality, and value for money at UAE shelf prices. No brand paid for placement. If a device is on this list, it is because our customers keep buying it again.",

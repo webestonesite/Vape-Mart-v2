@@ -858,7 +858,7 @@ export default function Home() {
       image: "/images/hero_slide_2.jpg",
     },
     {
-      title: "Best E-Liquids of 2024\nTaste the Difference",
+      title: "Best E-Liquids of 2026\nTaste the Difference",
       desc: "Explore our new collection of premium e-liquids featuring exotic fruit blends and classic tobacco flavors.",
       badge: "Top Rated",
       image: "/images/hero_slide_3.jpg",
@@ -1696,7 +1696,7 @@ export default function Home() {
 
             <motion.div className="w-full lg:w-2/3 flex flex-col gap-3 sm:gap-4" variants={staggerContainer}>
               {[
-                { q: "What products does Vape Stall offer?", a: "We offer a wide range of premium disposable vapes, pod systems, e-liquids, and vaping accessories from top global brands." },
+                { q: "What products does Vape Mart offer?", a: "We offer a wide range of premium disposable vapes, JUUL and IQOS TEREA products, and e-liquids from top global brands." },
                 { q: "Are your vape products authentic?", a: "Yes! All our products are 100% authentic and sourced directly from official manufacturers. We guarantee original brands." },
                 { q: "Do you offer same-day delivery in Dubai?", a: "Absolutely. We provide fast same-day delivery across Dubai for all orders placed before our daily cutoff time." },
                 { q: "What payment methods do you accept?", a: "We accept all major Credit/Debit cards, Apple Pay, and offer Cash on Delivery (COD) for your convenience." },
@@ -1788,86 +1788,86 @@ export default function Home() {
             <div className="reviews-marquee-track">
               {[
                 {
-                  name: 'John Doe',
-                  avatar: 'JD',
+                  name: 'Dubai Customer',
+                  avatar: 'DC',
                   role: 'Verified Buyer',
                   title: 'Super fast delivery & 100% authentic',
                   review: "Best vape store in Dubai! Delivery arrived within hours, and the scratch-off authenticity code checked out directly on the manufacturer's site."
                 },
                 {
-                  name: 'Sarah M.',
-                  avatar: 'SM',
+                  name: 'Abu Dhabi Customer',
+                  avatar: 'AC',
                   role: 'Verified Buyer',
                   title: 'Genuine products guaranteed',
                   review: "I've bought knock-offs from random stores before, but Vape Mart only delivers original factory-sealed products. Truly unmatched service."
                 },
                 {
-                  name: 'Alex K.',
-                  avatar: 'AK',
+                  name: 'Sharjah Customer',
+                  avatar: 'SC',
                   role: 'Verified Buyer',
                   title: 'Great flavor selection & support',
                   review: "Their premium collection is always in stock with fresh batches. Smooth checkout, great customer care, and unbeatable prices."
                 },
                 {
-                  name: 'Mohammed Al-Nuaimi',
-                  avatar: 'MN',
+                  name: 'Ajman Customer',
+                  avatar: 'AJ',
                   role: 'Verified Buyer',
                   title: 'Always fresh stock & fast WhatsApp response',
                   review: "Ordered TEREA and disposable kits multiple times. Delivery always on time and verified original seal. Customer service is 10/10."
                 },
                 {
-                  name: 'Elena Rostova',
-                  avatar: 'ER',
+                  name: 'Fujairah Customer',
+                  avatar: 'FC',
                   role: 'Verified Buyer',
                   title: 'Best disposable vape deals in UAE',
                   review: "Authentic devices with authentic QR codes. Super responsive team, discreet delivery, and prices are better than physical shops."
                 },
                 {
-                  name: 'Tariq Farooq',
-                  avatar: 'TF',
+                  name: 'Ras Al Khaimah Customer',
+                  avatar: 'RC',
                   role: 'Verified Buyer',
                   title: 'Flawless experience every single order',
                   review: "Top quality pod devices and pods. Packaging is tamper-proof with cold ice packs. Recommended to all my friends!"
                 },
                 /* Duplicated for seamless infinite scrolling */
                 {
-                  name: 'John Doe',
-                  avatar: 'JD',
+                  name: 'Dubai Customer',
+                  avatar: 'DC',
                   role: 'Verified Buyer',
                   title: 'Super fast delivery & 100% authentic',
                   review: "Best vape store in Dubai! Delivery arrived within hours, and the scratch-off authenticity code checked out directly on the manufacturer's site."
                 },
                 {
-                  name: 'Sarah M.',
-                  avatar: 'SM',
+                  name: 'Abu Dhabi Customer',
+                  avatar: 'AC',
                   role: 'Verified Buyer',
                   title: 'Genuine products guaranteed',
                   review: "I've bought knock-offs from random stores before, but Vape Mart only delivers original factory-sealed products. Truly unmatched service."
                 },
                 {
-                  name: 'Alex K.',
-                  avatar: 'AK',
+                  name: 'Sharjah Customer',
+                  avatar: 'SC',
                   role: 'Verified Buyer',
                   title: 'Great flavor selection & support',
                   review: "Their premium collection is always in stock with fresh batches. Smooth checkout, great customer care, and unbeatable prices."
                 },
                 {
-                  name: 'Mohammed Al-Nuaimi',
-                  avatar: 'MN',
+                  name: 'Ajman Customer',
+                  avatar: 'AJ',
                   role: 'Verified Buyer',
                   title: 'Always fresh stock & fast WhatsApp response',
                   review: "Ordered TEREA and disposable kits multiple times. Delivery always on time and verified original seal. Customer service is 10/10."
                 },
                 {
-                  name: 'Elena Rostova',
-                  avatar: 'ER',
+                  name: 'Fujairah Customer',
+                  avatar: 'FC',
                   role: 'Verified Buyer',
                   title: 'Best disposable vape deals in UAE',
                   review: "Authentic devices with authentic QR codes. Super responsive team, discreet delivery, and prices are better than physical shops."
                 },
                 {
-                  name: 'Tariq Farooq',
-                  avatar: 'TF',
+                  name: 'Ras Al Khaimah Customer',
+                  avatar: 'RC',
                   role: 'Verified Buyer',
                   title: 'Flawless experience every single order',
                   review: "Top quality pod devices and pods. Packaging is tamper-proof with cold ice packs. Recommended to all my friends!"

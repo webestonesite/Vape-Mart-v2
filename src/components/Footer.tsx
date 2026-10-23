@@ -116,12 +116,6 @@ export function Footer() {
                   Terms & Conditions
                 </Link>
               </li>
-              <li>
-                <Link href="/admin" className="text-emerald-100/60 hover:text-amber-400 transition-colors flex items-center gap-1.5">
-                  <ChevronRight size={13} className="text-amber-400" />
-                  Theme Customizer
-                </Link>
-              </li>
             </ul>
           </div>
 
