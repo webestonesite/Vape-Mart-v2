@@ -43,7 +43,7 @@
       },
       {
         "label": "JUUL",
-        "href": "/collections?search=juul",
+        "href": "/collections/juul",
         "hasDropdown": true,
         "columns": [
           {
@@ -51,11 +51,11 @@
             "items": [
               {
                 "title": "Juul 1",
-                "href": "/collections?search=juul+1"
+                "href": "/collections/juul-1"
               },
               {
                 "title": "Juul 2",
-                "href": "/collections?search=juul+2"
+                "href": "/collections/juul-2"
               }
             ]
           }
@@ -63,7 +63,7 @@
       },
       {
         "label": "TEREA",
-        "href": "/collections?search=terea",
+        "href": "/collections/terea",
         "hasDropdown": true,
         "columns": [
           {
@@ -71,11 +71,11 @@
             "items": [
               {
                 "title": "Terea Device",
-                "href": "/collections?search=terea+device"
+                "href": "/collections/terea-device"
               },
               {
                 "title": "Terea Flavor",
-                "href": "/collections?search=terea+flavor"
+                "href": "/collections/terea-flavor"
               }
             ]
           }
@@ -83,7 +83,7 @@
       },
       {
         "label": "IQOS",
-        "href": "/collections?search=iqos",
+        "href": "/collections/iqos",
         "hasDropdown": true,
         "columns": [
           {
@@ -91,7 +91,7 @@
             "items": [
               {
                 "title": "IQOS Iluma",
-                "href": "/collections?search=iluma"
+                "href": "/collections/iqos-iluma"
               }
             ]
           }
@@ -106,28 +106,97 @@
             "heading": "Top Brands",
             "items": [
               {
+                "title": "AAOK",
+                "href": "/collections/aaok-disposable"
+              },
+              {
+                "title": "Air Bar",
+                "href": "/collections/air-bar-disposable"
+              },
+              {
                 "title": "Al Fakher",
-                "href": "/collections/disposable-vape?search=al+fakher"
+                "href": "/collections/al-fakher-disposable"
+              },
+              {
+                "title": "Beco",
+                "href": "/collections/beco-disposable"
+              },
+              {
+                "title": "Bounce",
+                "href": "/collections/bounce-disposable"
               },
               {
                 "title": "Elf Bar",
-                "href": "/collections/disposable-vape?search=elf+bar"
+                "href": "/collections/elf-bar-disposable"
               },
               {
-                "title": "Yuoto",
-                "href": "/collections/disposable-vape?search=yuoto"
+                "title": "Fummo",
+                "href": "/collections/fummo-disposable"
               },
               {
-                "title": "Waka",
-                "href": "/collections/disposable-vape?search=waka"
+                "title": "Geek Bar",
+                "href": "/collections/geek-bar-disposable"
               },
               {
-                "title": "Pod Salt",
-                "href": "/collections/disposable-vape?search=pod+salt"
+                "title": "HQD",
+                "href": "/collections/hqd-disposable"
+              },
+              {
+                "title": "Ignite",
+                "href": "/collections/ignite-disposable"
+              },
+              {
+                "title": "JNR",
+                "href": "/collections/jnr-disposable"
+              }
+            ]
+          },
+          {
+            "heading": "Popular Brands",
+            "items": [
+              {
+                "title": "Kief",
+                "href": "/collections/kief-disposable"
               },
               {
                 "title": "Kief King",
-                "href": "/collections/disposable-vape?search=kief+king"
+                "href": "/collections/kief-king-disposable"
+              },
+              {
+                "title": "Lost Mary",
+                "href": "/collections/lost-mary-disposable"
+              },
+              {
+                "title": "Maskking",
+                "href": "/collections/maskking-disposable"
+              },
+              {
+                "title": "Mazaya",
+                "href": "/collections/mazaya-disposable"
+              },
+              {
+                "title": "MFU",
+                "href": "/collections/mfu-disposable"
+              },
+              {
+                "title": "Nasty",
+                "href": "/collections/nasty-disposable"
+              },
+              {
+                "title": "Oxbar",
+                "href": "/collections/oxbar-disposable"
+              },
+              {
+                "title": "Pod Salt",
+                "href": "/collections/pod-salt-disposable"
+              },
+              {
+                "title": "Relx",
+                "href": "/collections/relx-disposable"
+              },
+              {
+                "title": "Silvaper",
+                "href": "/collections/silvaper-disposable"
               }
             ]
           },
@@ -135,157 +204,52 @@
             "heading": "More Brands",
             "items": [
               {
-                "title": "Tugboat",
-                "href": "/collections/disposable-vape?search=tugboat"
-              },
-              {
-                "title": "Oxbar",
-                "href": "/collections/disposable-vape?search=oxbar"
-              },
-              {
-                "title": "Mazaya",
-                "href": "/collections/disposable-vape?search=mazaya"
-              },
-              {
-                "title": "Vozol",
-                "href": "/collections/disposable-vape?search=vozol"
+                "title": "Smooth",
+                "href": "/collections/smooth-disposable"
               },
               {
                 "title": "SPRK",
-                "href": "/collections/disposable-vape?search=sprk"
+                "href": "/collections/sprk-disposable"
               },
               {
-                "title": "HQD",
-                "href": "/collections/disposable-vape?search=hqd"
+                "title": "Stig",
+                "href": "/collections/stig-disposable"
+              },
+              {
+                "title": "Tesla",
+                "href": "/collections/tesla-disposable"
+              },
+              {
+                "title": "Tugboat",
+                "href": "/collections/tugboat-disposable"
+              },
+              {
+                "title": "Vapes Bars",
+                "href": "/collections/vapes-bars-disposable"
+              },
+              {
+                "title": "VNSN",
+                "href": "/collections/vnsn-disposable"
+              },
+              {
+                "title": "Vozol",
+                "href": "/collections/vozol-disposable"
+              },
+              {
+                "title": "Waka",
+                "href": "/collections/waka-disposable"
+              },
+              {
+                "title": "Xtra",
+                "href": "/collections/xtra-disposable"
+              },
+              {
+                "title": "Yuoto",
+                "href": "/collections/yuoto-disposable"
               }
             ]
           }
-        ],
-        "featuredBanner": {
-          "title": "Tugboat Super 24K",
-          "subtitle": "24,000 Puffs with Smart Screen Display",
-          "image": "/images/disposable_vape.png",
-          "badge": "SPECIAL OFFER",
-          "href": "/collections/disposable-vape?search=tugboat"
-        }
-      },
-      {
-        "label": "NICOTINE POUCHES",
-        "href": "/collections?search=nicotine+pouch"
-      },
-      {
-        "label": "SHISHA/HOOKAH",
-        "href": "/collections/shisha-hookah",
-        "hasDropdown": true,
-        "columns": [
-          {
-            "heading": "Electronic Shisha",
-            "items": [
-              {
-                "title": "Ooka E-Shisha Devices",
-                "href": "/collections/shisha-hookah?search=ooka",
-                "badge": "HOT"
-              },
-              {
-                "title": "Portable Hookah Pods",
-                "href": "/collections/shisha-hookah?search=hookah+pod"
-              },
-              {
-                "title": "Zero Charcoal E-Heads",
-                "href": "/collections/shisha-hookah?search=e-head"
-              }
-            ]
-          },
-          {
-            "heading": "Flavors & Mixes",
-            "items": [
-              {
-                "title": "Two Apples (Al Fakher)",
-                "href": "/collections/shisha-hookah?search=two+apples"
-              },
-              {
-                "title": "Grape with Mint",
-                "href": "/collections/shisha-hookah?search=grape+mint"
-              },
-              {
-                "title": "Gum & Fresh Berries",
-                "href": "/collections/shisha-hookah?search=berries"
-              }
-            ]
-          },
-          {
-            "heading": "Accessories",
-            "items": [
-              {
-                "title": "Coconut Charcoal Briquettes",
-                "href": "/collections/shisha-hookah?search=charcoal"
-              },
-              {
-                "title": "Silicone Hoses & Mouthpieces",
-                "href": "/collections/shisha-hookah?search=hose"
-              },
-              {
-                "title": "Bowls & Heat Managers",
-                "href": "/collections/shisha-hookah?search=bowl"
-              }
-            ]
-          }
-        ],
-        "featuredBanner": {
-          "title": "Smart E-Shisha Kit",
-          "subtitle": "No coal, no mess. Clean cloud delivery.",
-          "image": "/images/hero_slide_2.jpg",
-          "badge": "LUXURY",
-          "href": "/collections/shisha-hookah"
-        }
-      },
-      {
-        "label": "PODS SYSTEM",
-        "href": "/collections/pods-system",
-        "hasDropdown": true,
-        "columns": [
-          {
-            "heading": "Pod Kits",
-            "items": [
-              {
-                "title": "JUUL2 Starter Kit",
-                "href": "/product/juul-2-starter-kit"
-              },
-              {
-                "title": "IQOS ILUMA Prime",
-                "href": "/product/terea-indonesia-sticks"
-              },
-              {
-                "title": "Uwell Caliburn G2 & G3",
-                "href": "/product/juul-slate-device"
-              },
-              {
-                "title": "Myle Meta Pod Device",
-                "href": "/product/elfbar-bc10000-puffs-disposable-vape"
-              }
-            ]
-          },
-          {
-            "heading": "Replacement Pods",
-            "items": [
-              {
-                "title": "JUUL2 Crisp Menthol & Tobacco",
-                "href": "/product/juul-2-starter-kit"
-              },
-              {
-                "title": "TEREA Indonesian & Italian Sticks",
-                "href": "/product/terea-indonesia-sticks"
-              }
-            ]
-          }
-        ],
-        "featuredBanner": {
-          "title": "IQOS ILUMA & TEREA",
-          "subtitle": "Authentic induction heated tobacco in UAE",
-          "image": "/images/terea_heets.jpg",
-          "badge": "OFFICIAL",
-          "href": "/collections/heated-tobacco"
-        }
+        ]
       },
       {
         "label": "E-LIQUID",
@@ -293,43 +257,51 @@
         "hasDropdown": true,
         "columns": [
           {
-            "heading": "Nicotine Types",
-            "items": [
-              {
-                "title": "Salt Nicotine (20mg - 50mg)",
-                "href": "/collections/e-liquid"
-              },
-              {
-                "title": "Freebase E-Juice (3mg - 18mg)",
-                "href": "/collections/e-liquid"
-              }
-            ]
-          },
-          {
             "heading": "Top Brands",
             "items": [
               {
-                "title": "Nasty Juice Worldwide",
-                "href": "/product/nasty-juice-3mg-freebase-e-liquid-60ml"
+                "title": "VGOD",
+                "href": "/collections/vgod-e-liquid"
               },
               {
-                "title": "Juice Head California",
-                "href": "/product/vgod-25-50mg-salt"
+                "title": "TOKYO",
+                "href": "/collections/tokyo-e-liquid"
+              },
+              {
+                "title": "Pod Salt",
+                "href": "/collections/pod-salt-e-liquid"
+              },
+              {
+                "title": "Nasty",
+                "href": "/collections/nasty-e-liquid-e-liquid"
+              },
+              {
+                "title": "Vet",
+                "href": "/collections/vet-e-liquid"
+              },
+              {
+                "title": "Pachamama Salt",
+                "href": "/collections/pachamama-salt-e-liquid"
+              },
+              {
+                "title": "Grand E-Liquids",
+                "href": "/collections/grand-e-liquids-e-liquid"
+              },
+              {
+                "title": "Sam Vape",
+                "href": "/collections/sam-vape-e-liquid"
+              },
+              {
+                "title": "Ruthless",
+                "href": "/collections/ruthless-e-liquid"
+              },
+              {
+                "title": "Ripe Vapes",
+                "href": "/collections/ripe-vapes-e-liquid"
               }
             ]
           }
-        ],
-        "featuredBanner": {
-          "title": "Premium Vape E-Juice",
-          "subtitle": "100% Original imported American & UK blends.",
-          "image": "/images/hero_slide_3.jpg",
-          "badge": "FLAVOR LAB",
-          "href": "/collections/e-liquid"
-        }
-      },
-      {
-        "label": "VAPE KIT",
-        "href": "/collections/vape-kits"
+        ]
       }
     ],
     "actions": {
