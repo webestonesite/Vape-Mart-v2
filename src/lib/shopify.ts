@@ -504,16 +504,19 @@ export async function fetchBlogPosts(): Promise<BlogPost[]> {
 }
 
 export async function fetchBlogPost(handle: string): Promise<BlogPost | null> {
-  const data = await shopifyAdmin<any>(
-    `query Article($id: ID!, $handle: String!) {
-       blog(id: $id) {
-         articleByHandle(handle: $handle) { handle title bodyHtml: body excerpt: summary publishedAt tags image { url } metafields(first: 10, namespace: "vapemart") { nodes { namespace key type value } } }
-       }
-     }`,
-    { id: BLOG_ID, handle }, 600
-  );
-  const node = data.blog?.articleByHandle;
-  return node ? toBlogPost(node) : null;
+  // The Admin API Blog type has no articleByHandle (that is a Storefront
+  // field), so scan the blog's articles and match the handle client-side.
+  let after: string | null = null;
+  for (let page = 0; page < 3; page++) {
+    const data: any = await shopifyAdmin<any>(BLOG_QUERY, { id: BLOG_ID, first: 50, after }, 600);
+    const conn: any = data.blog?.articles;
+    if (!conn) return null;
+    const node = conn.nodes.find((n: any) => n.handle === handle);
+    if (node) return toBlogPost(node);
+    if (!conn.pageInfo.hasNextPage) break;
+    after = conn.pageInfo.endCursor;
+  }
+  return null;
 }
 
 /* ------------------------------------------------------------------ */
