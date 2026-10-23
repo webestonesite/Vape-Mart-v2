@@ -180,19 +180,18 @@ function primaryCollection(collections: ShopifyCollectionRef[]): ShopifyCollecti
   return real[0] ?? null;
 }
 
-const FALLBACK_IMAGES: Record<string, string> = {
-  "e-liquids": "/images/prod_eliquid.png",
-  "e-liquid": "/images/prod_eliquid.png",
-  juul: "/images/juul_product.jpg",
-  "juul-1": "/images/juul_product.jpg",
-  "juul-2": "/images/juul_product.jpg",
-  terea: "/images/terea_heets.jpg",
-  "terea-device": "/images/terea_heets.jpg",
-  "terea-flavor": "/images/terea_heets.jpg",
-  iqos: "/images/terea_heets.jpg",
-  "iqos-iluma": "/images/terea_heets.jpg",
-  "iqos-terea": "/images/terea_heets.jpg",
-};
+/** Placeholder for products that have no photo yet, chosen by category:
+    e-liquids get the bottle image, JUUL the JUUL photo, Terea/IQOS the
+    sticks photo, everything else the disposable image. Brand collections
+    (e.g. "sam-vape-e-liquid") resolve by suffix/prefix, not just exact
+    handle, so an e-liquid never shows a disposable device. */
+function fallbackImageFor(handle: string): string {
+  const h = (handle || "").toLowerCase();
+  if (h === "e-liquid" || h === "e-liquids" || h.endsWith("-e-liquid")) return "/images/prod_eliquid.png";
+  if (h.startsWith("juul")) return "/images/juul_product.jpg";
+  if (h.startsWith("terea") || h.startsWith("iqos")) return "/images/terea_heets.jpg";
+  return "/images/prod_disposable.png";
+}
 
 function toProductItem(node: ShopifyProductNode, flavorObjects: FlavorMetaobject[] = []): ProductItem {
   const mf = mfMap(node.metafields?.nodes);
@@ -202,7 +201,7 @@ function toProductItem(node: ShopifyProductNode, flavorObjects: FlavorMetaobject
   const compareAt = firstVariant?.compareAtPrice ? parseFloat(firstVariant.compareAtPrice) : 0;
   const stockQty = node.variants.nodes.reduce((s, v) => s + (v.inventoryQuantity ?? 0), 0);
   const col = primaryCollection(node.collections.nodes);
-  const fallbackImage = FALLBACK_IMAGES[col?.handle || ""] || "/images/prod_disposable.png";
+  const fallbackImage = fallbackImageFor(col?.handle || "");
 
   const flavors: ProductFlavor[] = flavorObjects.map((f) => {
     const fm: Record<string, string> = {};
