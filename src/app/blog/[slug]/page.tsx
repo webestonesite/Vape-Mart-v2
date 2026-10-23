@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CalendarDays, Clock, ChevronRight, ArrowRight, Zap } from "lucide-react";
-import { blogPosts, getPost } from "@/data/blog";
+import { blogPosts } from "@/data/blog";
+import { getDisplayPost, getDisplayPosts } from "@/lib/blog-adapter";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { BlogCard, CoverImage, categoryBadge } from "@/components/blog/BlogCard";
@@ -15,7 +16,7 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const post = getPost(slug);
+  const post = await getDisplayPost(slug);
   if (!post) return { title: "Article Not Found | Vape Mart UAE" };
   return {
     title: `${post.title} | Vape Mart UAE Blog`,
@@ -29,12 +30,13 @@ export function generateStaticParams() {
 
 export default async function BlogArticlePage({ params }: Props) {
   const { slug } = await params;
-  const post = getPost(slug);
+  const post = await getDisplayPost(slug);
   if (!post) notFound();
 
+  const allPosts = await getDisplayPosts();
   const related = [
-    ...blogPosts.filter((p) => p.slug !== slug && p.category === post.category),
-    ...blogPosts.filter((p) => p.slug !== slug && p.category !== post.category),
+    ...allPosts.filter((p) => p.slug !== slug && p.category === post.category),
+    ...allPosts.filter((p) => p.slug !== slug && p.category !== post.category),
   ].slice(0, 3);
 
   return (
@@ -86,21 +88,28 @@ export default async function BlogArticlePage({ params }: Props) {
               <p className="text-slate-700 text-[15px] sm:text-base leading-relaxed">{post.quickAnswer}</p>
             </div>
 
-            {/* Body */}
-            <div className="flex flex-col gap-5 mb-10">
-              {post.content.map((para, i) => (
-                <p
-                  key={i}
-                  className={
-                    i === 0
-                      ? "text-slate-800 text-lg sm:text-xl leading-relaxed font-medium"
-                      : "text-slate-600 text-[15px] sm:text-base leading-[1.8]"
-                  }
-                >
-                  {para}
-                </p>
-              ))}
-            </div>
+            {/* Body — HTML from Shopify when available, local paragraphs otherwise */}
+            {post.bodyHtml ? (
+              <div
+                className="flex flex-col gap-5 mb-10 [&>p]:text-slate-600 [&>p]:text-[15px] sm:[&>p]:text-base [&>p]:leading-[1.8] [&>p:first-of-type]:text-slate-800 [&>p:first-of-type]:text-lg sm:[&>p:first-of-type]:text-xl [&>p:first-of-type]:leading-relaxed [&>p:first-of-type]:font-medium [&>h2]:text-slate-900 [&>h2]:text-xl sm:[&>h2]:text-2xl [&>h2]:font-extrabold [&>h2]:mt-4 [&>h3]:text-slate-900 [&>h3]:font-bold [&>h3]:text-lg [&>ul]:list-disc [&>ul]:pl-6 [&>ul]:text-slate-600 [&>ul]:leading-[1.8] [&>ol]:list-decimal [&>ol]:pl-6 [&>ol]:text-slate-600 [&>ol]:leading-[1.8] [&_a]:text-emerald-700 [&_a]:font-semibold"
+                dangerouslySetInnerHTML={{ __html: post.bodyHtml }}
+              />
+            ) : (
+              <div className="flex flex-col gap-5 mb-10">
+                {post.content.map((para, i) => (
+                  <p
+                    key={i}
+                    className={
+                      i === 0
+                        ? "text-slate-800 text-lg sm:text-xl leading-relaxed font-medium"
+                        : "text-slate-600 text-[15px] sm:text-base leading-[1.8]"
+                    }
+                  >
+                    {para}
+                  </p>
+                ))}
+              </div>
+            )}
 
             {/* Tags */}
             <div className="flex flex-wrap gap-2 mb-8">

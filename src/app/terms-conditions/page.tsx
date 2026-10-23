@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { PageHero } from "@/components/PageHero";
+import { getShopifyPageSections } from "@/lib/shopify-pages";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
     "The terms and conditions for shopping with Vape Mart UAE — orders, delivery, returns, and acceptable use.",
 };
 
-const sections = [
+const localSections = [
   {
     title: "1. Eligibility — Adults 21+ Only",
     body: [
@@ -72,7 +73,9 @@ const sections = [
   },
 ];
 
-export default function TermsPage() {
+export default async function TermsPage() {
+  const cmsSections = await getShopifyPageSections("terms-conditions");
+  const sections = cmsSections.length ? cmsSections : localSections;
   return (
     <>
       <Header />

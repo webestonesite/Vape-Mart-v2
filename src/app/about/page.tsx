@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ShieldCheck, Truck, BadgeCheck, Headset, ArrowRight, Award, PackageCheck, Timer } from "lucide-react";
 import { PageHero } from "@/components/PageHero";
+import { getShopifyPageBody } from "@/lib/shopify-pages";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 
@@ -40,7 +41,8 @@ const stats = [
   { icon: Timer, value: "2-Hour", label: "Dubai Express Delivery" },
 ];
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const storyHtml = await getShopifyPageBody("about");
   return (
     <>
       <Header />
@@ -59,27 +61,36 @@ export default function AboutPage() {
               <span className="inline-block px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[11px] font-bold uppercase tracking-wider mb-4">
                 Who We Are
               </span>
-              <h2 className="font-luxury text-slate-900 text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight mb-4 sm:mb-5">
-                A Premium Vape House, Built for the Emirates
-              </h2>
-              <div className="flex flex-col gap-4 text-slate-600 text-[15px] sm:text-base leading-relaxed">
-                <p>
-                  Vape Mart began with a simple frustration: too many vapers in the UAE were paying
-                  premium prices for questionable products. Counterfeits, grey imports, and sellers
-                  who disappeared after the sale were the norm — not the exception.
-                </p>
-                <p>
-                  We built the shop we wished existed. Every device and e-liquid on our shelves is
-                  100% original, ESMA certified, and tax-paid. Every order is age-verified at
-                  delivery. And every customer gets the kind of service we would demand ourselves:
-                  fast courier, honest advice, and Cash on Delivery across the Emirates.
-                </p>
-                <p>
-                  Today, Vape Mart serves thousands of adult vapers across Dubai, Abu Dhabi,
-                  Sharjah, Ajman and beyond — from first-time switchers leaving cigarettes behind
-                  to connoisseurs chasing the perfect flavour.
-                </p>
-              </div>
+{storyHtml ? (
+                <div
+                  className="[&>h2]:font-luxury [&>h2]:text-slate-900 [&>h2]:text-2xl sm:[&>h2]:text-3xl lg:[&>h2]:text-4xl [&>h2]:font-bold [&>h2]:leading-tight [&>h2]:mb-4 sm:[&>h2]:mb-5 [&>p]:text-slate-600 [&>p]:text-[15px] sm:[&>p]:text-base [&>p]:leading-relaxed [&>p]:mb-4 [&>p:last-child]:mb-0"
+                  dangerouslySetInnerHTML={{ __html: storyHtml }}
+                />
+              ) : (
+                <>
+                <h2 className="font-luxury text-slate-900 text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight mb-4 sm:mb-5">
+                  A Premium Vape House, Built for the Emirates
+                </h2>
+                <div className="flex flex-col gap-4 text-slate-600 text-[15px] sm:text-base leading-relaxed">
+                  <p>
+                    Vape Mart began with a simple frustration: too many vapers in the UAE were paying
+                    premium prices for questionable products. Counterfeits, grey imports, and sellers
+                    who disappeared after the sale were the norm — not the exception.
+                  </p>
+                  <p>
+                    We built the shop we wished existed. Every device and e-liquid on our shelves is
+                    100% original, ESMA certified, and tax-paid. Every order is age-verified at
+                    delivery. And every customer gets the kind of service we would demand ourselves:
+                    fast courier, honest advice, and Cash on Delivery across the Emirates.
+                  </p>
+                  <p>
+                    Today, Vape Mart serves thousands of adult vapers across Dubai, Abu Dhabi,
+                    Sharjah, Ajman and beyond — from first-time switchers leaving cigarettes behind
+                    to connoisseurs chasing the perfect flavour.
+                  </p>
+                </div>
+                </>
+              )}
             </div>
             <div className="relative rounded-[24px] overflow-hidden bg-gradient-to-br from-[#022c22] via-[#064e3b] to-[#022c22] p-8 sm:p-12 shadow-2xl">
               <div className="absolute -top-20 -right-20 w-72 h-72 bg-amber-400/15 rounded-full blur-[70px] pointer-events-none" />

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { ShieldCheck, Truck, BadgeCheck } from "lucide-react";
-import { blogPosts } from "@/data/blog";
+import { getDisplayPosts } from "@/lib/blog-adapter";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { BlogExplorer } from "@/components/blog/BlogExplorer";
@@ -11,7 +11,8 @@ export const metadata: Metadata = {
     "Vaping guides, safety tips, flavour advice and UAE regulation updates from the Vape Mart experts.",
 };
 
-export default function BlogPage() {
+export default async function BlogPage() {
+  const posts = await getDisplayPosts();
   return (
     <>
       <Header />
@@ -28,7 +29,7 @@ export default function BlogPage() {
         </div>
 
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-8 sm:py-12">
-          <BlogExplorer posts={blogPosts} />
+          <BlogExplorer posts={posts} />
         </div>
 
         {/* Trust strip */}

@@ -844,7 +844,112 @@ export default function Home() {
     setOpenFaq(openFaq === index ? null : index);
   };
 
-  const slides = [
+  // ---- Site content from Shopify (edited in Shopify admin, no deploy) ----
+  const [cms, setCms] = useState<any>(null);
+  useEffect(() => {
+    fetch("/api/site-content")
+      .then((res) => res.json())
+      .then((data) => setCms(data))
+      .catch(() => {});
+  }, []);
+  const cmsSlides = ((cms?.heroSlides ?? []) as any[])
+    .filter((s) => s.title)
+    .map((s) => ({
+      title: String(s.title).includes("\n")
+        ? s.title
+        : String(s.title).replace(" — ", "\n— "),
+      desc: s.description || "",
+      badge: s.badge || "",
+      image: s.imageUrl || "/images/hero_slide_1.jpg",
+    }));
+  const cmsSection = (key: string) =>
+    ((cms?.homeSections ?? []) as any[]).find((s) => s.key === key);
+  const secProducts = (key: string, fallback: any[]) => {
+    const s = cmsSection(key);
+    return s && Array.isArray(s.products) && s.products.length ? s.products : fallback;
+  };
+  const secText = (key: string, field: string, fallback: string) => {
+    const s = cmsSection(key);
+    return (s && s[field]) || fallback;
+  };
+  const initialsOf = (name: string) =>
+    name
+      .split(/\s+/)
+      .map((w) => w[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase();
+  const testimonialList: any[] = cms?.testimonials?.length
+    ? cms.testimonials.map((t: any) => ({
+        name: t.name,
+        avatar: initialsOf(t.name || "V"),
+        role: t.role || "Verified Buyer",
+        title: t.title,
+        review: t.review,
+      }))
+    : [
+        {
+          name: 'Dubai Customer',
+          avatar: 'DC',
+          role: 'Verified Buyer',
+          title: 'Super fast delivery & 100% authentic',
+          review: "Best vape store in Dubai! Delivery arrived within hours, and the scratch-off authenticity code checked out directly on the manufacturer's site."
+        },
+        {
+          name: 'Abu Dhabi Customer',
+          avatar: 'AC',
+          role: 'Verified Buyer',
+          title: 'Genuine products guaranteed',
+          review: "I've bought knock-offs from random stores before, but Vape Mart only delivers original factory-sealed products. Truly unmatched service."
+        },
+        {
+          name: 'Sharjah Customer',
+          avatar: 'SC',
+          role: 'Verified Buyer',
+          title: 'Great flavor selection & support',
+          review: "Their premium collection is always in stock with fresh batches. Smooth checkout, great customer care, and unbeatable prices."
+        },
+        {
+          name: 'Ajman Customer',
+          avatar: 'AJ',
+          role: 'Verified Buyer',
+          title: 'Always fresh stock & fast WhatsApp response',
+          review: "Ordered TEREA and disposable kits multiple times. Delivery always on time and verified original seal. Customer service is 10/10."
+        },
+        {
+          name: 'Fujairah Customer',
+          avatar: 'FC',
+          role: 'Verified Buyer',
+          title: 'Best disposable vape deals in UAE',
+          review: "Authentic devices with authentic QR codes. Super responsive team, discreet delivery, and prices are better than physical shops."
+        },
+        {
+          name: 'Ras Al Khaimah Customer',
+          avatar: 'RC',
+          role: 'Verified Buyer',
+          title: 'Flawless experience every single order',
+          review: "Top quality pod devices and pods. Packaging is tamper-proof with cold ice packs. Recommended to all my friends!"
+        }
+      ];
+  const faqList: { q: string; a: string }[] = cms?.faqs?.length
+    ? cms.faqs.map((f: any) => ({ q: f.question, a: f.answer }))
+    : [
+        { q: "What products does Vape Mart offer?", a: "We offer a wide range of premium disposable vapes, JUUL and IQOS TEREA products, and e-liquids from top global brands." },
+        { q: "Are your vape products authentic?", a: "Yes! All our products are 100% authentic and sourced directly from official manufacturers. We guarantee original brands." },
+        { q: "Do you offer same-day delivery in Dubai?", a: "Absolutely. We provide fast same-day delivery across Dubai for all orders placed before our daily cutoff time." },
+        { q: "What payment methods do you accept?", a: "We accept all major Credit/Debit cards, Apple Pay, and offer Cash on Delivery (COD) for your convenience." },
+        { q: "Can I refill a disposable vape?", a: "No, disposable vapes are designed for single-use. Attempting to refill them can be dangerous and damage the device." }
+      ];
+  const fbProducts: any[] = secProducts("featuredBrand", [
+    { title: "AL Fakher Hypermax 15k Puffs", price: "50.00", oldPrice: "", discount: "" },
+    { title: "Al Fakher Mega Max 40000 Puffs Disposable Vape", price: "50.00", oldPrice: "", discount: "" },
+    { title: "Waka Blade 50K Puffs 50mg in Dubai, UAE", price: "55.00", oldPrice: "", discount: "" },
+    { title: "ELFBAR BC10000 Puffs Disposable Vape", price: "35.00", oldPrice: "", discount: "" },
+    { title: "Waka SoPro 20000 Puffs 50mg in Dubai, UAE", price: "50.00", oldPrice: "", discount: "" },
+    { title: "KIEF King 35000 Puffs Disposable Vape", price: "45.00", oldPrice: "", discount: "" },
+  ]);
+
+  const defaultSlides = [
     {
       title: "Buy Authentic Vape in Dubai\n— Fast Delivery, Best Prices",
       desc: "Shop premium disposable vapes, pod systems, and starter kits from top brands. Delivered anywhere in Dubai & UAE.",
@@ -870,6 +975,8 @@ export default function Home() {
       image: "/images/hero_slide_4.jpg",
     }
   ];
+
+  const slides = cmsSlides.length ? cmsSlides : defaultSlides;
 
   const nextSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
@@ -1289,46 +1396,46 @@ export default function Home() {
 
         {/* Best Selling Carousel */}
         <ProductCarousel
-          title="Best Selling"
-          subtitle="Our most loved products, chosen by you"
-          badgeText="TOP PICKS"
-          products={bestSellingProducts}
+          title={secText("bestSelling", "title", "Best Selling")}
+          subtitle={secText("bestSelling", "subtitle", "Our most loved products, chosen by you")}
+          badgeText={secText("bestSelling", "badgeText", "TOP PICKS")}
+          products={secProducts("bestSelling", bestSellingProducts)}
           greenBoxPC={true}
         />
 
         {/* TEREA & HEETS Carousel */}
         <ProductCarousel
-          title={themeData.tereaHeets?.title || "TEREA & HEETS"}
-          subtitle={themeData.tereaHeets?.subtitle || "Authentic heated tobacco sticks for IQOS ILUMA & IQOS 3 Duo in UAE"}
-          badgeText={themeData.tereaHeets?.badgeText || "HEATED TOBACCO"}
-          products={tereaHeetsProducts}
+          title={secText("tereaHeets", "title", themeData.tereaHeets?.title || "TEREA & HEETS")}
+          subtitle={secText("tereaHeets", "subtitle", themeData.tereaHeets?.subtitle || "Authentic heated tobacco sticks for IQOS ILUMA & IQOS 3 Duo in UAE")}
+          badgeText={secText("tereaHeets", "badgeText", themeData.tereaHeets?.badgeText || "HEATED TOBACCO")}
+          products={secProducts("tereaHeets", tereaHeetsProducts)}
           greenBoxPC={true}
         />
 
         {/* JUUL Products Carousel */}
         <ProductCarousel
-          title={themeData.juulProducts?.title || "JUUL Pods & Devices"}
-          subtitle={themeData.juulProducts?.subtitle || "Original JUUL2 starter kits, replacement pods & accessories with rapid delivery"}
-          badgeText={themeData.juulProducts?.badgeText || "PREMIUM PODS"}
-          products={juulProductsList}
+          title={secText("juulProducts", "title", themeData.juulProducts?.title || "JUUL Pods & Devices")}
+          subtitle={secText("juulProducts", "subtitle", themeData.juulProducts?.subtitle || "Original JUUL2 starter kits, replacement pods & accessories with rapid delivery")}
+          badgeText={secText("juulProducts", "badgeText", themeData.juulProducts?.badgeText || "PREMIUM PODS")}
+          products={secProducts("juulProducts", juulProductsList)}
           greenBoxPC={true}
         />
 
         {/* New Arrivals Carousel */}
         <ProductCarousel
-          title="New Arrivals"
-          subtitle="Explore our latest premium collection"
-          badgeText="NEW ITEMS"
-          products={newArrivalsProducts}
+          title={secText("featured", "title", "New Arrivals")}
+          subtitle={secText("featured", "subtitle", "Explore our latest premium collection")}
+          badgeText={secText("featured", "badgeText", "NEW ITEMS")}
+          products={secProducts("featured", newArrivalsProducts)}
           greenBoxPC={true}
         />
 
         {/* Most Popular Carousel */}
         <ProductCarousel
-          title="Most Popular"
-          subtitle="The most trending products right now"
-          badgeText="TRENDING"
-          products={mostPopularProducts}
+          title={secText("mostPopular", "title", "Most Popular")}
+          subtitle={secText("mostPopular", "subtitle", "The most trending products right now")}
+          badgeText={secText("mostPopular", "badgeText", "TRENDING")}
+          products={secProducts("mostPopular", mostPopularProducts)}
           greenBoxPC={true}
         />
 
@@ -1346,7 +1453,7 @@ export default function Home() {
               <div className="fb-logo-wrapper">
                 <Image src="/vape-mart-text-logo.png" alt="Vape Mart Brand Logo" fill sizes="170px" className="object-contain p-2" priority />
               </div>
-              <h3 className="font-luxury text-2xl sm:text-3xl font-bold text-[#064e3b] mb-6">Your Vibe. Your Flavor.</h3>
+              <h3 className="font-luxury text-2xl sm:text-3xl font-bold text-[#064e3b] mb-6">{secText("featuredBrand", "title", "Your Vibe. Your Flavor.")}</h3>
               <motion.button
                 whileHover={{ scale: 1.06, y: -2 }}
                 whileTap={{ scale: 0.94 }}
@@ -1361,14 +1468,7 @@ export default function Home() {
 
             <div className="fb-right">
               <motion.div className="fb-grid" variants={staggerContainer}>
-                {[
-                  { title: "AL Fakher Hypermax 15k Puffs", price: "50.00", oldPrice: "", discount: "" },
-                  { title: "Al Fakher Mega Max 40000 Puffs Disposable Vape", price: "50.00", oldPrice: "", discount: "" },
-                  { title: "Waka Blade 50K Puffs 50mg in Dubai, UAE", price: "55.00", oldPrice: "", discount: "" },
-                  { title: "ELFBAR BC10000 Puffs Disposable Vape", price: "35.00", oldPrice: "", discount: "" },
-                  { title: "Waka SoPro 20000 Puffs 50mg in Dubai, UAE", price: "50.00", oldPrice: "", discount: "" },
-                  { title: "KIEF King 35000 Puffs Disposable Vape", price: "45.00", oldPrice: "", discount: "" },
-                ].map((prod, idx) => (
+                {fbProducts.map((prod, idx) => (
                   <motion.div
                     className="fb-product-card"
                     key={idx}
@@ -1377,7 +1477,7 @@ export default function Home() {
                   >
                     <div className="fb-img-wrapper">
                       <div className="fb-podium"></div>
-                      <Image src="/images/cat_disposables.png" alt={prod.title} fill style={{ objectFit: 'contain', padding: '5px', zIndex: 2 }} />
+                      <Image src={(prod as any).img || "/images/cat_disposables.png"} alt={prod.title} fill style={{ objectFit: 'contain', padding: '5px', zIndex: 2 }} />
                     </div>
                     <div className="fb-info">
                       {prod.discount && <div className="fb-discount">{prod.discount}</div>}
@@ -1695,13 +1795,7 @@ export default function Home() {
             </motion.div>
 
             <motion.div className="w-full lg:w-2/3 flex flex-col gap-3 sm:gap-4" variants={staggerContainer}>
-              {[
-                { q: "What products does Vape Mart offer?", a: "We offer a wide range of premium disposable vapes, JUUL and IQOS TEREA products, and e-liquids from top global brands." },
-                { q: "Are your vape products authentic?", a: "Yes! All our products are 100% authentic and sourced directly from official manufacturers. We guarantee original brands." },
-                { q: "Do you offer same-day delivery in Dubai?", a: "Absolutely. We provide fast same-day delivery across Dubai for all orders placed before our daily cutoff time." },
-                { q: "What payment methods do you accept?", a: "We accept all major Credit/Debit cards, Apple Pay, and offer Cash on Delivery (COD) for your convenience." },
-                { q: "Can I refill a disposable vape?", a: "No, disposable vapes are designed for single-use. Attempting to refill them can be dangerous and damage the device." }
-              ].map((faq, idx) => (
+              {faqList.map((faq, idx) => (
                 <motion.div
                   variants={fadeInUp}
                   className={`border border-neutral-200/80 rounded-2xl overflow-hidden transition-all duration-300 ${openFaq === idx ? "bg-white shadow-[0_10px_30px_rgba(0,0,0,0.05)] border-transparent" : "bg-transparent hover:bg-neutral-50 cursor-pointer"}`}
@@ -1786,93 +1880,7 @@ export default function Home() {
           {/* Continuous Infinite Marquee Reviews Carousel */}
           <div className="w-full overflow-hidden relative mb-8 [mask-image:linear-gradient(to_right,transparent,black_4%,black_96%,transparent)] py-2">
             <div className="reviews-marquee-track">
-              {[
-                {
-                  name: 'Dubai Customer',
-                  avatar: 'DC',
-                  role: 'Verified Buyer',
-                  title: 'Super fast delivery & 100% authentic',
-                  review: "Best vape store in Dubai! Delivery arrived within hours, and the scratch-off authenticity code checked out directly on the manufacturer's site."
-                },
-                {
-                  name: 'Abu Dhabi Customer',
-                  avatar: 'AC',
-                  role: 'Verified Buyer',
-                  title: 'Genuine products guaranteed',
-                  review: "I've bought knock-offs from random stores before, but Vape Mart only delivers original factory-sealed products. Truly unmatched service."
-                },
-                {
-                  name: 'Sharjah Customer',
-                  avatar: 'SC',
-                  role: 'Verified Buyer',
-                  title: 'Great flavor selection & support',
-                  review: "Their premium collection is always in stock with fresh batches. Smooth checkout, great customer care, and unbeatable prices."
-                },
-                {
-                  name: 'Ajman Customer',
-                  avatar: 'AJ',
-                  role: 'Verified Buyer',
-                  title: 'Always fresh stock & fast WhatsApp response',
-                  review: "Ordered TEREA and disposable kits multiple times. Delivery always on time and verified original seal. Customer service is 10/10."
-                },
-                {
-                  name: 'Fujairah Customer',
-                  avatar: 'FC',
-                  role: 'Verified Buyer',
-                  title: 'Best disposable vape deals in UAE',
-                  review: "Authentic devices with authentic QR codes. Super responsive team, discreet delivery, and prices are better than physical shops."
-                },
-                {
-                  name: 'Ras Al Khaimah Customer',
-                  avatar: 'RC',
-                  role: 'Verified Buyer',
-                  title: 'Flawless experience every single order',
-                  review: "Top quality pod devices and pods. Packaging is tamper-proof with cold ice packs. Recommended to all my friends!"
-                },
-                /* Duplicated for seamless infinite scrolling */
-                {
-                  name: 'Dubai Customer',
-                  avatar: 'DC',
-                  role: 'Verified Buyer',
-                  title: 'Super fast delivery & 100% authentic',
-                  review: "Best vape store in Dubai! Delivery arrived within hours, and the scratch-off authenticity code checked out directly on the manufacturer's site."
-                },
-                {
-                  name: 'Abu Dhabi Customer',
-                  avatar: 'AC',
-                  role: 'Verified Buyer',
-                  title: 'Genuine products guaranteed',
-                  review: "I've bought knock-offs from random stores before, but Vape Mart only delivers original factory-sealed products. Truly unmatched service."
-                },
-                {
-                  name: 'Sharjah Customer',
-                  avatar: 'SC',
-                  role: 'Verified Buyer',
-                  title: 'Great flavor selection & support',
-                  review: "Their premium collection is always in stock with fresh batches. Smooth checkout, great customer care, and unbeatable prices."
-                },
-                {
-                  name: 'Ajman Customer',
-                  avatar: 'AJ',
-                  role: 'Verified Buyer',
-                  title: 'Always fresh stock & fast WhatsApp response',
-                  review: "Ordered TEREA and disposable kits multiple times. Delivery always on time and verified original seal. Customer service is 10/10."
-                },
-                {
-                  name: 'Fujairah Customer',
-                  avatar: 'FC',
-                  role: 'Verified Buyer',
-                  title: 'Best disposable vape deals in UAE',
-                  review: "Authentic devices with authentic QR codes. Super responsive team, discreet delivery, and prices are better than physical shops."
-                },
-                {
-                  name: 'Ras Al Khaimah Customer',
-                  avatar: 'RC',
-                  role: 'Verified Buyer',
-                  title: 'Flawless experience every single order',
-                  review: "Top quality pod devices and pods. Packaging is tamper-proof with cold ice packs. Recommended to all my friends!"
-                }
-              ].map((rev, i) => (
+              {[...testimonialList, ...testimonialList].map((rev, i) => (
                 <div
                   key={i}
                   className="w-[300px] sm:w-[360px] md:w-[390px] shrink-0 bg-white/[0.06] hover:bg-white/[0.12] backdrop-blur-xl border border-white/10 hover:border-emerald-400/40 rounded-2xl p-5 sm:p-6 transition-all duration-300 shadow-lg flex flex-col justify-between select-none"

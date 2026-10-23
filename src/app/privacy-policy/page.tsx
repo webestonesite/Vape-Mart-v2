@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { PageHero } from "@/components/PageHero";
+import { getShopifyPageSections } from "@/lib/shopify-pages";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
     "How Vape Mart collects, uses and protects your personal information when you shop with us in the UAE.",
 };
 
-const sections = [
+const localSections = [
   {
     title: "1. Information We Collect",
     body: [
@@ -61,7 +62,9 @@ const sections = [
   },
 ];
 
-export default function PrivacyPolicyPage() {
+export default async function PrivacyPolicyPage() {
+  const cmsSections = await getShopifyPageSections("privacy-policy");
+  const sections = cmsSections.length ? cmsSections : localSections;
   return (
     <>
       <Header />

@@ -146,6 +146,33 @@ export function Header({ onCartClick, cartCount = 0 }: HeaderProps) {
       .catch(() => {});
   }, []);
 
+  // Site settings from Shopify (store metafields): the top-bar
+  // announcements and phone are edited in Shopify admin, no deploy.
+  useEffect(() => {
+    fetch("/api/site-content")
+      .then((res) => res.json())
+      .then((data) => {
+        const s = data?.settings;
+        if (!s) return;
+        setHeaderData((prev) => {
+          if (!prev) return prev;
+          const topBar = {
+            enabled: prev.topBar?.enabled,
+            announcements: prev.topBar?.announcements || [],
+            phone: prev.topBar?.phone || "",
+            phoneHref: prev.topBar?.phoneHref,
+            links: prev.topBar?.links || [],
+          };
+          if (Array.isArray(s.announcements) && s.announcements.length) {
+            topBar.announcements = s.announcements;
+          }
+          if (s.phone) topBar.phone = s.phone;
+          return { ...prev, topBar };
+        });
+      })
+      .catch(() => {});
+  }, []);
+
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
