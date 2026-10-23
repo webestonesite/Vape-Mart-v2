@@ -457,7 +457,7 @@ const BLOG_ID = "gid://shopify/Blog/85628715056";
 const BLOG_QUERY = `
   query BlogPosts($id: ID!, $first: Int!, $after: String) {
     blog(id: $id) {
-      articles(first: $first, after: $after, sortKey: PUBLISHED_AT, reverse: true) {
+      articles(first: $first, after: $after) {
         pageInfo { hasNextPage endCursor }
         nodes {
           handle title bodyHtml: body excerpt: summary
@@ -498,6 +498,8 @@ export async function fetchBlogPosts(): Promise<BlogPost[]> {
     if (!conn.pageInfo.hasNextPage) break;
     after = conn.pageInfo.endCursor;
   }
+  // The Admin API cannot sort Blog.articles; newest first, client-side.
+  out.sort((x, y) => (y.publishedAt || "").localeCompare(x.publishedAt || ""));
   return out;
 }
 
