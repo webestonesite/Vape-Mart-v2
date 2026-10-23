@@ -1,10 +1,30 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { MapPin, Phone, Mail, Send, ChevronRight, CreditCard, ShieldCheck } from "lucide-react";
 
 export function Footer() {
+  // Phone + footer line are edited in Shopify admin (store metafields).
+  const [cms, setCms] = useState<{ phone: string; footerText: string }>({
+    phone: "",
+    footerText: "",
+  });
+  useEffect(() => {
+    fetch("/api/site-content")
+      .then((res) => res.json())
+      .then((data) => {
+        const s = data?.settings;
+        if (s) {
+          setCms({ phone: s.phone || "", footerText: s.footerText || "" });
+        }
+      })
+      .catch(() => {});
+  }, []);
+  const phoneDisplay = cms.phone || "+971 55 168 8299";
+  const phoneHref = `tel:${phoneDisplay.replace(/[^0-9+]/g, "")}`;
+
   return (
     <footer className="bg-[#022c22] text-white pt-12 sm:pt-16 md:pt-20 pb-28 lg:pb-12 mt-12 sm:mt-16 rounded-t-[28px] sm:rounded-t-[40px] shadow-2xl relative overflow-hidden border-t border-emerald-900/60">
       {/* Background Ambient Glows */}
@@ -166,8 +186,8 @@ export function Footer() {
               </li>
               <li className="flex items-center gap-3 text-emerald-100/60">
                 <Phone size={18} className="text-amber-400 shrink-0" />
-                <a href="tel:+971551688299" className="hover:text-amber-300 transition-colors">
-                  +971 55 168 8299 (WhatsApp Available)
+                <a href={phoneHref} className="hover:text-amber-300 transition-colors">
+                  {phoneDisplay} (WhatsApp Available)
                 </a>
               </li>
               <li className="flex items-center gap-3 text-emerald-100/60">
@@ -197,7 +217,8 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="pt-6 sm:pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-emerald-100/40 text-[11px] sm:text-xs font-medium text-center md:text-left">
-            &copy; {new Date().getFullYear()} Vape Mart UAE. All Rights Reserved. Designed for adult consumers (21+) only.
+            {cms.footerText ||
+              `© ${new Date().getFullYear()} Vape Mart UAE. All Rights Reserved. Designed for adult consumers (21+) only.`}
           </p>
           <div className="flex items-center gap-2 sm:gap-3 text-emerald-100/50 text-xs font-medium">
             <span className="flex items-center gap-1 bg-white/5 px-2.5 py-1 rounded-md border border-white/10">

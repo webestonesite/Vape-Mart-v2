@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MapPin, Phone, Mail, Clock, Send, CheckCircle2 } from "lucide-react";
 import { PageHero } from "@/components/PageHero";
 import { Header } from "@/components/Header";
@@ -37,6 +37,16 @@ const channels = [
 
 export default function ContactPage() {
   const [sent, setSent] = useState(false);
+  // The intro copy is edited in Shopify admin (Content → Pages → Contact).
+  const [introHtml, setIntroHtml] = useState("");
+  useEffect(() => {
+    fetch("/api/page-content?handle=contact")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.bodyHtml) setIntroHtml(data.bodyHtml);
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <>
@@ -87,12 +97,21 @@ export default function ContactPage() {
           {/* Form */}
           <div className="grid lg:grid-cols-5 gap-8 sm:gap-10">
             <div className="lg:col-span-3 rounded-[24px] border border-slate-200 bg-white p-6 sm:p-10 shadow-sm">
-              <h2 className="font-luxury text-slate-900 text-xl sm:text-2xl font-bold mb-2">
-                Send Us a Message
-              </h2>
-              <p className="text-slate-500 text-sm mb-6">
-                Fill in the form and we will get back to you within a few hours during support times.
-              </p>
+{introHtml ? (
+                <div
+                  className="[&>h2]:font-luxury [&>h2]:text-slate-900 [&>h2]:text-xl sm:[&>h2]:text-2xl [&>h2]:font-bold [&>h2]:mb-2 [&>p]:text-slate-500 [&>p]:text-sm [&>p]:mb-6"
+                  dangerouslySetInnerHTML={{ __html: introHtml }}
+                />
+              ) : (
+                <>
+                  <h2 className="font-luxury text-slate-900 text-xl sm:text-2xl font-bold mb-2">
+                    Send Us a Message
+                  </h2>
+                  <p className="text-slate-500 text-sm mb-6">
+                    Fill in the form and we will get back to you within a few hours during support times.
+                  </p>
+                </>
+              )}
               {sent ? (
                 <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-8 text-center">
                   <CheckCircle2 size={40} className="text-emerald-600 mx-auto mb-3" />

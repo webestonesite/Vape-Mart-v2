@@ -447,6 +447,9 @@ export interface BlogPost {
   imageUrl: string;
   publishedAt: string;
   tags: string[];
+  category: string;
+  quickAnswer: string;
+  productSlugs: string[];
 }
 
 const BLOG_ID = "gid://shopify/Blog/85628715056";
@@ -460,6 +463,7 @@ const BLOG_QUERY = `
           handle title bodyHtml excerpt
           publishedAt tags
           image { url }
+          metafields(first: 10, namespace: "vapemart") { nodes { namespace key type value } }
         }
       }
     }
@@ -468,6 +472,7 @@ const BLOG_QUERY = `
 
 function toBlogPost(n: any): BlogPost {
   const text = stripHtml(n.bodyHtml || "");
+  const mf = mfMap(n.metafields?.nodes);
   return {
     handle: n.handle,
     title: n.title,
@@ -476,6 +481,9 @@ function toBlogPost(n: any): BlogPost {
     imageUrl: n.image?.url || "",
     publishedAt: n.publishedAt,
     tags: n.tags ?? [],
+    category: mf["vapemart.category"] || "",
+    quickAnswer: mf["vapemart.quick_answer"] || "",
+    productSlugs: parseList(mf["vapemart.product_slugs"]),
   };
 }
 
@@ -497,7 +505,7 @@ export async function fetchBlogPost(handle: string): Promise<BlogPost | null> {
   const data = await shopifyAdmin<any>(
     `query Article($id: ID!, $handle: String!) {
        blog(id: $id) {
-         articleByHandle(handle: $handle) { handle title bodyHtml excerpt publishedAt tags image { url } }
+         articleByHandle(handle: $handle) { handle title bodyHtml excerpt publishedAt tags image { url } metafields(first: 10, namespace: "vapemart") { nodes { namespace key type value } } }
        }
      }`,
     { id: BLOG_ID, handle }, 600
@@ -520,6 +528,153 @@ export async function fetchShopifyPage(handle: string): Promise<{ title: string;
     return p ? { title: p.title, bodyHtml: p.body || "" } : null;
   } catch {
     return null;
+  }
+}
+
+
+/* ------------------------------------------------------------------ */
+/*  Site content (hero slides, home sections, testimonials, FAQs)      */
+/*  Everything here is edited in Shopify admin — no deploy needed.     */
+/* ------------------------------------------------------------------ */
+
+export interface HeroSlide {
+  title: string;
+  description: string;
+  badge: string;
+  imageUrl: string;
+  buttonText: string;
+  buttonLink: string;
+  position: number;
+}
+
+export interface HomeSectionData {
+  key: string;
+  title: string;
+  subtitle: string;
+  badgeText: string;
+  products: ProductItem[];
+}
+
+export interface Testimonial {
+  name: string;
+  role: string;
+  title: string;
+  review: string;
+  position: number;
+}
+
+export interface FaqItem {
+  question: string;
+  answer: string;
+  position: number;
+}
+
+export interface SiteContent {
+  heroSlides: HeroSlide[];
+  homeSections: HomeSectionData[];
+  testimonials: Testimonial[];
+  faqs: FaqItem[];
+}
+
+interface MetaobjectNode {
+  id: string;
+  fields: { key: string; value: string | null }[];
+  imageRef?: { reference: { image: { url: string } | null } | null } | null;
+  productRefs?: { references: { nodes: (ShopifyProductNode | null)[] } | null } | null;
+}
+
+function moFields(n: MetaobjectNode): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const f of n.fields) if (f.value != null) out[f.key] = f.value;
+  return out;
+}
+
+const SITE_CONTENT_QUERY = `
+  query SiteContent {
+    heroSlides: metaobjects(type: "hero_slide", first: 10) {
+      nodes {
+        id fields { key value }
+        imageRef: field(key: "image") { reference { ... on MediaImage { image { url } } } }
+      }
+    }
+    homeSections: metaobjects(type: "home_section", first: 12) {
+      nodes {
+        id fields { key value }
+        productRefs: field(key: "products") {
+          references(first: 24) { nodes { ... on Product { ${PRODUCT_FRAGMENT} } } }
+        }
+      }
+    }
+    testimonials: metaobjects(type: "testimonial", first: 20) {
+      nodes { id fields { key value } }
+    }
+    faqItems: metaobjects(type: "faq_item", first: 20) {
+      nodes { id fields { key value } }
+    }
+  }
+`;
+
+export async function fetchSiteContent(): Promise<SiteContent> {
+  const empty: SiteContent = { heroSlides: [], homeSections: [], testimonials: [], faqs: [] };
+  try {
+    const data = await shopifyAdmin<any>(SITE_CONTENT_QUERY, {}, 600);
+    const heroSlides: HeroSlide[] = (data.heroSlides?.nodes ?? [])
+      .map((n: MetaobjectNode) => {
+        const f = moFields(n);
+        return {
+          title: f.title || "",
+          description: f.description || "",
+          badge: f.badge || "",
+          imageUrl: n.imageRef?.reference?.image?.url || "",
+          buttonText: f.button_text || "",
+          buttonLink: f.button_link || "",
+          position: parseInt(f.position || "0", 10) || 0,
+        };
+      })
+      .filter((s: HeroSlide) => s.title)
+      .sort((a: HeroSlide, b: HeroSlide) => a.position - b.position);
+    const homeSections: HomeSectionData[] = (data.homeSections?.nodes ?? [])
+      .map((n: MetaobjectNode) => {
+        const f = moFields(n);
+        const products = (n.productRefs?.references?.nodes ?? [])
+          .filter((pn: ShopifyProductNode | null): pn is ShopifyProductNode => !!pn && pn.status === "ACTIVE")
+          .map((pn: ShopifyProductNode) => toProductItem(pn));
+        return {
+          key: f.section_key || "",
+          title: f.title || "",
+          subtitle: f.subtitle || "",
+          badgeText: f.badge_text || "",
+          products,
+        };
+      })
+      .filter((s: HomeSectionData) => s.key);
+    const testimonials: Testimonial[] = (data.testimonials?.nodes ?? [])
+      .map((n: MetaobjectNode) => {
+        const f = moFields(n);
+        return {
+          name: f.name || "",
+          role: f.role || "Verified Buyer",
+          title: f.title || "",
+          review: f.review || "",
+          position: parseInt(f.position || "0", 10) || 0,
+        };
+      })
+      .filter((t: Testimonial) => t.name && t.review)
+      .sort((a: Testimonial, b: Testimonial) => a.position - b.position);
+    const faqs: FaqItem[] = (data.faqItems?.nodes ?? [])
+      .map((n: MetaobjectNode) => {
+        const f = moFields(n);
+        return {
+          question: f.question || "",
+          answer: f.answer || "",
+          position: parseInt(f.position || "0", 10) || 0,
+        };
+      })
+      .filter((t: FaqItem) => t.question && t.answer)
+      .sort((a: FaqItem, b: FaqItem) => a.position - b.position);
+    return { heroSlides, homeSections, testimonials, faqs };
+  } catch {
+    return empty;
   }
 }
 
