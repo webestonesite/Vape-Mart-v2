@@ -180,6 +180,20 @@ function primaryCollection(collections: ShopifyCollectionRef[]): ShopifyCollecti
   return real[0] ?? null;
 }
 
+const FALLBACK_IMAGES: Record<string, string> = {
+  "e-liquids": "/images/prod_eliquid.png",
+  "e-liquid": "/images/prod_eliquid.png",
+  juul: "/images/juul_product.jpg",
+  "juul-1": "/images/juul_product.jpg",
+  "juul-2": "/images/juul_product.jpg",
+  terea: "/images/terea_heets.jpg",
+  "terea-device": "/images/terea_heets.jpg",
+  "terea-flavor": "/images/terea_heets.jpg",
+  iqos: "/images/terea_heets.jpg",
+  "iqos-iluma": "/images/terea_heets.jpg",
+  "iqos-terea": "/images/terea_heets.jpg",
+};
+
 function toProductItem(node: ShopifyProductNode, flavorObjects: FlavorMetaobject[] = []): ProductItem {
   const mf = mfMap(node.metafields?.nodes);
   const images = node.images.nodes.map((i) => i.url);
@@ -188,6 +202,7 @@ function toProductItem(node: ShopifyProductNode, flavorObjects: FlavorMetaobject
   const compareAt = firstVariant?.compareAtPrice ? parseFloat(firstVariant.compareAtPrice) : 0;
   const stockQty = node.variants.nodes.reduce((s, v) => s + (v.inventoryQuantity ?? 0), 0);
   const col = primaryCollection(node.collections.nodes);
+  const fallbackImage = FALLBACK_IMAGES[col?.handle || ""] || "/images/prod_disposable.png";
 
   const flavors: ProductFlavor[] = flavorObjects.map((f) => {
     const fm: Record<string, string> = {};
@@ -238,8 +253,8 @@ function toProductItem(node: ShopifyProductNode, flavorObjects: FlavorMetaobject
     inStock: stockQty > 0,
     stockQuantity: stockQty,
     sku: firstVariant?.sku || node.handle,
-    images: images.length ? images : ["/images/prod_disposable.png"],
-    primaryImage: images[0] || "/images/prod_disposable.png",
+    images: images.length ? images : [fallbackImage],
+    primaryImage: images[0] || fallbackImage,
     shortDescription: mf["vape.short_description"] || desc.slice(0, 180),
     fullDescription: node.descriptionHtml || "",
     puffs: puffsNum,
