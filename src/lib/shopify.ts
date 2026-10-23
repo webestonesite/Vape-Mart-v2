@@ -460,7 +460,7 @@ const BLOG_QUERY = `
       articles(first: $first, after: $after, sortKey: PUBLISHED_AT, reverse: true) {
         pageInfo { hasNextPage endCursor }
         nodes {
-          handle title bodyHtml excerpt
+          handle title bodyHtml: body excerpt: summary
           publishedAt tags
           image { url }
           metafields(first: 10, namespace: "vapemart") { nodes { namespace key type value } }
@@ -476,7 +476,7 @@ function toBlogPost(n: any): BlogPost {
   return {
     handle: n.handle,
     title: n.title,
-    excerpt: n.excerpt || text.slice(0, 180),
+    excerpt: n.excerpt ? stripHtml(n.excerpt) : text.slice(0, 180),
     bodyHtml: n.bodyHtml || "",
     imageUrl: n.image?.url || "",
     publishedAt: n.publishedAt,
@@ -505,7 +505,7 @@ export async function fetchBlogPost(handle: string): Promise<BlogPost | null> {
   const data = await shopifyAdmin<any>(
     `query Article($id: ID!, $handle: String!) {
        blog(id: $id) {
-         articleByHandle(handle: $handle) { handle title bodyHtml excerpt publishedAt tags image { url } metafields(first: 10, namespace: "vapemart") { nodes { namespace key type value } } }
+         articleByHandle(handle: $handle) { handle title bodyHtml: body excerpt: summary publishedAt tags image { url } metafields(first: 10, namespace: "vapemart") { nodes { namespace key type value } } }
        }
      }`,
     { id: BLOG_ID, handle }, 600
