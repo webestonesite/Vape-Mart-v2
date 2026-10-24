@@ -1512,7 +1512,7 @@ export function CollectionPageView({ category, allCategories, products, catalogP
                 </button>
                 <p className="font-cinzel text-[10px] tracking-[0.24em] text-amber-300 font-bold mb-1.5">VAPE FINDER</p>
                 <h3 className="font-luxury text-xl sm:text-2xl font-bold">
-                  {quizStep === 0 ? "How much do you vape?" : quizStep === 1 ? "Pick your nicotine strength" : "Choose your flavour vibe"}
+                  {(pageSettings?.quizSteps?.[quizStep] as any)?.title || (quizStep === 0 ? "How much do you vape?" : quizStep === 1 ? "Pick your nicotine strength" : "Choose your flavour vibe")}
                 </h3>
                 <div className="mt-4 flex items-center gap-2">
                   {[0, 1, 2].map((s) => (

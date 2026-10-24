@@ -355,6 +355,7 @@ export async function getPanelData() {
       productPage: settings.productPage,
       collectionPage: settings.collectionPage,
       theme: settings.theme,
+      home: settings.home,
     },
     heroSlides,
     sections,
@@ -667,6 +668,7 @@ export async function saveAction(action: string, p: any): Promise<SaveResult> {
         { namespace: "theme", key: "topbar_links", type: "json", value: JSON.stringify(p.topbarLinks ?? []) },
         { namespace: "theme", key: "footer_links", type: "json", value: JSON.stringify(p.footerLinks ?? []) },
         { namespace: "theme", key: "newsletter_text", type: "single_line_text_field", value: String(p.newsletterText || "") },
+        { namespace: "theme", key: "mega_banner", type: "json", value: JSON.stringify(p.megaBanner ?? {}) },
       ];
       if (p.logoUrl) {
         const fileId = await fileFromUrl(String(p.logoUrl), "Store logo");
@@ -674,6 +676,17 @@ export async function saveAction(action: string, p: any): Promise<SaveResult> {
       }
       await setShopMetafields(entries);
       return { message: "Theme settings saved." };
+    }
+
+    case "home.save": {
+      await setShopMetafields([
+        { namespace: "home", key: "promo_banners", type: "json", value: JSON.stringify(p.promoBanners ?? []) },
+        { namespace: "home", key: "category_tiles", type: "json", value: JSON.stringify(p.categoryTiles ?? []) },
+        { namespace: "home", key: "features", type: "json", value: JSON.stringify(p.features ?? []) },
+        { namespace: "home", key: "trust_stats", type: "json", value: JSON.stringify(p.trustStats ?? {}) },
+        { namespace: "home", key: "section_visibility", type: "json", value: JSON.stringify(p.sectionVisibility ?? {}) },
+      ]);
+      return { message: "Home page settings saved." };
     }
 
     default:

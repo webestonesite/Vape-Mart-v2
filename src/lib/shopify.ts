@@ -534,6 +534,15 @@ export interface ThemeSettings {
   topbarLinks: { label: string; url: string }[];
   footerLinks: { title: string; links: { label: string; url: string }[] }[];
   newsletterText: string;
+  megaBanner: { title: string; subtitle: string; badge: string; href: string };
+}
+
+export interface HomeSettings {
+  promoBanners: any[];
+  categoryTiles: any[];
+  features: any[];
+  trustStats: { customers: number; reviews: number };
+  sectionVisibility: Record<string, boolean>;
 }
 
 export interface ShopSettings {
@@ -545,6 +554,7 @@ export interface ShopSettings {
   productPage: ProductPageSettings;
   collectionPage: CollectionPageSettings;
   theme: ThemeSettings;
+  home: HomeSettings;
 }
 
 function parseJson<T>(raw: string | undefined, fallback: T): T {
@@ -565,6 +575,7 @@ const SHOP_META_QUERY = `
       productPage: metafields(first: 50, namespace: "product_page") { nodes { namespace key type value } }
       collectionPage: metafields(first: 50, namespace: "collection_page") { nodes { namespace key type value } }
       theme: metafields(first: 50, namespace: "theme") { nodes { namespace key type value } }
+      home: metafields(first: 50, namespace: "home") { nodes { namespace key type value } }
     }
   }
 `;
@@ -575,7 +586,8 @@ export async function fetchShopSettings(): Promise<ShopSettings> {
     checkout: { freeShippingThreshold: 0, deliveryFee: 0, vatNote: "", cityPromises: [], paymentLabels: [] },
     productPage: { trustBadges: [], shippingText: "", returnText: "", specOrder: [] },
     collectionPage: { itemsPerPage: 0, compareLimit: 0, sortOptions: [], puffBuckets: [], flavorFamilies: [], quizSteps: [], shopAllHero: { title: "", subtitle: "", image: "" } },
-    theme: { searchPlaceholder: "", topbarLinks: [], footerLinks: [], newsletterText: "" },
+    theme: { searchPlaceholder: "", topbarLinks: [], footerLinks: [], newsletterText: "", megaBanner: { title: "", subtitle: "", badge: "", href: "" } },
+    home: { promoBanners: [], categoryTiles: [], features: [], trustStats: { customers: 0, reviews: 0 }, sectionVisibility: {} },
   };
   try {
     const data = await shopifyAdmin<{
@@ -585,6 +597,7 @@ export async function fetchShopSettings(): Promise<ShopSettings> {
         productPage: { nodes: MetafieldNode[] };
         collectionPage: { nodes: MetafieldNode[] };
         theme: { nodes: MetafieldNode[] };
+        home: { nodes: MetafieldNode[] };
       };
     }>(SHOP_META_QUERY, {}, 600);
     const mf = mfMap([
@@ -593,6 +606,7 @@ export async function fetchShopSettings(): Promise<ShopSettings> {
       ...(data.shop.productPage?.nodes ?? []),
       ...(data.shop.collectionPage?.nodes ?? []),
       ...(data.shop.theme?.nodes ?? []),
+      ...(data.shop.home?.nodes ?? []),
     ]);
     let logoUrl = "";
     try {
@@ -631,6 +645,14 @@ export async function fetchShopSettings(): Promise<ShopSettings> {
         topbarLinks: parseJson(mf["theme.topbar_links"], []),
         footerLinks: parseJson(mf["theme.footer_links"], []),
         newsletterText: mf["theme.newsletter_text"] || "",
+        megaBanner: parseJson(mf["theme.mega_banner"], { title: "", subtitle: "", badge: "", href: "" }),
+      },
+      home: {
+        promoBanners: parseJson(mf["home.promo_banners"], []),
+        categoryTiles: parseJson(mf["home.category_tiles"], []),
+        features: parseJson(mf["home.features"], []),
+        trustStats: parseJson(mf["home.trust_stats"], { customers: 0, reviews: 0 }),
+        sectionVisibility: parseJson(mf["home.section_visibility"], {}),
       },
     };
   } catch {

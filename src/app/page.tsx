@@ -885,6 +885,33 @@ export default function Home() {
         }))
       : fallback;
   };
+  // Home page settings from the panel (shop metafields, namespace "home").
+  const homeSettings: any = cms?.settings?.home || {};
+  const homeBanners: any[] = Array.isArray(homeSettings.promo_banners) && homeSettings.promo_banners.length ? homeSettings.promo_banners : [];
+  const banner1 = homeBanners[0] || {};
+  const banner2 = homeBanners[1] || {};
+  const categoryTiles: { title: string; subtitle: string; num: string; img: string; color: string; tag: string }[] = Array.isArray(homeSettings.category_tiles) && homeSettings.category_tiles.length
+    ? homeSettings.category_tiles.map((t: any, i: number) => ({ title: t.title || "", subtitle: t.subtitle || "", num: String(i + 1).padStart(2, "0"), img: t.img || "/images/cat_disposables.png", color: t.color || "from-emerald-900/80 to-black/90", tag: t.tag || "" }))
+    : [
+        { title: "JUUL", subtitle: "PODS & DEVICES", num: "01", img: "/images/juul_product.jpg", color: "from-blue-900/80 to-black/90", tag: "POPULAR" },
+        { title: "Disposables", subtitle: "NEW ARRIVALS", num: "02", img: "/images/cat_disposables.png", color: "from-emerald-900/80 to-black/90", tag: "TRENDING" },
+        { title: "E-Liquids", subtitle: "TOP RATED", num: "03", img: "/images/vape_hero_sky.png", color: "from-amber-900/80 to-black/90", tag: "HOT" },
+        { title: "TEREA", subtitle: "HEATED TOBACCO", num: "04", img: "/images/terea_heets.jpg", color: "from-purple-900/80 to-black/90", tag: "FEATURED" },
+        { title: "IQOS", subtitle: "ILUMA DEVICES", num: "05", img: "/images/prod_pod.png", color: "from-teal-900/80 to-black/90", tag: "NEW" },
+        { title: "Shop All", subtitle: "FULL COLLECTION", num: "06", img: "/images/cat_disposables.png", color: "from-rose-900/80 to-black/90", tag: "EXPLORE" },
+      ];
+  const HOME_FEATURE_ICONS: Record<string, any> = { Truck, Headset, RotateCcw, CreditCard, ShieldCheck, Zap, Clock, Star };
+  const homeFeatures: { icon: any; title: string; desc: string }[] = Array.isArray(homeSettings.features) && homeSettings.features.length
+    ? homeSettings.features.map((f: any) => ({ icon: HOME_FEATURE_ICONS[f.icon] || ShieldCheck, title: f.title || "", desc: f.desc || "" }))
+    : [
+        { icon: Truck, title: "Free Shipping", desc: "Terms & Conditions applied for free shipping and delivery" },
+        { icon: Headset, title: "24x7 Support", desc: "Round-the-Clock Assistance, Anytime You Need It" },
+        { icon: RotateCcw, title: "1 Week Return", desc: "Your Satisfaction is Our Priority: Return Any Product Within 1 week" },
+        { icon: CreditCard, title: "Secure Payment", desc: "Seamless Shopping Backed by Safe and Secure Payment Options" },
+      ];
+  const homeTrust = homeSettings.trust_stats || {};
+  const homeVisible = (key: string) => homeSettings.section_visibility?.[key] !== false;
+
   const initialsOf = (name: string) =>
     name
       .split(/\s+/)
@@ -1255,7 +1282,7 @@ export default function Home() {
         </section>
 
         {/* Ultra-Premium Promo Banners Section */}
-        <motion.section
+        {homeVisible("banners") && (<motion.section
           className="max-w-[1400px] mx-auto px-4 sm:px-6 mt-8 sm:mt-12 md:mt-16 mb-8 grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8"
           initial="hidden"
           whileInView="visible"
@@ -1265,44 +1292,46 @@ export default function Home() {
           <motion.div className="group relative min-h-[250px] sm:h-[300px] md:h-[320px] rounded-[24px] sm:rounded-[32px] overflow-hidden bg-gradient-to-br from-[#064e3b] to-emerald-900 shadow-[0_20px_40px_-15px_rgba(6,78,59,0.3)] hover:shadow-[0_25px_50px_-12px_rgba(6,78,59,0.4)] transition-all duration-500 hover:-translate-y-1 border border-emerald-800" variants={slideInLeft}>
             <div className="absolute inset-0 bg-white opacity-5 mix-blend-overlay"></div>
             <div className="relative z-10 flex flex-col justify-center h-full p-6 sm:p-10 md:p-12 w-full sm:w-2/3 pr-20 sm:pr-0">
-              <span className="font-cinzel text-emerald-400 font-extrabold text-xs sm:text-sm tracking-[0.25em] uppercase mb-1.5 sm:mb-2">Exclusive</span>
-              <h2 className="font-luxury text-white text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight mb-2.5 sm:mb-4 drop-shadow-md">Vape Kits & Pod Systems</h2>
-              <p className="text-emerald-100/80 text-xs sm:text-sm mb-5 sm:mb-8 line-clamp-2">High-performance vape kits designed for smooth flavor and long battery life.</p>
+              <span className="font-cinzel text-emerald-400 font-extrabold text-xs sm:text-sm tracking-[0.25em] uppercase mb-1.5 sm:mb-2">{banner1.eyebrow || "Exclusive"}</span>
+              <h2 className="font-luxury text-white text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight mb-2.5 sm:mb-4 drop-shadow-md">{banner1.title || "Vape Kits & Pod Systems"}</h2>
+              <p className="text-emerald-100/80 text-xs sm:text-sm mb-5 sm:mb-8 line-clamp-2">{banner1.desc || "High-performance vape kits designed for smooth flavor and long battery life."}</p>
               <motion.button
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
+                onClick={() => { if (banner1.buttonLink) window.location.href = banner1.buttonLink; }}
                 className="bg-white text-[#064e3b] px-5 py-2.5 sm:px-6 sm:py-3 rounded-full font-bold text-xs sm:text-sm hover:bg-emerald-50 transition-all w-max shadow-lg flex items-center gap-2 pr-4 group-hover:pr-6 duration-300 cursor-pointer relative overflow-hidden group/btn"
               >
-                <span className="relative z-10">Shop Kits</span>
+                <span className="relative z-10">{banner1.buttonText || "Shop Kits"}</span>
                 <ArrowRight size={15} className="relative z-10 transition-transform duration-300 transform group-hover/btn:translate-x-1" />
                 <span className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-emerald-400/20 to-transparent pointer-events-none"></span>
               </motion.button>
             </div>
-            <img src="/images/cat_vape_kits.png" alt="Vape Kits" className="absolute -right-4 -bottom-4 sm:-bottom-8 w-44 sm:w-56 md:w-64 h-auto object-contain transform group-hover:scale-110 group-hover:-rotate-6 transition-all duration-700 drop-shadow-[0_20px_30px_rgba(0,0,0,0.5)] opacity-50 sm:opacity-90 md:opacity-100" />
+            <img src={banner1.image || "/images/cat_vape_kits.png"} alt={banner1.title || "Vape Kits"} className="absolute -right-4 -bottom-4 sm:-bottom-8 w-44 sm:w-56 md:w-64 h-auto object-contain transform group-hover:scale-110 group-hover:-rotate-6 transition-all duration-700 drop-shadow-[0_20px_30px_rgba(0,0,0,0.5)] opacity-50 sm:opacity-90 md:opacity-100" />
           </motion.div>
 
           <motion.div className="group relative min-h-[250px] sm:h-[300px] md:h-[320px] rounded-[24px] sm:rounded-[32px] overflow-hidden bg-gradient-to-br from-[#d97706] to-amber-700 shadow-[0_20px_40px_-15px_rgba(217,119,6,0.3)] hover:shadow-[0_25px_50px_-12px_rgba(217,119,6,0.4)] transition-all duration-500 hover:-translate-y-1 border border-amber-600" variants={slideInRight}>
             <div className="absolute inset-0 bg-white opacity-5 mix-blend-overlay"></div>
             <div className="relative z-10 flex flex-col justify-center h-full p-6 sm:p-10 md:p-12 w-full sm:w-2/3 pr-20 sm:pr-0">
-              <span className="font-cinzel text-amber-200 font-extrabold text-xs sm:text-sm tracking-[0.25em] uppercase mb-1.5 sm:mb-2">New Arrival</span>
-              <h2 className="font-luxury text-white text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight mb-2.5 sm:mb-4 drop-shadow-md">Premium Vape Collection</h2>
-              <p className="text-amber-100/80 text-xs sm:text-sm mb-5 sm:mb-8 line-clamp-2">Discover top-tier vape devices crafted for performance and style.</p>
+              <span className="font-cinzel text-amber-200 font-extrabold text-xs sm:text-sm tracking-[0.25em] uppercase mb-1.5 sm:mb-2">{banner2.eyebrow || "New Arrival"}</span>
+              <h2 className="font-luxury text-white text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight mb-2.5 sm:mb-4 drop-shadow-md">{banner2.title || "Premium Vape Collection"}</h2>
+              <p className="text-amber-100/80 text-xs sm:text-sm mb-5 sm:mb-8 line-clamp-2">{banner2.desc || "Discover top-tier vape devices crafted for performance and style."}</p>
               <motion.button
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
+                onClick={() => { if (banner2.buttonLink) window.location.href = banner2.buttonLink; }}
                 className="bg-white text-[#d97706] px-5 py-2.5 sm:px-6 sm:py-3 rounded-full font-bold text-xs sm:text-sm hover:bg-amber-50 transition-all w-max shadow-lg flex items-center gap-2 pr-4 group-hover:pr-6 duration-300 cursor-pointer relative overflow-hidden group/btn"
               >
-                <span className="relative z-10">Shop Premium</span>
+                <span className="relative z-10">{banner2.buttonText || "Shop Premium"}</span>
                 <ArrowRight size={15} className="relative z-10 transition-transform duration-300 transform group-hover/btn:translate-x-1" />
                 <span className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-amber-400/20 to-transparent pointer-events-none"></span>
               </motion.button>
             </div>
-            <img src="/images/product-3.png" alt="Premium Vape" className="absolute -right-4 bottom-0 w-44 sm:w-56 md:w-64 h-auto object-contain transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-700 drop-shadow-[0_20px_30px_rgba(0,0,0,0.5)] opacity-50 sm:opacity-90 md:opacity-100" />
+            <img src={banner2.image || "/images/product-3.png"} alt={banner2.title || "Premium Vape"} className="absolute -right-4 bottom-0 w-44 sm:w-56 md:w-64 h-auto object-contain transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-700 drop-shadow-[0_20px_30px_rgba(0,0,0,0.5)] opacity-50 sm:opacity-90 md:opacity-100" />
           </motion.div>
-        </motion.section>
+        </motion.section>)}
 
         {/* Ultra-Premium Categories Section */}
-        <motion.section
+        {homeVisible("categories") && (<motion.section
           className="max-w-[1400px] mx-auto px-4 sm:px-6 py-12 sm:py-16 md:py-20"
           initial="hidden"
           whileInView="visible"
@@ -1332,14 +1361,7 @@ export default function Home() {
             className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 md:gap-5 px-1 sm:px-0"
             variants={staggerContainer}
           >
-            {[
-              { title: "JUUL", subtitle: "PODS & DEVICES", num: "01", img: "/images/juul_product.jpg", color: "from-blue-900/80 to-black/90", tag: "POPULAR" },
-              { title: "Disposables", subtitle: "NEW ARRIVALS", num: "02", img: "/images/cat_disposables.png", color: "from-emerald-900/80 to-black/90", tag: "TRENDING" },
-              { title: "E-Liquids", subtitle: "TOP RATED", num: "03", img: "/images/vape_hero_sky.png", color: "from-amber-900/80 to-black/90", tag: "HOT" },
-              { title: "TEREA", subtitle: "HEATED TOBACCO", num: "04", img: "/images/terea_heets.jpg", color: "from-purple-900/80 to-black/90", tag: "FEATURED" },
-              { title: "IQOS", subtitle: "ILUMA DEVICES", num: "05", img: "/images/prod_pod.png", color: "from-teal-900/80 to-black/90", tag: "NEW" },
-              { title: "Shop All", subtitle: "FULL COLLECTION", num: "06", img: "/images/cat_disposables.png", color: "from-rose-900/80 to-black/90", tag: "EXPLORE" },
-            ].map((cat, idx) => (
+            {categoryTiles.map((cat, idx) => (
               <motion.div
                 key={idx}
                 variants={fadeInScale}
@@ -1367,10 +1389,10 @@ export default function Home() {
               </motion.div>
             ))}
           </motion.div>
-      </motion.section>
+      </motion.section>)}
 
         {/* Ultra-Premium Features Section */}
-        <motion.section
+        {homeVisible("features") && (<motion.section
           className="max-w-[1400px] mx-auto px-4 sm:px-6 py-8 sm:py-12 mb-8 sm:mb-16"
           initial="hidden"
           whileInView="visible"
@@ -1383,12 +1405,7 @@ export default function Home() {
             <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-[80px] pointer-events-none"></div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-8 divide-y sm:divide-y-0 sm:divide-x divide-white/10 relative z-10">
-              {[
-                { icon: Truck, title: "Free Shipping", desc: "Terms & Conditions applied for free shipping and delivery" },
-                { icon: Headset, title: "24x7 Support", desc: "Round-the-Clock Assistance, Anytime You Need It" },
-                { icon: RotateCcw, title: "1 Week Return", desc: "Your Satisfaction is Our Priority: Return Any Product Within 1 week" },
-                { icon: CreditCard, title: "Secure Payment", desc: "Seamless Shopping Backed by Safe and Secure Payment Options" }
-              ].map((feature, idx) => (
+              {homeFeatures.map((feature, idx) => (
                 <motion.div 
                   key={idx} 
                   className="flex flex-col items-center text-center px-4 pt-6 sm:pt-0 group cursor-pointer" 
@@ -1405,7 +1422,7 @@ export default function Home() {
               ))}
             </div>
           </div>
-        </motion.section>
+        </motion.section>)}
 
         {/* Best Selling Carousel */}
         <ProductCarousel
@@ -1837,7 +1854,7 @@ export default function Home() {
         </motion.section>
 
       {/* Ultra-Premium Trust & Reviews Hub Section */}
-      <motion.section
+      {homeVisible("trust") && (<motion.section
         className="relative overflow-hidden bg-[#064e3b] text-white py-12 sm:py-16 md:py-20 mb-0 border-t border-emerald-900"
         initial="hidden"
         whileInView="visible"
@@ -1875,7 +1892,7 @@ export default function Home() {
               </div>
               <div>
                 <p className="text-white font-bold text-base">
-                  Trusted by <span className="text-emerald-400 font-extrabold"><AnimatedCounter end={160000} suffix="+" /></span> Customers
+                  Trusted by <span className="text-emerald-400 font-extrabold"><AnimatedCounter end={homeTrust.customers || 160000} suffix="+" /></span> Customers
                 </p>
                 <p className="text-emerald-200/70 text-xs">Verified UAE & GCC buyers</p>
               </div>
@@ -1886,7 +1903,7 @@ export default function Home() {
                 {[1, 2, 3, 4, 5].map(i => <Star key={i} size={15} fill="#fbbf24" color="#fbbf24" />)}
               </div>
               <span className="text-white font-black text-base">4.9 / 5</span>
-              <span className="text-emerald-200/70 text-xs">(1,200+ reviews)</span>
+              <span className="text-emerald-200/70 text-xs">({homeTrust.reviews ? homeTrust.reviews.toLocaleString() : "1,200"}+ reviews)</span>
             </div>
           </motion.div>
 
@@ -1950,7 +1967,7 @@ export default function Home() {
             </div>
           </motion.div>
         </div>
-      </motion.section>
+      </motion.section>)}
 
       {/* Blog Section - 3D Curved Rotating Cover-Flow Carousel */}
       <motion.section

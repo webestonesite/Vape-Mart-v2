@@ -53,6 +53,7 @@ export interface HeaderNavItem {
 }
 
 export interface ThemeHeaderConfig {
+  megaBanner?: MegaMenuBanner;
   topBar?: {
     enabled?: boolean;
     announcements: string[];
@@ -174,7 +175,8 @@ export function Header({ onCartClick, cartCount = 0 }: HeaderProps) {
             ? { ...prev.search, placeholder: s.theme.searchPlaceholder }
             : prev.search;
           const logo = s.logoUrl && prev.logo ? { ...prev.logo, src: s.logoUrl } : prev.logo;
-          return { ...prev, topBar, search, logo };
+          const megaBanner = s.theme?.mega_banner?.title ? { title: s.theme.mega_banner.title, subtitle: s.theme.mega_banner.subtitle, badge: s.theme.mega_banner.badge, href: s.theme.mega_banner.href } : prev.megaBanner;
+          return { ...prev, topBar, search, logo, megaBanner };
         });
       })
       .catch(() => {});
@@ -534,34 +536,34 @@ export function Header({ onCartClick, cartCount = 0 }: HeaderProps) {
                         </div>
 
                         {/* Featured promo banner — full width below the columns */}
-                        {item.featuredBanner && (
+                        {(() => { const banner = item.featuredBanner || (item.label?.toUpperCase() === "DISPOSABLE" ? headerData?.megaBanner : undefined); if (!banner) return null; return (
                           <div className="mt-3 relative rounded-xl overflow-hidden bg-gradient-to-r from-[#064e3b] via-[#065f46] to-[#022c22] px-5 py-4 flex items-center justify-between gap-4">
                             <div className="absolute -top-12 -right-12 w-48 h-48 bg-amber-400/15 rounded-full blur-2xl pointer-events-none" />
                             <div className="relative flex items-center gap-4 min-w-0">
-                              {item.featuredBanner.badge && (
+                              {banner.badge && (
                                 <span className="shrink-0 text-[10px] font-black tracking-[0.14em] uppercase px-2.5 py-1 rounded-full bg-amber-400 text-neutral-900">
-                                  {item.featuredBanner.badge}
+                                  {banner.badge}
                                 </span>
                               )}
                               <div className="min-w-0">
                                 <h5 className="text-base font-extrabold text-white truncate">
-                                  {item.featuredBanner.title}
+                                  {banner.title}
                                 </h5>
-                                {item.featuredBanner.subtitle && (
+                                {banner.subtitle && (
                                   <p className="text-[11px] text-emerald-100/80 truncate">
-                                    {item.featuredBanner.subtitle}
+                                    {banner.subtitle}
                                   </p>
                                 )}
                               </div>
                             </div>
                             <Link
-                              href={item.featuredBanner.href || "#"}
+                              href={banner.href || "#"}
                               className="relative shrink-0 px-6 py-2.5 rounded-full text-xs font-extrabold bg-amber-400 hover:bg-amber-300 text-neutral-900 transition-colors"
                             >
                               SHOP NOW →
                             </Link>
                           </div>
-                        )}
+                        ); })()}
 
                         {/* Bottom trust strip */}
                         <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-emerald-50/70 border border-emerald-100 px-4 py-2.5">
