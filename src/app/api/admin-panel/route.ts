@@ -8,6 +8,7 @@ import {
   getPanelData,
   getPanelExtras,
   getProductDetail,
+  getCollectionDetail,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -85,6 +86,11 @@ export async function POST(req: Request) {
 
     if (action === "productDetail") {
       const detail = await getProductDetail(String(body.id || ""));
+      return NextResponse.json({ ok: true, detail });
+    }
+
+    if (action === "collectionDetail") {
+      const detail = await getCollectionDetail(String(body.id || ""));
       return NextResponse.json({ ok: true, detail });
     }
 

@@ -1220,7 +1220,7 @@ export function CollectionPageView({ category, allCategories, products, catalogP
             <p className="mt-2 text-sm text-neutral-500">Everything you need to know about authenticity, delivery, nicotine strengths and more.</p>
           </div>
           <div className="grid lg:grid-cols-2 gap-3 sm:gap-4">
-            {[
+            {[...(category?.faqs || []),
               { q: "Are your vapes 100% authentic?", a: "Yes — without exception. Every product at Vape Mart UAE is sourced from licensed UAE importers and carries verifiable authenticity packaging: scratch-to-verify codes, holograms or QR checks depending on the brand. We never sell clones, refills or grey-market stock. If any unit ever fails a brand authenticity check, we replace it free and investigate the batch." },
               { q: "How fast is delivery in the UAE?", a: "Dubai orders placed before 9pm are delivered the same day, with express 2–3 hour delivery available in most areas including Marina, JLT, Deira, Bur Dubai and Business Bay. Sharjah, Ajman and Abu Dhabi are next-day. Ras Al Khaimah, Fujairah and Umm Al Quwain arrive within 48 hours. Every parcel is packed discreetly with no product branding visible on the outside." },
               { q: "What nicotine strength should I choose?", a: "20mg (2%) suits most people switching from up to half a pack a day — it gives a smooth, cigarette-like throat hit. 50mg (5%) is for heavier smokers (a pack or more daily) who want maximum satisfaction with fewer puffs. Both use nicotine salts, which feel smoother and absorb faster than old freebase e-liquids. If you feel dizzy, you are vaping too much too fast — pause, drink water, and consider dropping to 20mg." },
