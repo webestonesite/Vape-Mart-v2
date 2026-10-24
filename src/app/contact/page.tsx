@@ -39,6 +39,19 @@ export default function ContactPage() {
   const [sent, setSent] = useState(false);
   // The intro copy is edited in Shopify admin (Content → Pages → Contact).
   const [introHtml, setIntroHtml] = useState("");
+  // Contact cards + hero subtitle from the panel (shop metafields, namespace "pages").
+  const [pageSettings, setPageSettings] = useState<any>(null);
+  useEffect(() => {
+    fetch("/api/site-content")
+      .then((res) => res.json())
+      .then((data) => { if (data?.settings?.pages) setPageSettings(data.settings.pages); })
+      .catch(() => {});
+  }, []);
+  const CONTACT_ICONS: Record<string, any> = { Phone, Mail, MapPin, Clock };
+  const channelsList: { icon: any; title: string; value: string; sub: string; href?: string }[] = pageSettings?.contact_cards?.length
+    ? pageSettings.contact_cards.map((c: any) => ({ icon: CONTACT_ICONS[c.icon] || Phone, title: c.title || "", value: c.value || "", sub: c.sub || "", href: c.href || undefined }))
+    : channels;
+  const heroSubtitle = pageSettings?.page_hero_subtitles?.contact || "Questions about an order, a product, or wholesale? Our UAE support team replies fast — usually within minutes on WhatsApp.";
   useEffect(() => {
     fetch("/api/page-content?handle=contact")
       .then((res) => res.json())
@@ -55,14 +68,14 @@ export default function ContactPage() {
         <PageHero
           badge="Get In Touch"
           title="Contact Us"
-          subtitle="Questions about an order, a product, or wholesale? Our UAE support team replies fast — usually within minutes on WhatsApp."
+          subtitle={heroSubtitle}
           crumbs={[{ label: "Home", href: "/" }, { label: "Contact Us" }]}
         />
 
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 mt-8 sm:mt-12 pb-16 sm:pb-24">
           {/* Channels */}
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6 mb-10 sm:mb-14">
-            {channels.map((c) => {
+            {channelsList.map((c) => {
               const inner = (
                 <>
                   <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center mb-4">

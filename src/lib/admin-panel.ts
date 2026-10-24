@@ -213,6 +213,28 @@ const PANEL_QUERY = `
     }
     pages(first: 30) { nodes { id handle title body } }
     menus(first: 10) { nodes { id title handle } }
+    orders(first: 25, sortKey: CREATED_AT, reverse: true) {
+      nodes { id name createdAt displayFulfillmentStatus totalPriceSet { shopMoney { amount currencyCode } } customer { displayName email } }
+    }
+    draftOrders(first: 25) {
+      nodes { id name createdAt status totalPrice { amount currencyCode } customer { displayName email } }
+    }
+    customers(first: 25, sortKey: CREATED_AT, reverse: true) {
+      nodes { id displayName email phone numberOfOrders amountSpent { amount currencyCode } }
+    }
+    discountNodes(first: 25) {
+      nodes { id discount {
+        ... on DiscountCodeBasic { title codes(first: 1) { nodes { code } } }
+        ... on DiscountCodeBxgy { title codes(first: 1) { nodes { code } } }
+        ... on DiscountCodeFreeShipping { title codes(first: 1) { nodes { code } } }
+        ... on DiscountAutomaticBasic { title }
+        ... on DiscountAutomaticBxgy { title }
+        ... on DiscountAutomaticFreeShipping { title }
+      } }
+    }
+    redirects: urlRedirects(first: 100) {
+      nodes { id path target }
+    }
   }
 `;
 
@@ -345,6 +367,28 @@ export async function getPanelData() {
     }
   }
 
+  const orders = (d.orders?.nodes ?? []).map((o: any) => ({
+    id: o.id as string, name: o.name as string, customer: o.customer?.displayName || o.customer?.email || "Guest",
+    fulfillment: o.displayFulfillmentStatus || "", total: o.totalPriceSet?.shopMoney?.amount || "",
+    currency: o.totalPriceSet?.shopMoney?.currencyCode || "AED", createdAt: o.createdAt || "",
+  }));
+  const draftOrders = (d.draftOrders?.nodes ?? []).map((o: any) => ({
+    id: o.id as string, name: o.name as string, status: o.status || "",
+    customer: o.customer?.displayName || o.customer?.email || "—",
+    total: o.totalPrice?.amount || "", currency: o.totalPrice?.currencyCode || "AED", createdAt: o.createdAt || "",
+  }));
+  const customers = (d.customers?.nodes ?? []).map((c: any) => ({
+    id: c.id as string, name: c.displayName || "", email: c.email || "", phone: c.phone || "",
+    orders: c.numberOfOrders ?? 0, spent: c.amountSpent?.amount || "", currency: c.amountSpent?.currencyCode || "AED",
+  }));
+  const discounts = (d.discountNodes?.nodes ?? []).map((n: any) => ({
+    id: n.id as string, title: n.discount?.title || "",
+    code: n.discount?.codes?.nodes?.[0]?.code || (n.discount ? "Automatic" : ""),
+  }));
+  const redirects = (d.redirects?.nodes ?? []).map((r: any) => ({
+    id: r.id as string, path: r.path as string, target: r.target as string,
+  }));
+
   return {
     settings: {
       announcements: settings.announcements,
@@ -356,6 +400,8 @@ export async function getPanelData() {
       collectionPage: settings.collectionPage,
       theme: settings.theme,
       home: settings.home,
+      blog: settings.blog,
+      pages: settings.pages,
     },
     heroSlides,
     sections,
@@ -367,6 +413,11 @@ export async function getPanelData() {
     blogPosts,
     pages,
     menu,
+    orders,
+    draftOrders,
+    customers,
+    discounts,
+    redirects,
     locationId: d.locations?.nodes?.[0]?.id || "",
   };
 }
@@ -689,6 +740,52 @@ export async function saveAction(action: string, p: any): Promise<SaveResult> {
       return { message: "Home page settings saved." };
     }
 
+    case "blogSettings.save": {
+      await setShopMetafields([
+        { namespace: "blog", key: "categories", type: "list.single_line_text_field", value: JSON.stringify(p.categories ?? []) },
+        { namespace: "blog", key: "category_colors", type: "json", value: JSON.stringify(p.categoryColors ?? {}) },
+      ]);
+      return { message: "Blog settings saved." };
+    }
+
+    case "pages.save": {
+      await setShopMetafields([
+        { namespace: "pages", key: "about_values", type: "json", value: JSON.stringify(p.aboutValues ?? []) },
+        { namespace: "pages", key: "about_stats", type: "json", value: JSON.stringify(p.aboutStats ?? []) },
+        { namespace: "pages", key: "contact_cards", type: "json", value: JSON.stringify(p.contactCards ?? []) },
+        { namespace: "pages", key: "page_hero_subtitles", type: "json", value: JSON.stringify(p.pageHeroSubtitles ?? {}) },
+      ]);
+      return { message: "Info page settings saved." };
+    }
+
+    case "redirect.save": {
+      const path = String(p.path || "").trim();
+      const target = String(p.target || "").trim();
+      if (!path.startsWith("/")) throw new Error("Redirect path must start with / (e.g. /old-page).");
+      if (!target) throw new Error("Redirect target is required.");
+      const d = await gql<any>(
+        `mutation RedirectCreate($path: String!, $target: String!) {
+           urlRedirectCreate(urlRedirect: { path: $path, target: $target }) { urlRedirect { id } userErrors { message } }
+         }`,
+        { path, target }
+      );
+      const errs = d.urlRedirectCreate?.userErrors ?? [];
+      if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
+      return { message: "Redirect added." };
+    }
+
+    case "redirect.delete": {
+      const d = await gql<any>(
+        `mutation RedirectDelete($id: ID!) {
+           urlRedirectDelete(id: $id) { deletedUrlRedirectId userErrors { message } }
+         }`,
+        { id: p.id }
+      );
+      const errs = d.urlRedirectDelete?.userErrors ?? [];
+      if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
+      return { message: "Redirect deleted." };
+    }
+
     default:
       throw new Error(`Unknown action: ${action}`);
   }
@@ -823,6 +920,7 @@ export async function getProductDetail(id: string) {
     `query ProductDetail($id: ID!) {
        product(id: $id) {
          id title handle descriptionHtml vendor productType tags status
+         seo { title description }
          options { id name position values }
          variants(first: 50) {
            nodes {
@@ -849,6 +947,8 @@ export async function getProductDetail(id: string) {
     title: p.title as string,
     handle: p.handle as string,
     descriptionHtml: p.descriptionHtml || "",
+    seoTitle: p.seo?.title || "",
+    seoDescription: p.seo?.description || "",
     vendor: p.vendor || "",
     productType: p.productType || "",
     tags: (p.tags ?? []).join(", "),
@@ -980,6 +1080,8 @@ export async function createProduct(p: any): Promise<SaveResult> {
     tags: String(p.tags || "").split(",").map((x: string) => x.trim()).filter(Boolean),
     status: p.status || "DRAFT",
   };
+  if (p.seoTitle !== undefined || p.seoDescription !== undefined)
+    baseInput.seo = { title: p.seoTitle || "", description: p.seoDescription || "" };
   const first: Record<string, unknown> = { price: String(p.price || "0") };
   if (p.compareAtPrice) first.compareAtPrice = String(p.compareAtPrice);
   if (p.sku) first.sku = String(p.sku);
@@ -1044,6 +1146,8 @@ export async function updateProduct(p: any): Promise<SaveResult> {
     status: p.status || "DRAFT",
   };
   if (p.handle) input.handle = p.handle;
+  if (p.seoTitle !== undefined || p.seoDescription !== undefined)
+    input.seo = { title: p.seoTitle || "", description: p.seoDescription || "" };
   const coll = await getProductDetail(p.id);
   const join = (p.collectionIds || []).filter((x: string) => !coll.collections.includes(x));
   const leave = coll.collections.filter((x: string) => !(p.collectionIds || []).includes(x));

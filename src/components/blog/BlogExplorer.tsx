@@ -4,13 +4,14 @@ import { useState } from "react";
 import Link from "next/link";
 import { CalendarDays, Clock, ArrowRight, Sparkles } from "lucide-react";
 import type { BlogPost } from "@/data/blog";
-import { BlogCard, CoverImage, categoryBadge } from "./BlogCard";
+import { BlogCard, CoverImage, resolveBadgeClass } from "./BlogCard";
 
-const categories = ["All", "Buying Guides", "Safety", "Education", "Regulations"];
+const DEFAULT_CATEGORIES = ["Buying Guides", "Safety", "Education", "Regulations"];
 
-export function BlogExplorer({ posts }: { posts: BlogPost[] }) {
+export function BlogExplorer({ posts, categories, categoryColors }: { posts: BlogPost[]; categories?: string[]; categoryColors?: Record<string, string> }) {
   const [active, setActive] = useState("All");
   const [featured, ...rest] = posts;
+  const cats = ["All", ...(categories?.length ? categories : DEFAULT_CATEGORIES)];
   const filtered = active === "All" ? rest : rest.filter((p) => p.category === active);
 
   return (
@@ -31,7 +32,7 @@ export function BlogExplorer({ posts }: { posts: BlogPost[] }) {
           </div>
           <div className="p-7 sm:p-10 flex flex-col justify-center">
             <span
-              className={`self-start px-3 py-1 rounded-full text-white text-[11px] font-bold uppercase tracking-wide mb-4 ${categoryBadge[featured.category] ?? "bg-slate-600"}`}
+              className={`self-start px-3 py-1 rounded-full text-white text-[11px] font-bold uppercase tracking-wide mb-4 ${resolveBadgeClass(featured.category, categoryColors)}`}
             >
               {featured.category}
             </span>
@@ -56,7 +57,7 @@ export function BlogExplorer({ posts }: { posts: BlogPost[] }) {
 
       {/* Category filter */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-8 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap">
-        {categories.map((c) => (
+        {cats.map((c) => (
           <button
             key={c}
             onClick={() => setActive(c)}
@@ -75,7 +76,7 @@ export function BlogExplorer({ posts }: { posts: BlogPost[] }) {
       {filtered.length > 0 ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
           {filtered.map((post) => (
-            <BlogCard key={post.slug} post={post} />
+            <BlogCard key={post.slug} post={post} badgeClass={resolveBadgeClass(post.category, categoryColors)} />
           ))}
         </div>
       ) : (

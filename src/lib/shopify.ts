@@ -160,6 +160,7 @@ interface ShopifyProductNode {
   id: string; title: string; handle: string; status: string;
   vendor: string; productType: string; tags: string[];
   descriptionHtml: string;
+  seo?: { title?: string | null; description?: string | null };
   priceRangeV2: { minVariantPrice: { amount: string } };
   images: { nodes: ShopifyImage[] };
   variants: { nodes: ShopifyVariant[] };
@@ -174,6 +175,7 @@ interface FlavorMetaobject {
 
 const PRODUCT_FRAGMENT = `
   id title handle status vendor productType tags descriptionHtml
+  seo { title description }
   priceRangeV2 { minVariantPrice { amount } }
   images(first: 8) { nodes { url altText } }
   variants(first: 3) { nodes { id sku price compareAtPrice inventoryQuantity } }
@@ -245,6 +247,7 @@ function toProductItem(node: ShopifyProductNode, flavorObjects: FlavorMetaobject
     id: node.id.split("/").pop() || node.handle,
     slug: node.handle,
     title: node.title,
+    seo: node.seo ? { title: node.seo.title || "", description: node.seo.description || "" } : undefined,
     subtitle: mf["vape.subtitle"] || undefined,
     brand: (node.vendor || "VAPE MART").toUpperCase(),
     category: col?.title || node.productType || "Vapes",
@@ -545,6 +548,18 @@ export interface HomeSettings {
   sectionVisibility: Record<string, boolean>;
 }
 
+export interface BlogSettings {
+  categories: string[];
+  categoryColors: Record<string, string>;
+}
+
+export interface PagesSettings {
+  aboutValues: any[];
+  aboutStats: any[];
+  contactCards: any[];
+  pageHeroSubtitles: Record<string, string>;
+}
+
 export interface ShopSettings {
   announcements: string[];
   phone: string;
@@ -555,6 +570,8 @@ export interface ShopSettings {
   collectionPage: CollectionPageSettings;
   theme: ThemeSettings;
   home: HomeSettings;
+  blog: BlogSettings;
+  pages: PagesSettings;
 }
 
 function parseJson<T>(raw: string | undefined, fallback: T): T {
@@ -576,6 +593,8 @@ const SHOP_META_QUERY = `
       collectionPage: metafields(first: 50, namespace: "collection_page") { nodes { namespace key type value } }
       theme: metafields(first: 50, namespace: "theme") { nodes { namespace key type value } }
       home: metafields(first: 50, namespace: "home") { nodes { namespace key type value } }
+      blog: metafields(first: 50, namespace: "blog") { nodes { namespace key type value } }
+      pages: metafields(first: 50, namespace: "pages") { nodes { namespace key type value } }
     }
   }
 `;
@@ -588,6 +607,8 @@ export async function fetchShopSettings(): Promise<ShopSettings> {
     collectionPage: { itemsPerPage: 0, compareLimit: 0, sortOptions: [], puffBuckets: [], flavorFamilies: [], quizSteps: [], shopAllHero: { title: "", subtitle: "", image: "" } },
     theme: { searchPlaceholder: "", topbarLinks: [], footerLinks: [], newsletterText: "", megaBanner: { title: "", subtitle: "", badge: "", href: "" } },
     home: { promoBanners: [], categoryTiles: [], features: [], trustStats: { customers: 0, reviews: 0 }, sectionVisibility: {} },
+    blog: { categories: [], categoryColors: {} },
+    pages: { aboutValues: [], aboutStats: [], contactCards: [], pageHeroSubtitles: {} },
   };
   try {
     const data = await shopifyAdmin<{
@@ -598,6 +619,8 @@ export async function fetchShopSettings(): Promise<ShopSettings> {
         collectionPage: { nodes: MetafieldNode[] };
         theme: { nodes: MetafieldNode[] };
         home: { nodes: MetafieldNode[] };
+        blog: { nodes: MetafieldNode[] };
+        pages: { nodes: MetafieldNode[] };
       };
     }>(SHOP_META_QUERY, {}, 600);
     const mf = mfMap([
@@ -607,6 +630,8 @@ export async function fetchShopSettings(): Promise<ShopSettings> {
       ...(data.shop.collectionPage?.nodes ?? []),
       ...(data.shop.theme?.nodes ?? []),
       ...(data.shop.home?.nodes ?? []),
+      ...(data.shop.blog?.nodes ?? []),
+      ...(data.shop.pages?.nodes ?? []),
     ]);
     let logoUrl = "";
     try {
@@ -653,6 +678,16 @@ export async function fetchShopSettings(): Promise<ShopSettings> {
         features: parseJson(mf["home.features"], []),
         trustStats: parseJson(mf["home.trust_stats"], { customers: 0, reviews: 0 }),
         sectionVisibility: parseJson(mf["home.section_visibility"], {}),
+      },
+      blog: {
+        categories: parseJson(mf["blog.categories"], []),
+        categoryColors: parseJson(mf["blog.category_colors"], {}),
+      },
+      pages: {
+        aboutValues: parseJson(mf["pages.about_values"], []),
+        aboutStats: parseJson(mf["pages.about_stats"], []),
+        contactCards: parseJson(mf["pages.contact_cards"], []),
+        pageHeroSubtitles: parseJson(mf["pages.page_hero_subtitles"], {}),
       },
     };
   } catch {

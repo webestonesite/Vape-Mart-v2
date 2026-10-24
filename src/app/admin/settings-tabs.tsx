@@ -524,3 +524,110 @@ export function HomeTab({ data, save }: any) {
     </div>
   );
 }
+
+/* ------------------------------------------------------------------ */
+/*  Blog settings + info pages                                         */
+/* ------------------------------------------------------------------ */
+
+export function BlogSettingsTab({ data, save }: any) {
+  const s = data.settings?.blog || {};
+  const [catsText, setCatsText] = useState((s.categories || []).join("\n"));
+  const [colors, setColors] = useState<any[]>(Object.entries(s.categoryColors || {}).map(([category, cls]) => ({ category, cls })));
+
+  return (
+    <div>
+      <p className="text-sm text-neutral-500 mb-4">
+        Blog-er category filter list ar protita category-r badge rong. Rong shudhu ei palette theke beche nin (Tailwind class): bg-emerald-600, bg-red-600, bg-blue-600, bg-amber-500, bg-teal-600, bg-purple-600, bg-rose-600, bg-orange-500, bg-cyan-600, bg-slate-600.
+      </p>
+      <Card title="Categories (proti line-e ekti)">
+        <TA rows={6} value={catsText} onChange={(e) => setCatsText(e.target.value)} placeholder={"Buying Guides\nSafety\nEducation\nRegulations"} />
+      </Card>
+      <Card title="Category badge colors">
+        <JsonListEditor
+          label="Category → badge class"
+          rows={colors}
+          setRows={setColors}
+          fields={[
+            { key: "category", label: "Category" },
+            { key: "cls", label: "Badge class" },
+          ]}
+          addLabel="Add color"
+        />
+      </Card>
+      <SaveBar onSave={() => save("blogSettings.save", {
+        categories: catsText.split("\n").map((x: string) => x.trim()).filter(Boolean),
+        categoryColors: Object.fromEntries(colors.map((c) => [c.category, c.cls])),
+      })} />
+    </div>
+  );
+}
+
+export function InfoPagesTab({ data, save }: any) {
+  const s = data.settings?.pages || {};
+  const [values, setValues] = useState<any[]>(s.aboutValues || []);
+  const [stats, setStats] = useState<any[]>(s.aboutStats || []);
+  const [cards, setCards] = useState<any[]>(s.contactCards || []);
+  const [subs, setSubs] = useState<any>(s.pageHeroSubtitles || {});
+
+  return (
+    <div>
+      <p className="text-sm text-neutral-500 mb-4">
+        About/Contact page-er card ar hero subtitle — khali rakhle ager lekha-i thakbe. Icon nam: BadgeCheck, ShieldCheck, Truck, Headset, PackageCheck, Award, Timer, Phone, Mail, MapPin, Clock.
+      </p>
+      <Card title="About — values (4-ti card)">
+        <JsonListEditor
+          label="Value (icon → title → text)"
+          rows={values}
+          setRows={setValues}
+          fields={[
+            { key: "icon", label: "Icon" },
+            { key: "title", label: "Title" },
+            { key: "text", label: "Text" },
+          ]}
+          addLabel="Add value"
+        />
+      </Card>
+      <Card title="About — stats (3-ti)">
+        <JsonListEditor
+          label="Stat (icon → value → label)"
+          rows={stats}
+          setRows={setStats}
+          fields={[
+            { key: "icon", label: "Icon" },
+            { key: "value", label: "Value" },
+            { key: "label", label: "Label" },
+          ]}
+          addLabel="Add stat"
+        />
+      </Card>
+      <Card title="Contact — cards (4-ti)">
+        <JsonListEditor
+          label="Card (icon → title → value → sub → link)"
+          rows={cards}
+          setRows={setCards}
+          fields={[
+            { key: "icon", label: "Icon" },
+            { key: "title", label: "Title" },
+            { key: "value", label: "Value" },
+            { key: "sub", label: "Sub" },
+            { key: "href", label: "Link" },
+          ]}
+          addLabel="Add card"
+        />
+      </Card>
+      <Card title="Page hero subtitles">
+        <div className="grid gap-3">
+          {(["about", "contact", "privacy-policy", "terms-conditions"] as const).map((k) => (
+            <div key={k}>
+              <Lbl>{k}</Lbl>
+              <Inp value={subs[k] || ""} onChange={(e) => setSubs({ ...subs, [k]: e.target.value })} placeholder="Khali rakhle ager subtitle-i thakbe" />
+            </div>
+          ))}
+        </div>
+      </Card>
+      <SaveBar onSave={() => save("pages.save", {
+        aboutValues: values, aboutStats: stats, contactCards: cards, pageHeroSubtitles: subs,
+      })} />
+    </div>
+  );
+}

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { PageHero } from "@/components/PageHero";
 import { getShopifyPageSections } from "@/lib/shopify-pages";
+import { fetchShopSettings } from "@/lib/shopify";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 
@@ -76,6 +77,7 @@ const localSections = [
 export default async function TermsPage() {
   const cmsSections = await getShopifyPageSections("terms-conditions");
   const sections = cmsSections.length ? cmsSections : localSections;
+  const settings = await fetchShopSettings();
   return (
     <>
       <Header />
@@ -83,7 +85,7 @@ export default async function TermsPage() {
         <PageHero
           badge="Legal"
           title="Terms & Conditions"
-          subtitle="The ground rules for shopping with Vape Mart — orders, delivery, returns, and your responsibilities."
+          subtitle={settings.pages.pageHeroSubtitles?.["terms-conditions"] || "The ground rules for shopping with Vape Mart — orders, delivery, returns, and your responsibilities."}
           crumbs={[{ label: "Home", href: "/" }, { label: "Terms & Conditions" }]}
         />
 
