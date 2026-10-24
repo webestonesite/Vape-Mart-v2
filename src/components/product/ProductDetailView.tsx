@@ -719,7 +719,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
                       <span className="font-semibold text-emerald-900">{r.author}</span>
                       {r.verified && <span className="inline-flex items-center gap-1 text-emerald-700 font-semibold"><BadgeCheck size={13} /> Verified</span>}
                     </div>
-                    <p className="mt-1 text-[11px] text-neutral-400">{r.location} · {r.date}</p>
+                    <p className="mt-1 text-[11px] text-neutral-400">{[r.location, r.date].filter(Boolean).join(" · ")}</p>
                   </div>
                 ))}
               </div>

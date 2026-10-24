@@ -1,5 +1,5 @@
 import "server-only";
-import type { ProductItem, ProductFlavor } from "@/types/product";
+import type { ProductItem, ProductFlavor, ProductReview } from "@/types/product";
 
 /* ------------------------------------------------------------------ */
 /*  Shopify Admin API client (server-only — token never hits browser)  */
@@ -354,6 +354,97 @@ export async function fetchShopifyProductByHandle(handle: string): Promise<Produ
   if (!node || node.status !== "ACTIVE") return null;
   const flavors = node.flavorRefs?.references?.nodes ?? [];
   return toProductItem(node, flavors);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Phase 2 storefront reads: product reviews + collection meta        */
+/* ------------------------------------------------------------------ */
+
+export async function fetchProductReviews(productNumericId: string): Promise<ProductReview[]> {
+  try {
+    const gid = `gid://shopify/Product/${productNumericId}`;
+    const d = await shopifyAdmin<any>(
+      `query ProductReviews {
+         reviews: metaobjects(type: "vm_product_review", first: 100) { nodes { id fields { key value } } }
+       }`,
+      {},
+      120
+    );
+    const out: (ProductReview & { position: number })[] = [];
+    for (const n of d.reviews?.nodes ?? []) {
+      const f: Record<string, string> = {};
+      for (const fld of n.fields ?? []) if (fld.value != null) f[fld.key] = fld.value;
+      if (f.product !== gid) continue;
+      out.push({
+        id: n.id as string,
+        author: f.author || "Customer",
+        rating: parseInt(f.rating || "5", 10) || 5,
+        date: "",
+        title: f.title || "",
+        comment: f.body || "",
+        verified: f.verified !== "false",
+        location: "UAE",
+        position: parseInt(f.position || "0", 10) || 0,
+      });
+    }
+    return out.sort((a, b) => a.position - b.position).map(({ position: _p, ...r }) => r);
+  } catch {
+    return [];
+  }
+}
+
+export interface CollectionMeta {
+  badge?: string;
+  heroSubtitle?: string;
+  showAsCard?: boolean;
+}
+
+export async function fetchCollectionMeta(): Promise<{
+  byHandle: Record<string, CollectionMeta>;
+  faqsByHandle: Record<string, { q: string; a: string }[]>;
+}> {
+  try {
+    const d = await shopifyAdmin<any>(
+      `query CollectionMeta {
+         collections(first: 100) {
+           nodes { id handle metafields(first: 20, namespace: "collection") { nodes { key value } } }
+         }
+         faqs: metaobjects(type: "vm_collection_faq", first: 100) { nodes { fields { key value } } }
+       }`,
+      {},
+      120
+    );
+    const byHandle: Record<string, CollectionMeta> = {};
+    const gidToHandle: Record<string, string> = {};
+    for (const c of d.collections?.nodes ?? []) {
+      gidToHandle[c.id] = c.handle;
+      const mf: Record<string, string> = {};
+      for (const m of c.metafields?.nodes ?? []) mf[m.key] = m.value;
+      byHandle[c.handle] = {
+        badge: mf.badge || undefined,
+        heroSubtitle: mf.hero_subtitle || undefined,
+        showAsCard: mf.show_as_card === "true",
+      };
+    }
+    const faqsWithPos: Record<string, { q: string; a: string; position: number }[]> = {};
+    for (const n of d.faqs?.nodes ?? []) {
+      const f: Record<string, string> = {};
+      for (const fld of n.fields ?? []) if (fld.value != null) f[fld.key] = fld.value;
+      const h = gidToHandle[f.collection];
+      if (!h) continue;
+      (faqsWithPos[h] ??= []).push({
+        q: f.question || "",
+        a: f.answer || "",
+        position: parseInt(f.position || "0", 10) || 0,
+      });
+    }
+    const faqsByHandle: Record<string, { q: string; a: string }[]> = {};
+    for (const [h, list] of Object.entries(faqsWithPos))
+      faqsByHandle[h] = list.sort((a, b) => a.position - b.position).map(({ q, a }) => ({ q, a }));
+    return { byHandle, faqsByHandle };
+  } catch {
+    return { byHandle: {}, faqsByHandle: {} };
+  }
 }
 
 /* ------------------------------------------------------------------ */

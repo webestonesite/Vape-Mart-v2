@@ -560,6 +560,68 @@ export async function saveAction(action: string, p: any): Promise<SaveResult> {
       return { message: "Product updated." };
     }
 
+    case "review.save": {
+      const fields: FieldObj = {
+        product: p.product, author: p.author, rating: p.rating, title: p.title,
+        body: p.body, verified: p.verified ? "true" : "false", position: p.position,
+      };
+      if (p.id) { await moUpdate(p.id, fields); return { message: "Review updated." }; }
+      await moCreate("vm_product_review", fields);
+      return { message: "Review added." };
+    }
+    case "review.delete": await moDelete(p.id); return { message: "Review deleted." };
+
+    case "collectionFaq.save": {
+      const fields: FieldObj = { collection: p.collection, question: p.question, answer: p.answer, position: p.position };
+      if (p.id) { await moUpdate(p.id, fields); return { message: "Collection FAQ updated." }; }
+      await moCreate("vm_collection_faq", fields);
+      return { message: "Collection FAQ added." };
+    }
+    case "collectionFaq.delete": await moDelete(p.id); return { message: "Collection FAQ deleted." };
+
+    case "flavor.save": {
+      const fields: FieldObj = { name: p.name, color: p.color, in_stock: p.inStock ? "true" : "false" };
+      if (p.imageFileId) fields.image = p.imageFileId;
+      else if (p.imageUrl) fields.image = await fileFromUrl(String(p.imageUrl), String(p.name || "Flavor"));
+      if (p.id) { await moUpdate(p.id, fields); return { message: "Flavor updated." }; }
+      await moCreate("flavor", fields);
+      return { message: "Flavor added." };
+    }
+    case "flavor.delete": await moDelete(p.id); return { message: "Flavor deleted." };
+
+    case "media.delete": {
+      const d = await gql<any>(
+        `mutation FileDelete($fileIds: [ID!]!) {
+           fileDelete(fileIds: $fileIds) { deletedFileIds userErrors { message } }
+         }`,
+        { fileIds: [p.id] }
+      );
+      const errs = d.fileDelete?.userErrors ?? [];
+      if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
+      return { message: "File deleted." };
+    }
+
+    case "collection.save": {
+      const collection: Record<string, any> = { id: p.id, title: p.title, descriptionHtml: p.descriptionHtml || "" };
+      if (p.imageUrl) collection.image = { src: p.imageUrl, altText: p.title || "" };
+      if (p.seoTitle !== undefined || p.seoDescription !== undefined)
+        collection.seo = { title: p.seoTitle || "", description: p.seoDescription || "" };
+      collection.metafields = [
+        { namespace: "collection", key: "badge", type: "single_line_text_field", value: String(p.badge || "") },
+        { namespace: "collection", key: "hero_subtitle", type: "single_line_text_field", value: String(p.heroSubtitle || "") },
+        { namespace: "collection", key: "show_as_card", type: "boolean", value: p.showAsCard ? "true" : "false" },
+      ];
+      const d = await gql<any>(
+        `mutation CollectionSave($collection: CollectionInput!) {
+           collectionUpdate(collection: $collection) { collection { id } userErrors { message } }
+         }`,
+        { collection }
+      );
+      const errs = d.collectionUpdate?.userErrors ?? [];
+      if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
+      return { message: "Collection saved." };
+    }
+
     default:
       throw new Error(`Unknown action: ${action}`);
   }
@@ -601,13 +663,25 @@ export async function getPanelExtras() {
       flavors: metaobjects(type: "flavor", first: 100) {
         nodes { id fields { key value } }
       }
+      reviews: metaobjects(type: "vm_product_review", first: 100) {
+        nodes { id fields { key value } }
+      }
+      collectionFaqs: metaobjects(type: "vm_collection_faq", first: 100) {
+        nodes { id fields { key value } }
+      }
     }
   `);
   const flavors = (d.flavors?.nodes ?? []).map((n: any) => {
     const f: Record<string, string> = {};
     for (const fld of n.fields ?? []) if (fld.value != null) f[fld.key] = fld.value;
-    return { id: n.id as string, name: f.name || "", color: f.color || "" };
+    return { id: n.id as string, name: f.name || "", color: f.color || "", inStock: f.in_stock !== "false", image: f.image || "" };
   });
+  const moList = (nodes: any[]) =>
+    (nodes ?? []).map((n: any) => {
+      const f: Record<string, string> = {};
+      for (const fld of n.fields ?? []) if (fld.value != null) f[fld.key] = fld.value;
+      return { id: n.id as string, ...f };
+    });
   return {
     collections: (d.collections?.nodes ?? []).map((c: any) => ({
       id: c.id as string,
@@ -625,6 +699,55 @@ export async function getPanelExtras() {
       customer: o.customer?.displayName || "—",
     })),
     flavors,
+    reviews: moList(d.reviews?.nodes).map((r: any) => ({
+      id: r.id,
+      product: r.product || "",
+      author: r.author || "",
+      rating: parseInt(r.rating || "5", 10) || 5,
+      title: r.title || "",
+      body: r.body || "",
+      verified: r.verified !== "false",
+      position: parseInt(r.position || "0", 10) || 0,
+    })),
+    collectionFaqs: moList(d.collectionFaqs?.nodes).map((f: any) => ({
+      id: f.id,
+      collection: f.collection || "",
+      question: f.question || "",
+      answer: f.answer || "",
+      position: parseInt(f.position || "0", 10) || 0,
+    })),
+  };
+}
+
+export async function getCollectionDetail(id: string) {
+  const d = await gql<any>(
+    `query CollectionDetail($id: ID!) {
+       collection(id: $id) {
+         id title handle descriptionHtml
+         image { url altText }
+         seo { title description }
+         metafields(first: 20, namespace: "collection") { nodes { key value } }
+         products(first: 100) { nodes { id } }
+       }
+     }`,
+    { id }
+  );
+  const c = d.collection;
+  if (!c) throw new Error("Collection not found.");
+  const mf: Record<string, string> = {};
+  for (const m of c.metafields?.nodes ?? []) mf[m.key] = m.value;
+  return {
+    id: c.id as string,
+    title: c.title as string,
+    handle: c.handle as string,
+    descriptionHtml: c.descriptionHtml || "",
+    imageUrl: c.image?.url || "",
+    seoTitle: c.seo?.title || "",
+    seoDescription: c.seo?.description || "",
+    badge: mf.badge || "",
+    heroSubtitle: mf.hero_subtitle || "",
+    showAsCard: mf.show_as_card === "true",
+    productIds: (c.products?.nodes ?? []).map((p: any) => p.id as string),
   };
 }
 

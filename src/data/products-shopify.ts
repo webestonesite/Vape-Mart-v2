@@ -8,6 +8,7 @@ import { ProductItem, CollectionCategory } from "@/types/product";
 import {
   fetchAllShopifyProducts,
   fetchShopifyProductByHandle,
+  fetchCollectionMeta,
 } from "@/lib/shopify";
 import { allProducts as localProducts, categories as localCategories } from "./products";
 
@@ -108,7 +109,15 @@ function isOrganizedCategory(slug: string): boolean {
 
 /** Categories: local rich metadata first, then auto entries for new Shopify collections. */
 export async function fetchCategories(): Promise<CollectionCategory[]> {
-  const all = await fetchAllProducts();
+  const [all, meta] = await Promise.all([fetchAllProducts(), fetchCollectionMeta()]);
+  // Panel-managed collection meta, keyed by normalized slug (handles are aliased above).
+  const metaBySlug: Record<string, { badge?: string; heroSubtitle?: string; showAsCard?: boolean }> = {};
+  const faqsBySlug: Record<string, { q: string; a: string }[]> = {};
+  for (const [h, m] of Object.entries(meta.byHandle)) metaBySlug[normalizeCategorySlug(h)] = m;
+  for (const [h, list] of Object.entries(meta.faqsByHandle)) faqsBySlug[normalizeCategorySlug(h)] = list;
+  const flagged = new Set(
+    Object.entries(metaBySlug).filter(([, m]) => m.showAsCard).map(([s]) => s)
+  );
   const seen = new Map<string, { title: string; count: number }>();
   for (const p of all) {
     const cols = p.shopifyCollections?.length
@@ -131,21 +140,28 @@ export async function fetchCategories(): Promise<CollectionCategory[]> {
       slug,
       name: info.title,
       title: `${info.title} | Vape Mart UAE`,
-      subtitle: `Shop authentic ${info.title.toLowerCase()} with same-day delivery across the UAE.`,
-      badge: "NEW",
+      subtitle: metaBySlug[slug]?.heroSubtitle || `Shop authentic ${info.title.toLowerCase()} with same-day delivery across the UAE.`,
+      badge: metaBySlug[slug]?.badge || "NEW",
       icon: "Flame",
       image: sample?.primaryImage || "/images/prod_disposable.png",
       count: info.count,
       description: `Explore our ${info.title.toLowerCase()} collection — 100% authentic products with express delivery across Dubai and the UAE.`,
+      faqs: faqsBySlug[slug],
     });
   }
   const withCounts = local
     .filter((c) => isOrganizedCategory(c.slug))
-    .map((c) => ({
-      ...c,
-      count: seen.get(c.slug)?.count ?? c.count,
-    }));
-  return [...withCounts, ...extra.filter((c) => isOrganizedCategory(c.slug))];
+    .map((c) => {
+      const m = metaBySlug[c.slug];
+      return {
+        ...c,
+        count: seen.get(c.slug)?.count ?? c.count,
+        badge: m?.badge || c.badge,
+        subtitle: m?.heroSubtitle || c.subtitle,
+        faqs: faqsBySlug[c.slug],
+      };
+    });
+  return [...withCounts, ...extra.filter((c) => isOrganizedCategory(c.slug) || flagged.has(c.slug))];
 }
 
 export function getCategoryBySlugSync(slug: string): CollectionCategory | undefined {

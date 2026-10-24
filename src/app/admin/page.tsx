@@ -5,13 +5,16 @@ import dynamic from "next/dynamic";
 import {
   LayoutDashboard, Package, FolderOpen, ShoppingBag, FileText, Menu as MenuIcon,
   Search, Plus, ExternalLink, LogOut, RefreshCw, Megaphone,
-  Image as ImageIcon, Layers, Star, HelpCircle, PenLine,
+  Image as ImageIcon, Layers, Star, HelpCircle, PenLine, MessageSquare, Droplets,
 } from "lucide-react";
 
 const tabLoading = () => <p className="text-neutral-500">Loading…</p>;
 const ProductsManager = dynamic(() => import("./products-manager").then((m) => m.ProductsManager), { loading: tabLoading });
-const CollectionsTab = dynamic(() => import("./products-manager").then((m) => m.CollectionsTab), { loading: tabLoading });
 const OrdersTab = dynamic(() => import("./products-manager").then((m) => m.OrdersTab), { loading: tabLoading });
+const ProductReviewsTab = dynamic(() => import("./manage-tabs").then((m) => m.ProductReviewsTab), { loading: tabLoading });
+const CollectionsManager = dynamic(() => import("./manage-tabs").then((m) => m.CollectionsManager), { loading: tabLoading });
+const FlavorsTab = dynamic(() => import("./manage-tabs").then((m) => m.FlavorsTab), { loading: tabLoading });
+const MediaTab = dynamic(() => import("./manage-tabs").then((m) => m.MediaTab), { loading: tabLoading });
 const SettingsTab = dynamic(() => import("./content-tabs").then((m) => m.SettingsTab), { loading: tabLoading });
 const HeroTab = dynamic(() => import("./content-tabs").then((m) => m.HeroTab), { loading: tabLoading });
 const SectionsTab = dynamic(() => import("./content-tabs").then((m) => m.SectionsTab), { loading: tabLoading });
@@ -87,6 +90,8 @@ const NAV = [
     items: [
       { key: "products", label: "Products", icon: Package },
       { key: "collections", label: "Collections", icon: FolderOpen },
+      { key: "flavors", label: "Flavors", icon: Droplets },
+      { key: "product-reviews", label: "Product Reviews", icon: MessageSquare },
     ],
   },
   {
@@ -96,8 +101,9 @@ const NAV = [
       { key: "hero", label: "Hero Slides", icon: ImageIcon },
       { key: "sections", label: "Home Sections", icon: Layers },
       { key: "showcase", label: "TEREA / JUUL Cards", icon: Star },
-      { key: "reviews", label: "Reviews", icon: Star },
+      { key: "reviews", label: "Testimonials", icon: Star },
       { key: "faq", label: "FAQ", icon: HelpCircle },
+      { key: "media", label: "Media Library", icon: ImageIcon },
     ],
   },
   {
@@ -326,7 +332,10 @@ export default function AdminPage() {
               {tab === "products" && (
                 <ProductsManager data={data} notify={notify} reload={loadData} initialQuery={topSearch} />
               )}
-              {tab === "collections" && <CollectionsTab data={data} notify={notify} reload={loadData} />}
+              {tab === "collections" && <CollectionsManager data={data} notify={notify} reload={loadData} />}
+              {tab === "flavors" && <FlavorsTab data={data} save={save} />}
+              {tab === "product-reviews" && <ProductReviewsTab data={data} save={save} />}
+              {tab === "media" && <MediaTab data={data} notify={notify} reload={loadData} />}
               {tab === "orders" && <OrdersTab data={data} />}
               {tab === "settings" && <SettingsTab data={data} save={save} />}
               {tab === "hero" && <HeroTab data={data} save={save} />}

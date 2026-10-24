@@ -110,6 +110,7 @@ export interface CollectionCategory {
   image: string;
   count: number;
   description: string;
+  faqs?: { q: string; a: string }[];
 }
 
 export interface FilterState {
