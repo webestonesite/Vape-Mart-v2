@@ -872,6 +872,19 @@ export default function Home() {
     const s = cmsSection(key);
     return (s && s[field]) || fallback;
   };
+  const cmsShowcase = (key: string, fallback: any[]) => {
+    const cards = ((cms?.showcaseCards ?? []) as any[]).filter((c) => c.sectionKey === key);
+    return cards.length
+      ? cards.map((c) => ({
+          title: c.title,
+          price: c.price || "0.00",
+          revs: c.revs || 0,
+          badge: c.badge || "",
+          brand: c.brand || "",
+          img: c.imageUrl || "",
+        }))
+      : fallback;
+  };
   const initialsOf = (name: string) =>
     name
       .split(/\s+/)
@@ -1408,7 +1421,7 @@ export default function Home() {
           title={secText("tereaHeets", "title", themeData.tereaHeets?.title || "TEREA & HEETS")}
           subtitle={secText("tereaHeets", "subtitle", themeData.tereaHeets?.subtitle || "Authentic heated tobacco sticks for IQOS ILUMA & IQOS 3 Duo in UAE")}
           badgeText={secText("tereaHeets", "badgeText", themeData.tereaHeets?.badgeText || "HEATED TOBACCO")}
-          products={secProducts("tereaHeets", tereaHeetsProducts)}
+          products={secProducts("tereaHeets", cmsShowcase("tereaHeets", tereaHeetsProducts))}
           greenBoxPC={true}
         />
 
@@ -1417,7 +1430,7 @@ export default function Home() {
           title={secText("juulProducts", "title", themeData.juulProducts?.title || "JUUL Pods & Devices")}
           subtitle={secText("juulProducts", "subtitle", themeData.juulProducts?.subtitle || "Original JUUL2 starter kits, replacement pods & accessories with rapid delivery")}
           badgeText={secText("juulProducts", "badgeText", themeData.juulProducts?.badgeText || "PREMIUM PODS")}
-          products={secProducts("juulProducts", juulProductsList)}
+          products={secProducts("juulProducts", cmsShowcase("juulProducts", juulProductsList))}
           greenBoxPC={true}
         />
 
