@@ -175,6 +175,28 @@ export function ProductsManager({ data, notify, reload, initialQuery }: any) {
   );
 }
 
+function FlavourPicker({ flavors, selected, onToggle }: any) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {(flavors || []).map((fl: any) => {
+        const on = selected.includes(fl.id);
+        return (
+          <button
+            key={fl.id}
+            onClick={() => onToggle(fl.id, on)}
+            className={`rounded-full px-3 py-1.5 text-xs font-semibold border ${
+              on ? "bg-neutral-900 text-white border-neutral-900" : "bg-white text-neutral-700 border-neutral-300"
+            }`}
+          >
+            {fl.name}
+          </button>
+        );
+      })}
+      {!(flavors || []).length && <span className="text-xs text-neutral-500">No flavours defined yet.</span>}
+    </div>
+  );
+}
+
 export function ProductEditor({ productId, data, notify, reload, back }: any) {
   const isNew = !productId;
   const [loading, setLoading] = useState(!isNew);
@@ -225,6 +247,24 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
   }, [productId]);
 
   const set = (k: string, v: any) => setForm({ ...form, [k]: v });
+
+  // Simple mode: the elderly / non-technical owner only sees these fields.
+  // Everything else (variants, SKU, barcode, 19 spec fields, SEO, handle)
+  // stays untouched under Advanced.
+  const [simple, setSimple] = useState(true);
+  const MAIN_HANDLES = ["juul", "terea", "iqos", "disposable-vape", "e-liquids"];
+  const mainCollections = (data.collections || []).filter((c: any) => MAIN_HANDLES.includes(c.handle));
+  const toggleCollection = (id: string) =>
+    setCollectionIds(collectionIds.includes(id) ? collectionIds.filter((x) => x !== id) : [...collectionIds, id]);
+  const firstVariant = variants[0];
+  const setFirstVariant = (field: string, value: string) =>
+    setVariants(variants.map((x: any, i: number) => (i === 0 ? { ...x, [field]: value } : x)));
+  const simplePrice = isNew ? form.price : (firstVariant?.price ?? "");
+  const simpleCompare = isNew ? form.compareAtPrice : (firstVariant?.compareAtPrice ?? "");
+  const simpleStock = isNew ? form.inventoryQuantity : (firstVariant?.inventoryQuantity ?? "");
+  const setSimplePrice = (v: string) => (isNew ? set("price", v) : setFirstVariant("price", v));
+  const setSimpleCompare = (v: string) => (isNew ? set("compareAtPrice", v) : setFirstVariant("compareAtPrice", v));
+  const setSimpleStock = (v: string) => (isNew ? set("inventoryQuantity", v) : setFirstVariant("inventoryQuantity", v));
 
   const onUpload = async (files: FileList | null) => {
     if (!files || !files.length) return;
@@ -327,6 +367,146 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
         </div>
       </div>
 
+      <div className="flex gap-2 mb-4">
+        <button
+          onClick={() => setSimple(true)}
+          className={`rounded-full px-4 py-2 text-sm font-bold ${simple ? "bg-neutral-900 text-white" : "bg-white border border-neutral-300 text-neutral-700"}`}
+        >
+          Shohoj (Simple)
+        </button>
+        <button
+          onClick={() => setSimple(false)}
+          className={`rounded-full px-4 py-2 text-sm font-bold ${!simple ? "bg-neutral-900 text-white" : "bg-white border border-neutral-300 text-neutral-700"}`}
+        >
+          Sob kichu (Advanced)
+        </button>
+      </div>
+
+      {simple ? (
+      <div className="max-w-2xl space-y-4">
+        <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+          <h2 className="font-bold text-neutral-900 mb-1">1. Chhobi</h2>
+          <p className="text-xs text-neutral-500 mb-3">Product-er chhobi dao — prothom chhobi-tai dokane boro kore dekhabe.</p>
+          <div className="flex flex-wrap gap-3 mb-3">
+            {media.filter((m: any) => !deleteMediaIds.includes(m.id)).map((m: any) => (
+              <div key={m.id} className="relative">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={m.url} alt="" className="h-24 w-24 rounded-lg object-cover border border-neutral-200" />
+                <button onClick={() => setDeleteMediaIds([...deleteMediaIds, m.id])} className="absolute -top-2 -right-2 rounded-full bg-red-600 p-1 text-white shadow">
+                  <X size={12} />
+                </button>
+              </div>
+            ))}
+            {newMedia.map((m: any, i: number) => (
+              <div key={i} className="relative">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={m.preview} alt="" className="h-24 w-24 rounded-lg object-cover border border-emerald-300" />
+                <button onClick={() => setNewMedia(newMedia.filter((_: any, j: number) => j !== i))} className="absolute -top-2 -right-2 rounded-full bg-red-600 p-1 text-white shadow">
+                  <X size={12} />
+                </button>
+              </div>
+            ))}
+          </div>
+          <label className="inline-flex items-center gap-2 rounded-md border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-800 hover:bg-neutral-50 cursor-pointer">
+            <Upload size={15} /> {uploading ? "Uploading…" : "Chhobi dao"}
+            <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => onUpload(e.target.files)} />
+          </label>
+        </div>
+
+        <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+          <h2 className="font-bold text-neutral-900 mb-3">2. Product-er nam *</h2>
+          <Inp value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="jemon: Juul Pods Menthol 4-Pack" />
+        </div>
+
+        <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+          <h2 className="font-bold text-neutral-900 mb-3">3. Dam (AED)</h2>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div>
+              <Lbl>Bikri dam *</Lbl>
+              <Inp type="number" value={simplePrice} onChange={(e) => setSimplePrice(e.target.value)} placeholder="100" />
+            </div>
+            <div>
+              <Lbl>Ager dam (kete dekhabe — na dileo cholbe)</Lbl>
+              <Inp type="number" value={simpleCompare} onChange={(e) => setSimpleCompare(e.target.value)} placeholder="120" />
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+          <h2 className="font-bold text-neutral-900 mb-3">4. Stock — kotota ache</h2>
+          <Inp type="number" value={simpleStock} onChange={(e) => setSimpleStock(e.target.value)} placeholder="100" />
+          <p className="text-xs text-neutral-500 mt-1">0 dile &quot;Out of stock&quot; dekhabe.</p>
+        </div>
+
+        <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+          <h2 className="font-bold text-neutral-900 mb-3">5. Category — konta?</h2>
+          <div className="flex flex-wrap gap-2">
+            {mainCollections.map((c: any) => {
+              const on = collectionIds.includes(c.id);
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => toggleCollection(c.id)}
+                  className={`rounded-full px-4 py-2 text-sm font-bold border ${on ? "bg-emerald-700 text-white border-emerald-700" : "bg-white text-neutral-700 border-neutral-300"}`}
+                >
+                  {c.title}
+                </button>
+              );
+            })}
+            {!mainCollections.length && <span className="text-xs text-neutral-500">Category load hoy nai — Advanced-e dekho.</span>}
+          </div>
+          <p className="text-xs text-neutral-500 mt-2">Sub-category (Juul 1/2, brand) lagle Advanced-e giye tick dao.</p>
+        </div>
+
+        <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+          <h2 className="font-bold text-neutral-900 mb-3">6. Biboron</h2>
+          <TA rows={4} value={form.descriptionHtml} onChange={(e) => set("descriptionHtml", e.target.value)} placeholder="Product-ta ki, keno valo — 2-3 line-e likho" />
+        </div>
+
+        <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+          <h2 className="font-bold text-neutral-900 mb-3">7. Puff ar Nicotine</h2>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div>
+              <Lbl>Puff kotota (shudhu number)</Lbl>
+              <Inp type="number" value={vape.puffs ?? ""} onChange={(e) => setVape({ ...vape, puffs: e.target.value })} placeholder="15000" />
+            </div>
+            <div>
+              <Lbl>Nicotine (jemon 20mg)</Lbl>
+              <Inp value={vape.nicotine_strength ?? ""} onChange={(e) => setVape({ ...vape, nicotine_strength: e.target.value })} placeholder="20mg" />
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+          <h2 className="font-bold text-neutral-900 mb-3">8. Flavour — konta konta ache?</h2>
+          <FlavourPicker flavors={data.flavors} selected={selFlavors} onToggle={(id: string, on: boolean) => setSelFlavors(on ? selFlavors.filter((x) => x !== id) : [...selFlavors, id])} />
+          <p className="text-xs text-neutral-500 mt-2">Notun flavour add korte Flavors tab-e jao.</p>
+        </div>
+
+        <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+          <h2 className="font-bold text-neutral-900 mb-3">9. Dokane dekhabe?</h2>
+          <div className="flex gap-2">
+            <button
+              onClick={() => set("status", "ACTIVE")}
+              className={`rounded-full px-4 py-2 text-sm font-bold border ${form.status === "ACTIVE" ? "bg-emerald-700 text-white border-emerald-700" : "bg-white text-neutral-700 border-neutral-300"}`}
+            >
+              Ha, live koro
+            </button>
+            <button
+              onClick={() => set("status", "DRAFT")}
+              className={`rounded-full px-4 py-2 text-sm font-bold border ${form.status !== "ACTIVE" ? "bg-neutral-900 text-white border-neutral-900" : "bg-white text-neutral-700 border-neutral-300"}`}
+            >
+              Na, draft rakho
+            </button>
+          </div>
+        </div>
+
+        <PrimaryBtn onClick={doSave}>
+          <Save size={15} /> {saving ? "Saving…" : "Save product"}
+        </PrimaryBtn>
+        <p className="text-xs text-neutral-500">Baki shob kichu (battery, coil, SKU, SEO, barcode) Advanced-e ache — na bodleleo cholbe.</p>
+      </div>
+      ) : (
       <div className="grid lg:grid-cols-3 gap-4 items-start">
         <div className="lg:col-span-2 space-y-4">
           <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
@@ -536,23 +716,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
             </div>
             <div className="mt-3">
               <Lbl>Flavours (tap to select)</Lbl>
-              <div className="flex flex-wrap gap-2">
-                {(data.flavors || []).map((fl: any) => {
-                  const on = selFlavors.includes(fl.id);
-                  return (
-                    <button
-                      key={fl.id}
-                      onClick={() => setSelFlavors(on ? selFlavors.filter((x) => x !== fl.id) : [...selFlavors, fl.id])}
-                      className={`rounded-full px-3 py-1.5 text-xs font-semibold border ${
-                        on ? "bg-neutral-900 text-white border-neutral-900" : "bg-white text-neutral-700 border-neutral-300"
-                      }`}
-                    >
-                      {fl.name}
-                    </button>
-                  );
-                })}
-                {!(data.flavors || []).length && <span className="text-xs text-neutral-500">No flavours defined yet.</span>}
-              </div>
+              <FlavourPicker flavors={data.flavors} selected={selFlavors} onToggle={(id: string, on: boolean) => setSelFlavors(on ? selFlavors.filter((x) => x !== id) : [...selFlavors, id])} />
             </div>
           </div>
         </div>
@@ -584,7 +748,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
             </div>
           )}
         </div>
-      </div>
+      </div>)}
     </div>
   );
 }
