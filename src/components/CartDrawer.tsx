@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import {
@@ -33,6 +33,16 @@ interface CartDrawerProps {
   onClearCart?: () => void;
 }
 
+const DEFAULT_CITIES = [
+  { city: "Dubai", promise: "2-3 Hours Express Dispatch" },
+  { city: "Abu Dhabi", promise: "Same-Day Delivery" },
+  { city: "Sharjah", promise: "Same-Day Delivery" },
+  { city: "Ajman", promise: "Same-Day Delivery" },
+  { city: "Ras Al Khaimah", promise: "Next-Day Morning" },
+  { city: "Fujairah", promise: "Next-Day Morning" },
+  { city: "Umm Al Quwain", promise: "Same-Day Delivery" },
+];
+
 export function CartDrawer({
   isOpen,
   onClose,
@@ -52,10 +62,29 @@ export function CartDrawer({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [placedOrderId, setPlacedOrderId] = useState("");
 
+  // Cart & checkout rules from the panel (shop metafields, namespace checkout).
+  // Empty values fall back to the previous literals, so nothing changes
+  // until the owner edits something in the panel.
+  const [checkoutSettings, setCheckoutSettings] = useState<any>(null);
+  useEffect(() => {
+    fetch("/api/site-content")
+      .then((res) => res.json())
+      .then((data) => { if (data?.settings) setCheckoutSettings(data.settings); })
+      .catch(() => {});
+  }, []);
+  const checkout = checkoutSettings?.checkout || {};
+  const waPhone = (checkoutSettings?.phone || "+971 55 168 8299").replace(/[^0-9]/g, "");
+  const cityPromises = checkout.cityPromises?.length ? checkout.cityPromises : DEFAULT_CITIES;
+  const paymentLabel = (key: string, fallback: string) =>
+    (checkout.paymentLabels || []).find((l: any) => l.key === key)?.label || fallback;
+  const cityPromise = (city: string) =>
+    cityPromises.find((c: any) => c.city === city)?.promise ||
+    (city === "Dubai" ? "2-3 Hours Today" : "Same-Day Courier");
+
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const freeShippingThreshold = 350;
+  const freeShippingThreshold = checkout.freeShippingThreshold || 350;
   const isFreeDelivery = subtotal >= freeShippingThreshold;
-  const deliveryFee = isFreeDelivery || items.length === 0 ? 0 : 25;
+  const deliveryFee = isFreeDelivery || items.length === 0 ? 0 : (checkout.deliveryFee || 25);
   const grandTotal = subtotal + deliveryFee;
   const amountToFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
   const progressPercent = Math.min(100, (subtotal / freeShippingThreshold) * 100);
@@ -288,7 +317,7 @@ export function CartDrawer({
                         </span>
                       </div>
                       <div className="flex justify-between text-sm font-black text-neutral-900 pt-1.5 border-t border-neutral-200">
-                        <span>Total (VAT Included)</span>
+                        <span>{checkout.vatNote || "Total (VAT Included)"}</span>
                         <span className="text-base text-[#064e3b]">AED {grandTotal.toFixed(2)}</span>
                       </div>
                     </div>
@@ -304,7 +333,7 @@ export function CartDrawer({
                       </button>
 
                       <a
-                        href={`https://wa.me/971551688299?text=${encodeURIComponent(
+                        href={`https://wa.me/${waPhone}?text=${encodeURIComponent(
                           `Hello Vape Mart UAE, I would like to order: ${items
                             .map((i) => `${i.title} (${i.flavor || "Standard"}) x${i.quantity}`)
                             .join(", ")} - Total: AED ${grandTotal.toFixed(2)}`
@@ -342,7 +371,7 @@ export function CartDrawer({
                   <div className="bg-emerald-50/80 border border-emerald-200/80 rounded-xl p-3 flex items-center justify-between text-xs">
                     <div>
                       <span className="font-bold text-neutral-800">{items.length} items selected</span>
-                      <p className="text-neutral-500 text-[11px]">Free delivery above AED 350</p>
+                      <p className="text-neutral-500 text-[11px]">Free delivery above AED {freeShippingThreshold}</p>
                     </div>
                     <span className="font-black text-sm text-[#064e3b]">AED {grandTotal.toFixed(2)}</span>
                   </div>
@@ -399,13 +428,9 @@ export function CartDrawer({
                         onChange={(e) => setCustomerCity(e.target.value)}
                         className="w-full px-3 py-2.5 rounded-xl border border-neutral-300 text-xs text-neutral-900 focus:outline-none focus:border-[#064e3b] bg-white cursor-pointer"
                       >
-                        <option value="Dubai">Dubai (2-3 Hours Express Dispatch)</option>
-                        <option value="Abu Dhabi">Abu Dhabi (Same-Day Delivery)</option>
-                        <option value="Sharjah">Sharjah (Same-Day Delivery)</option>
-                        <option value="Ajman">Ajman (Same-Day Delivery)</option>
-                        <option value="Ras Al Khaimah">Ras Al Khaimah (Next-Day Morning)</option>
-                        <option value="Fujairah">Fujairah (Next-Day Morning)</option>
-                        <option value="Umm Al Quwain">Umm Al Quwain (Same-Day Delivery)</option>
+                        {cityPromises.map((c: any) => (
+                          <option key={c.city} value={c.city}>{c.city} ({c.promise})</option>
+                        ))}
                       </select>
                     </div>
 
@@ -446,7 +471,7 @@ export function CartDrawer({
                       >
                         <div className="flex items-center gap-1.5">
                           <Banknote size={15} className="text-[#064e3b]" />
-                          <span className="font-bold text-xs">Cash on Delivery</span>
+                          <span className="font-bold text-xs">{paymentLabel("cod", "Cash on Delivery")}</span>
                         </div>
                         <span className="text-[10px] text-neutral-500">Pay courier in cash</span>
                       </button>
@@ -462,7 +487,7 @@ export function CartDrawer({
                       >
                         <div className="flex items-center gap-1.5">
                           <CreditCard size={15} className="text-[#064e3b]" />
-                          <span className="font-bold text-xs">Card on Delivery</span>
+                          <span className="font-bold text-xs">{paymentLabel("card_on_delivery", "Card on Delivery")}</span>
                         </div>
                         <span className="text-[10px] text-neutral-500">POS machine on door</span>
                       </button>
@@ -526,14 +551,14 @@ export function CartDrawer({
                   <div className="flex justify-between border-b border-neutral-200 pb-2">
                     <span className="text-neutral-500">Payment:</span>
                     <span className="font-bold text-neutral-900 capitalize">
-                      {paymentMethod === "cod" ? "Cash on Delivery" : "Card on Delivery"} (AED {grandTotal.toFixed(2)})
+{paymentLabel(paymentMethod, paymentMethod === "cod" ? "Cash on Delivery" : "Card on Delivery")} (AED {grandTotal.toFixed(2)})
                     </span>
                   </div>
                   <div className="flex justify-between border-b border-neutral-200 pb-2">
                     <span className="text-neutral-500">Estimated Delivery:</span>
                     <span className="font-bold text-[#064e3b] flex items-center gap-1">
                       <Clock size={12} />
-                      {customerCity === "Dubai" ? "2-3 Hours Today" : "Same-Day Courier"}
+                      {cityPromise(customerCity)}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -545,7 +570,7 @@ export function CartDrawer({
                 {/* Actions */}
                 <div className="w-full space-y-2.5">
                   <a
-                    href={`https://wa.me/971551688299?text=${encodeURIComponent(
+                    href={`https://wa.me/${waPhone}?text=${encodeURIComponent(
                       `Hello Vape Mart Dispatch, I just placed Order ${placedOrderId} for AED ${grandTotal.toFixed(2)} to ${customerCity}. My phone is ${customerPhone}. Please confirm driver dispatch status.`
                     )}`}
                     target="_blank"

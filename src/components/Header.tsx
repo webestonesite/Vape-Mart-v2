@@ -167,7 +167,14 @@ export function Header({ onCartClick, cartCount = 0 }: HeaderProps) {
             topBar.announcements = s.announcements;
           }
           if (s.phone) topBar.phone = s.phone;
-          return { ...prev, topBar };
+          if (Array.isArray(s.theme?.topbarLinks) && s.theme.topbarLinks.length) {
+            topBar.links = s.theme.topbarLinks.map((l: any) => ({ label: l.label, href: l.url || "#" }));
+          }
+          const search = s.theme?.searchPlaceholder
+            ? { ...prev.search, placeholder: s.theme.searchPlaceholder }
+            : prev.search;
+          const logo = s.logoUrl && prev.logo ? { ...prev.logo, src: s.logoUrl } : prev.logo;
+          return { ...prev, topBar, search, logo };
         });
       })
       .catch(() => {});

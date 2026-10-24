@@ -7,9 +7,16 @@ import { MapPin, Phone, Mail, Send, ChevronRight, CreditCard, ShieldCheck } from
 
 export function Footer() {
   // Phone + footer line are edited in Shopify admin (store metafields).
-  const [cms, setCms] = useState<{ phone: string; footerText: string }>({
+  const [cms, setCms] = useState<{
+    phone: string;
+    footerText: string;
+    footerGroups: { title: string; links: { label: string; url: string }[] }[];
+    newsletterText: string;
+  }>({
     phone: "",
     footerText: "",
+    footerGroups: [],
+    newsletterText: "",
   });
   useEffect(() => {
     fetch("/api/site-content")
@@ -17,7 +24,12 @@ export function Footer() {
       .then((data) => {
         const s = data?.settings;
         if (s) {
-          setCms({ phone: s.phone || "", footerText: s.footerText || "" });
+          setCms({
+            phone: s.phone || "",
+            footerText: s.footerText || "",
+            footerGroups: Array.isArray(s.theme?.footerLinks) ? s.theme.footerLinks : [],
+            newsletterText: s.theme?.newsletterText || "",
+          });
         }
       })
       .catch(() => {});
@@ -78,6 +90,26 @@ export function Footer() {
             </div>
           </div>
 
+{cms.footerGroups.length > 0 ? (
+            <>
+              {cms.footerGroups.map((g, gi) => (
+                <div key={gi} className="lg:col-span-2">
+                  <h4 className="text-base sm:text-lg font-bold mb-4 sm:mb-6 text-white tracking-wide">{g.title}</h4>
+                  <ul className="flex flex-col gap-2.5 sm:gap-3 text-xs sm:text-sm">
+                    {(g.links || []).map((l, li) => (
+                      <li key={li}>
+                        <Link href={l.url || "/"} className="text-emerald-100/60 hover:text-amber-400 transition-colors flex items-center gap-1.5">
+                          <ChevronRight size={13} className="text-amber-400" />
+                          {l.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </>
+          ) : (
+            <>
           {/* Quick Links */}
           <div className="lg:col-span-2">
             <h4 className="text-base sm:text-lg font-bold mb-4 sm:mb-6 text-white tracking-wide">Explore</h4>
@@ -176,6 +208,9 @@ export function Footer() {
             </ul>
           </div>
 
+            </>
+          )}
+
           {/* Contact & Express Assistance */}
           <div className="lg:col-span-4">
             <h4 className="text-base sm:text-lg font-bold mb-4 sm:mb-6 text-white tracking-wide">UAE Support Hub</h4>
@@ -197,6 +232,9 @@ export function Footer() {
             </ul>
 
             <h4 className="text-xs sm:text-sm font-bold mb-3 sm:mb-4 text-white uppercase tracking-wider">VIP Newsletter</h4>
+            {cms.newsletterText && (
+              <p className="text-emerald-100/60 text-xs sm:text-sm mb-3">{cms.newsletterText}</p>
+            )}
             <form className="relative flex items-center" onSubmit={(e) => e.preventDefault()}>
               <input
                 type="email"

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { fetchProductBySlug, fetchRelatedProducts, fetchAllProducts } from "@/data/products-shopify";
-import { fetchProductReviews } from "@/lib/shopify";
+import { fetchProductReviews, fetchShopSettings } from "@/lib/shopify";
 import { ProductDetailView } from "@/components/product/ProductDetailView";
 
 interface ProductPageProps {
@@ -47,6 +47,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   const related = await fetchRelatedProducts(product.slug);
   const reviews = await fetchProductReviews(product.id);
+  const settings = await fetchShopSettings();
   const productWithReviews = { ...product, reviews };
 
   // JSON-LD Structured Data for Google Rich Snippets & #1 Ranking
@@ -115,7 +116,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
-      <ProductDetailView product={productWithReviews} relatedProducts={related} />
+      <ProductDetailView product={productWithReviews} relatedProducts={related} pageSettings={settings.productPage} phone={settings.phone} />
     </>
   );
 }
