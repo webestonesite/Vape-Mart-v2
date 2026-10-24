@@ -179,6 +179,18 @@ export default function AdminPage() {
     [notify, loadData]
   );
 
+  const stats = useMemo(() => {
+    const products = data?.products || [];
+    return {
+      total: products.length,
+      active: products.filter((p: any) => p.status === "ACTIVE").length,
+      draft: products.filter((p: any) => p.status === "DRAFT").length,
+      low: products.filter((p: any) => (p.inventoryQuantity ?? 99) <= 10 && p.status === "ACTIVE").length,
+      collections: (data?.collections || []).length,
+      orders: (data?.orders || []).length,
+    };
+  }, [data]);
+
   if (phase === "loading") {
     return <div className="flex min-h-screen items-center justify-center text-neutral-500">Loading panel…</div>;
   }
@@ -220,18 +232,6 @@ export default function AdminPage() {
       </div>
     );
   }
-
-  const stats = useMemo(() => {
-    const products = data?.products || [];
-    return {
-      total: products.length,
-      active: products.filter((p: any) => p.status === "ACTIVE").length,
-      draft: products.filter((p: any) => p.status === "DRAFT").length,
-      low: products.filter((p: any) => (p.inventoryQuantity ?? 99) <= 10 && p.status === "ACTIVE").length,
-      collections: (data?.collections || []).length,
-      orders: (data?.orders || []).length,
-    };
-  }, [data]);
 
   return (
     <div className="flex min-h-screen">
