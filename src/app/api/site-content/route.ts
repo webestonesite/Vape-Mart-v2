@@ -40,5 +40,6 @@ export async function GET() {
     })),
     testimonials: content.testimonials,
     faqs: content.faqs,
+    showcaseCards: content.showcaseCards,
   });
 }
