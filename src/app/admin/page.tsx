@@ -20,6 +20,7 @@ const CartTab = dynamic(() => import("./settings-tabs").then((m) => m.CartTab), 
 const ProductPageTab = dynamic(() => import("./settings-tabs").then((m) => m.ProductPageTab), { loading: tabLoading });
 const CollectionPageTab = dynamic(() => import("./settings-tabs").then((m) => m.CollectionPageTab), { loading: tabLoading });
 const ThemeTab = dynamic(() => import("./settings-tabs").then((m) => m.ThemeTab), { loading: tabLoading });
+const HomeTab = dynamic(() => import("./settings-tabs").then((m) => m.HomeTab), { loading: tabLoading });
 const SettingsTab = dynamic(() => import("./content-tabs").then((m) => m.SettingsTab), { loading: tabLoading });
 const HeroTab = dynamic(() => import("./content-tabs").then((m) => m.HeroTab), { loading: tabLoading });
 const SectionsTab = dynamic(() => import("./content-tabs").then((m) => m.SectionsTab), { loading: tabLoading });
@@ -124,6 +125,7 @@ const NAV = [
     group: "Site Settings",
     items: [
       { key: "theme", label: "Theme & Brand", icon: Palette },
+      { key: "home", label: "Home Page", icon: LayoutGrid },
       { key: "cart", label: "Cart & Checkout", icon: ShoppingCart },
       { key: "product-page", label: "Product Page", icon: LayoutTemplate },
       { key: "collection-page", label: "Collection Page", icon: LayoutGrid },
@@ -351,6 +353,7 @@ export default function AdminPage() {
               {tab === "product-reviews" && <ProductReviewsTab data={data} save={save} />}
               {tab === "media" && <MediaTab data={data} notify={notify} reload={loadData} />}
               {tab === "theme" && <ThemeTab data={data} save={save} />}
+              {tab === "home" && <HomeTab data={data} save={save} />}
               {tab === "cart" && <CartTab data={data} save={save} />}
               {tab === "product-page" && <ProductPageTab data={data} save={save} />}
               {tab === "collection-page" && <CollectionPageTab data={data} save={save} />}

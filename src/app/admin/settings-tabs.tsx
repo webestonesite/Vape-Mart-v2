@@ -206,12 +206,15 @@ export function CollectionPageTab({ data, save }: any) {
   const [buckets, setBuckets] = useState<any[]>(s.puffBuckets || []);
   const [families, setFamilies] = useState<any[]>(s.flavorFamilies || []);
   const [hero, setHero] = useState<any>(s.shopAllHero || { title: "", subtitle: "" });
+  // Quiz modal step titles (options stay data-driven: puff buckets, nicotine, flavour families).
+  const quizDefaults = ["How much do you vape?", "Pick your nicotine strength", "Choose your flavour vibe"];
+  const [quizTitles, setQuizTitles] = useState<string[]>((s.quizSteps || []).map((q: any) => typeof q === "string" ? q : q.title || ""));
 
   const doSave = () => {
     save("collectionPage.save", {
       itemsPerPage: items, compareLimit: compare, sortOptions: sorts,
       puffBuckets: buckets.map((b) => ({ ...b, min: b.min === "" || b.min == null ? null : parseInt(String(b.min), 10), max: b.max === "" || b.max == null ? null : parseInt(String(b.max), 10) })),
-      flavorFamilies: families, quizSteps: s.quizSteps || [], shopAllHero: hero,
+      flavorFamilies: families, quizSteps: quizTitles.map((t) => ({ title: t })), shopAllHero: hero,
     });
   };
 
@@ -280,6 +283,17 @@ export function CollectionPageTab({ data, save }: any) {
           </div>
         </div>
       </Card>
+      <Card title="Vape Finder quiz — step titles">
+        <p className="text-xs text-neutral-500 mb-3">Quiz-er 3-ti step-er shironam bodlano jay. Option gulo filter thekei asbe (puff bucket, nicotine, flavour family).</p>
+        <div className="grid gap-3">
+          {quizDefaults.map((d, i) => (
+            <div key={i}>
+              <Lbl>Step {i + 1}</Lbl>
+              <Inp value={quizTitles[i] || ""} onChange={(e) => { const next = [...quizTitles]; next[i] = e.target.value; setQuizTitles(next); }} placeholder={d} />
+            </div>
+          ))}
+        </div>
+      </Card>
       <SaveBar onSave={doSave} />
     </div>
   );
@@ -296,6 +310,7 @@ export function ThemeTab({ data, save }: any) {
   const [footerGroups, setFooterGroups] = useState<any[]>(s.footerLinks || []);
   const [newsletter, setNewsletter] = useState(s.newsletterText || "");
   const [logoUrl, setLogoUrl] = useState("");
+  const [mega, setMega] = useState<any>(s.megaBanner || { title: "", subtitle: "", badge: "", href: "" });
 
   // Footer groups editor keeps links as "Label|/url" pairs per line for simplicity.
   const groupsForSave = footerGroups.map((g) => ({
@@ -382,9 +397,129 @@ export function ThemeTab({ data, save }: any) {
         <Lbl>Newsletter section text</Lbl>
         <Inp value={newsletter} onChange={(e) => setNewsletter(e.target.value)} placeholder="e.g. Get 10% off your first order" />
       </Card>
+      <Card title="Mega-menu promo banner (DISPOSABLE)">
+        <p className="text-xs text-neutral-500 mb-3">DISPOSABLE menu khulle niche je promo banner dekhay — title khali rakhle banner dekhabe na.</p>
+        <div className="grid gap-3">
+          <div>
+            <Lbl>Badge</Lbl>
+            <Inp value={mega.badge || ""} onChange={(e) => setMega({ ...mega, badge: e.target.value })} placeholder="e.g. BEST SELLER" />
+          </div>
+          <div>
+            <Lbl>Title</Lbl>
+            <Inp value={mega.title || ""} onChange={(e) => setMega({ ...mega, title: e.target.value })} placeholder="e.g. Mega Max Deals" />
+          </div>
+          <div>
+            <Lbl>Subtitle</Lbl>
+            <Inp value={mega.subtitle || ""} onChange={(e) => setMega({ ...mega, subtitle: e.target.value })} placeholder="e.g. Up to 40,000 puffs" />
+          </div>
+          <div>
+            <Lbl>Link</Lbl>
+            <Inp value={mega.href || ""} onChange={(e) => setMega({ ...mega, href: e.target.value })} placeholder="/collections/disposable-vape" />
+          </div>
+        </div>
+      </Card>
       <SaveBar onSave={() => save("theme.save", {
         searchPlaceholder: placeholder, topbarLinks: topbar, footerLinks: groupsForSave,
-        newsletterText: newsletter, logoUrl: logoUrl.trim() || undefined,
+        newsletterText: newsletter, logoUrl: logoUrl.trim() || undefined, megaBanner: mega,
+      })} />
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Home page                                                          */
+/* ------------------------------------------------------------------ */
+
+export function HomeTab({ data, save }: any) {
+  const s = data.settings?.home || {};
+  const [banners, setBanners] = useState<any[]>(s.promoBanners || []);
+  const [tiles, setTiles] = useState<any[]>(s.categoryTiles || []);
+  const [features, setFeatures] = useState<any[]>(s.features || []);
+  const [customers, setCustomers] = useState(String(s.trustStats?.customers || ""));
+  const [reviews, setReviews] = useState(String(s.trustStats?.reviews || ""));
+  const [vis, setVis] = useState<any>(s.sectionVisibility || {});
+  const toggle = (key: string) => setVis((v: any) => ({ ...v, [key]: !(v[key] !== false) }));
+
+  return (
+    <div>
+      <p className="text-sm text-neutral-500 mb-4">
+        Home page-er banner, category tile, features strip ar trust number — khali rakhle ager design/lekha-i thakbe. Section lukate chaile checkbox off korun.
+      </p>
+      <Card title="Promo banners" sub="Home page-er 2-ti banner. Image khali rakhle ager chhobi-i thakbe. Button link khali rakhle button kichu korbe na.">
+        <JsonListEditor
+          label="Banner (eyebrow → title → description → button text → button link → image URL)"
+          rows={banners}
+          setRows={setBanners}
+          fields={[
+            { key: "eyebrow", label: "Eyebrow" },
+            { key: "title", label: "Title" },
+            { key: "desc", label: "Description" },
+            { key: "buttonText", label: "Button" },
+            { key: "buttonLink", label: "Button link" },
+            { key: "image", label: "Image URL" },
+          ]}
+          addLabel="Add banner"
+        />
+      </Card>
+      <Card title="Shop by Category tiles" sub="6-ti tile. Color khali rakhle ager gradient-i thakbe (e.g. from-emerald-900/80 to-black/90).">
+        <JsonListEditor
+          label="Tile (title → subtitle → image → tag → gradient)"
+          rows={tiles}
+          setRows={setTiles}
+          fields={[
+            { key: "title", label: "Title" },
+            { key: "subtitle", label: "Subtitle" },
+            { key: "img", label: "Image URL" },
+            { key: "tag", label: "Tag" },
+            { key: "color", label: "Gradient" },
+          ]}
+          addLabel="Add tile"
+        />
+      </Card>
+      <Card title="Features strip" sub="Icon nam: Truck, Headset, RotateCcw, CreditCard, ShieldCheck, Zap, Clock, Star.">
+        <JsonListEditor
+          label="Feature (icon → title → description)"
+          rows={features}
+          setRows={setFeatures}
+          fields={[
+            { key: "icon", label: "Icon" },
+            { key: "title", label: "Title" },
+            { key: "desc", label: "Description" },
+          ]}
+          addLabel="Add feature"
+        />
+      </Card>
+      <Card title="Trust & Reviews Hub numbers">
+        <div className="grid sm:grid-cols-2 gap-3">
+          <div>
+            <Lbl>Customers (number)</Lbl>
+            <Inp type="number" value={customers} onChange={(e) => setCustomers(e.target.value)} placeholder="160000" />
+          </div>
+          <div>
+            <Lbl>Reviews (number)</Lbl>
+            <Inp type="number" value={reviews} onChange={(e) => setReviews(e.target.value)} placeholder="1200" />
+          </div>
+        </div>
+      </Card>
+      <Card title="Section visibility" sub="Off korle sei section home page-e dekhabe na. Default shob on.">
+        <div className="space-y-2">
+          {[
+            { key: "banners", label: "Promo banners" },
+            { key: "categories", label: "Shop by Category" },
+            { key: "features", label: "Features strip" },
+            { key: "trust", label: "Trust & Reviews Hub" },
+          ].map((v) => (
+            <label key={v.key} className="flex items-center gap-2 text-sm text-neutral-700 cursor-pointer">
+              <input type="checkbox" checked={vis[v.key] !== false} onChange={() => toggle(v.key)} />
+              {v.label}
+            </label>
+          ))}
+        </div>
+      </Card>
+      <SaveBar onSave={() => save("home.save", {
+        promoBanners: banners, categoryTiles: tiles, features,
+        trustStats: { customers: parseInt(customers, 10) || 0, reviews: parseInt(reviews, 10) || 0 },
+        sectionVisibility: vis,
       })} />
     </div>
   );
