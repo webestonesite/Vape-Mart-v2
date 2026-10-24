@@ -1,13 +1,20 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Save, Plus, Trash2, LogOut, RefreshCw, Search } from "lucide-react";
+import {
+  LayoutDashboard, Package, FolderOpen, ShoppingBag, FileText, Menu as MenuIcon,
+  Search, Plus, Trash2, Save, X, Upload, ExternalLink, LogOut, RefreshCw, Megaphone,
+  Image as ImageIcon, Layers, Star, HelpCircle, PenLine,
+} from "lucide-react";
+import {
+  SettingsTab, HeroTab, SectionsTab, ShowcaseTab, ReviewsTab, FaqTab, BlogTab, PagesTab, MenuTab,
+} from "./content-tabs";
 
 /* ------------------------------------------------------------------ */
-/*  Vape Mart Admin Panel                                              */
-/*  Manages everything the storefront reads from Shopify — top bar,    */
-/*  hero, sections, showcase cards, reviews, FAQ, blog, pages, menu    */
-/*  and basic product price/stock — without opening Shopify admin.     */
+/*  Vape Mart Admin — Shopify-style dashboard                          */
+/*  Everything the storefront reads from Shopify, managed here:        */
+/*  products (full CRUD + uploads), collections, orders, content,      */
+/*  blog, pages, menu and shop settings. No Shopify login needed.      */
 /* ------------------------------------------------------------------ */
 
 async function api(body: any): Promise<any> {
@@ -19,9 +26,18 @@ async function api(body: any): Promise<any> {
   return res.json();
 }
 
+async function uploadFile(file: File): Promise<string> {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await fetch("/api/admin-panel/upload", { method: "POST", body: form });
+  const j = await res.json();
+  if (!j.ok) throw new Error(j.error || "Upload failed");
+  return j.resourceUrl as string;
+}
+
 const inputCls =
-  "w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder:text-neutral-500 outline-none focus:border-emerald-400/60";
-const labelCls = "block text-[11px] font-semibold uppercase tracking-wider text-emerald-300/80 mb-1";
+  "w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600";
+const labelCls = "block text-xs font-semibold text-neutral-600 mb-1";
 
 function Lbl({ children }: { children: React.ReactNode }) {
   return <label className={labelCls}>{children}</label>;
@@ -32,50 +48,56 @@ function Inp(props: React.InputHTMLAttributes<HTMLInputElement>) {
 function TA(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return <textarea {...props} className={inputCls} />;
 }
-function SaveBtn({ onClick, children }: { onClick: () => void; children?: React.ReactNode }) {
+function PrimaryBtn({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
   return (
     <button
       onClick={onClick}
-      className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500 px-3.5 py-2 text-sm font-semibold text-white hover:bg-emerald-400 transition"
+      className="inline-flex items-center gap-1.5 rounded-md bg-neutral-900 px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-700 transition"
     >
-      <Save size={15} /> {children || "Save"}
-    </button>
-  );
-}
-function DelBtn({ onClick }: { onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className="inline-flex items-center gap-1.5 rounded-lg bg-red-500/15 border border-red-400/30 px-3 py-2 text-sm font-semibold text-red-300 hover:bg-red-500/25 transition"
-    >
-      <Trash2 size={15} /> Delete
-    </button>
-  );
-}
-function Card({ title, children, right }: { title: string; children: React.ReactNode; right?: React.ReactNode }) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-5 mb-5">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-base font-bold text-white">{title}</h3>
-        {right}
-      </div>
       {children}
+    </button>
+  );
+}
+function StatCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
+  return (
+    <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+      <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">{label}</p>
+      <p className="mt-1 text-2xl font-bold text-neutral-900">{value}</p>
+      {sub && <p className="text-xs text-neutral-500 mt-0.5">{sub}</p>}
     </div>
   );
 }
 
-const TABS = [
-  { key: "settings", label: "Top Bar & Footer" },
-  { key: "hero", label: "Hero Slides" },
-  { key: "sections", label: "Home Sections" },
-  { key: "showcase", label: "TEREA / JUUL Cards" },
-  { key: "reviews", label: "Reviews" },
-  { key: "faq", label: "FAQ" },
-  { key: "blog", label: "Blog Posts" },
-  { key: "pages", label: "Pages" },
-  { key: "menu", label: "Menu" },
-  { key: "products", label: "Products" },
-] as const;
+const NAV = [
+  { group: "Home", items: [{ key: "dashboard", label: "Dashboard", icon: LayoutDashboard }] },
+  {
+    group: "Catalog",
+    items: [
+      { key: "products", label: "Products", icon: Package },
+      { key: "collections", label: "Collections", icon: FolderOpen },
+    ],
+  },
+  {
+    group: "Content",
+    items: [
+      { key: "settings", label: "Top Bar & Footer", icon: Megaphone },
+      { key: "hero", label: "Hero Slides", icon: ImageIcon },
+      { key: "sections", label: "Home Sections", icon: Layers },
+      { key: "showcase", label: "TEREA / JUUL Cards", icon: Star },
+      { key: "reviews", label: "Reviews", icon: Star },
+      { key: "faq", label: "FAQ", icon: HelpCircle },
+    ],
+  },
+  {
+    group: "Store",
+    items: [
+      { key: "blog", label: "Blog Posts", icon: PenLine },
+      { key: "pages", label: "Pages", icon: FileText },
+      { key: "menu", label: "Menu", icon: MenuIcon },
+      { key: "orders", label: "Orders", icon: ShoppingBag },
+    ],
+  },
+];
 
 export default function AdminPage() {
   const [phase, setPhase] = useState<"loading" | "setup" | "login" | "app">("loading");
@@ -83,8 +105,9 @@ export default function AdminPage() {
   const [setupCode, setSetupCode] = useState("");
   const [password, setPassword] = useState("");
   const [data, setData] = useState<any>(null);
-  const [tab, setTab] = useState<string>("settings");
+  const [tab, setTab] = useState<string>("dashboard");
   const [toast, setToast] = useState("");
+  const [topSearch, setTopSearch] = useState("");
 
   const notify = useCallback((msg: string) => {
     setToast(msg);
@@ -145,18 +168,18 @@ export default function AdminPage() {
   );
 
   if (phase === "loading") {
-    return <div className="flex min-h-screen items-center justify-center text-neutral-400">Loading panel…</div>;
+    return <div className="flex min-h-screen items-center justify-center text-neutral-500">Loading panel…</div>;
   }
 
   if (phase === "setup" || phase === "login") {
     return (
-      <div className="flex min-h-screen items-center justify-center px-4">
-        <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-white/[0.03] p-6">
-          <h1 className="text-xl font-bold text-white mb-1">Vape Mart Admin</h1>
-          <p className="text-sm text-neutral-400 mb-5">
+      <div className="flex min-h-screen items-center justify-center px-4 bg-[#f6f6f7]">
+        <div className="w-full max-w-sm rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+          <h1 className="text-xl font-bold text-neutral-900 mb-1">Vape Mart Admin</h1>
+          <p className="text-sm text-neutral-500 mb-5">
             {phase === "setup"
-              ? "First time setup: enter the setup code you received and choose a panel password."
-              : "Enter your panel password to manage the whole site from here."}
+              ? "First time setup: enter the setup code and choose a panel password."
+              : "Enter your panel password to manage the whole store from here."}
           </p>
           {phase === "setup" && (
             <div className="mb-3">
@@ -174,10 +197,10 @@ export default function AdminPage() {
               onKeyDown={(e) => e.key === "Enter" && (phase === "setup" ? doSetup() : doLogin())}
             />
           </div>
-          {authError && <p className="text-sm text-red-300 mb-3">{authError}</p>}
+          {authError && <p className="text-sm text-red-600 mb-3">{authError}</p>}
           <button
             onClick={phase === "setup" ? doSetup : doLogin}
-            className="w-full rounded-lg bg-emerald-500 py-2.5 font-semibold text-white hover:bg-emerald-400 transition"
+            className="w-full rounded-md bg-neutral-900 py-2.5 font-semibold text-white hover:bg-neutral-700 transition"
           >
             {phase === "setup" ? "Set password & enter" : "Log in"}
           </button>
@@ -186,64 +209,129 @@ export default function AdminPage() {
     );
   }
 
+  const stats = useMemo(() => {
+    const products = data?.products || [];
+    return {
+      total: products.length,
+      active: products.filter((p: any) => p.status === "ACTIVE").length,
+      draft: products.filter((p: any) => p.status === "DRAFT").length,
+      low: products.filter((p: any) => (p.inventoryQuantity ?? 99) <= 10 && p.status === "ACTIVE").length,
+      collections: (data?.collections || []).length,
+      orders: (data?.orders || []).length,
+    };
+  }, [data]);
+
   return (
-    <div className="mx-auto max-w-6xl px-3 sm:px-5 py-5">
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-white">Vape Mart Admin Panel</h1>
-          <p className="text-xs sm:text-sm text-neutral-400">
-            Sob content ekhan thekei manage hobe. Save korle site-e 5–10 minute-er moddhe update hoy.
-          </p>
+    <div className="flex min-h-screen">
+      {/* Sidebar */}
+      <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-neutral-200 bg-white">
+        <div className="px-4 py-4 border-b border-neutral-200">
+          <p className="text-base font-bold text-neutral-900">Vape Mart</p>
+          <p className="text-xs text-neutral-500">Admin dashboard</p>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={loadData}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-3 py-2 text-sm text-neutral-200 hover:bg-white/5"
-          >
-            <RefreshCw size={15} /> Reload
-          </button>
+        <nav className="flex-1 overflow-y-auto p-3">
+          {NAV.map((g) => (
+            <div key={g.group} className="mb-4">
+              <p className="px-2 mb-1 text-[11px] font-bold uppercase tracking-wider text-neutral-400">{g.group}</p>
+              {g.items.map((it) => {
+                const Icon = it.icon;
+                const active = tab === it.key;
+                return (
+                  <button
+                    key={it.key}
+                    onClick={() => setTab(it.key)}
+                    className={`flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium transition ${
+                      active ? "bg-neutral-900 text-white" : "text-neutral-700 hover:bg-neutral-100"
+                    }`}
+                  >
+                    <Icon size={16} /> {it.label}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </nav>
+        <div className="p-3 border-t border-neutral-200">
           <button
             onClick={doLogout}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-3 py-2 text-sm text-neutral-200 hover:bg-white/5"
+            className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
           >
-            <LogOut size={15} /> Log out
+            <LogOut size={16} /> Log out
           </button>
         </div>
-      </div>
+      </aside>
 
-      <div className="flex gap-2 overflow-x-auto pb-2 mb-4 -mx-1 px-1">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
-            className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition ${
-              tab === t.key ? "bg-emerald-500 text-white" : "bg-white/5 text-neutral-300 hover:bg-white/10"
-            }`}
+      {/* Main */}
+      <div className="flex-1 min-w-0">
+        <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-neutral-200 bg-white px-4 py-3">
+          <div className="relative flex-1 max-w-md">
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+            <input
+              className={`${inputCls} pl-9`}
+              placeholder="Search products… (Enter = Products tab)"
+              value={topSearch}
+              onChange={(e) => setTopSearch(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && setTab("products")}
+            />
+          </div>
+          <a
+            href="https://vapmart.webestone.net"
+            target="_blank"
+            rel="noreferrer"
+            className="hidden sm:inline-flex items-center gap-1 text-sm font-medium text-neutral-700 hover:text-neutral-900"
           >
-            {t.label}
+            View store <ExternalLink size={14} />
+          </a>
+          <button
+            onClick={loadData}
+            className="inline-flex items-center gap-1.5 rounded-md border border-neutral-300 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50"
+          >
+            <RefreshCw size={14} /> Reload
           </button>
-        ))}
-      </div>
+        </header>
 
-      {!data ? (
-        <p className="text-neutral-400">Loading content…</p>
-      ) : (
-        <>
-          {tab === "settings" && <SettingsTab data={data} save={save} />}
-          {tab === "hero" && <HeroTab data={data} save={save} />}
-          {tab === "sections" && <SectionsTab data={data} save={save} />}
-          {tab === "showcase" && <ShowcaseTab data={data} save={save} />}
-          {tab === "reviews" && <ReviewsTab data={data} save={save} />}
-          {tab === "faq" && <FaqTab data={data} save={save} />}
-          {tab === "blog" && <BlogTab data={data} save={save} />}
-          {tab === "pages" && <PagesTab data={data} save={save} />}
-          {tab === "menu" && <MenuTab data={data} save={save} />}
-          {tab === "products" && <ProductsTab data={data} save={save} />}
-        </>
-      )}
+        {/* Mobile nav */}
+        <div className="md:hidden flex gap-2 overflow-x-auto p-3 bg-white border-b border-neutral-200">
+          {NAV.flatMap((g) => g.items).map((it) => (
+            <button
+              key={it.key}
+              onClick={() => setTab(it.key)}
+              className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-medium ${
+                tab === it.key ? "bg-neutral-900 text-white" : "bg-neutral-100 text-neutral-700"
+              }`}
+            >
+              {it.label}
+            </button>
+          ))}
+        </div>
+
+        <main className="p-4 sm:p-6 max-w-6xl mx-auto">
+          {!data ? (
+            <p className="text-neutral-500">Loading content…</p>
+          ) : (
+            <>
+              {tab === "dashboard" && <DashboardTab data={data} stats={stats} go={setTab} />}
+              {tab === "products" && (
+                <ProductsManager data={data} notify={notify} reload={loadData} initialQuery={topSearch} />
+              )}
+              {tab === "collections" && <CollectionsTab data={data} notify={notify} reload={loadData} />}
+              {tab === "orders" && <OrdersTab data={data} />}
+              {tab === "settings" && <SettingsTab data={data} save={save} />}
+              {tab === "hero" && <HeroTab data={data} save={save} />}
+              {tab === "sections" && <SectionsTab data={data} save={save} />}
+              {tab === "showcase" && <ShowcaseTab data={data} save={save} />}
+              {tab === "reviews" && <ReviewsTab data={data} save={save} />}
+              {tab === "faq" && <FaqTab data={data} save={save} />}
+              {tab === "blog" && <BlogTab data={data} save={save} />}
+              {tab === "pages" && <PagesTab data={data} save={save} />}
+              {tab === "menu" && <MenuTab data={data} save={save} />}
+            </>
+          )}
+        </main>
+      </div>
 
       {toast && (
-        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-xl max-w-[92vw] text-center">
+        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-semibold text-white shadow-xl max-w-[92vw] text-center">
           {toast}
         </div>
       )}
@@ -252,810 +340,713 @@ export default function AdminPage() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Settings: announcements, phone, footer                             */
+/*  Dashboard home                                                     */
 /* ------------------------------------------------------------------ */
 
-function SettingsTab({ data, save }: any) {
-  const [ann, setAnn] = useState<string[]>(data.settings.announcements || []);
-  const [phone, setPhone] = useState(data.settings.phone || "");
-  const [footerText, setFooterText] = useState(data.settings.footerText || "");
-  useEffect(() => {
-    setAnn(data.settings.announcements || []);
-    setPhone(data.settings.phone || "");
-    setFooterText(data.settings.footerText || "");
-  }, [data]);
-
+function DashboardTab({ data, stats, go }: any) {
+  const low = (data.products || [])
+    .filter((p: any) => (p.inventoryQuantity ?? 99) <= 10 && p.status === "ACTIVE")
+    .slice(0, 8);
   return (
-    <Card title="Top bar, phone & footer">
-      <Lbl>Announcements (top bar-e ghure)</Lbl>
-      {ann.map((a, i) => (
-        <div key={i} className="flex gap-2 mb-2">
-          <Inp value={a} onChange={(e) => setAnn(ann.map((x, j) => (j === i ? e.target.value : x)))} />
-          <button
-            onClick={() => setAnn(ann.filter((_, j) => j !== i))}
-            className="shrink-0 rounded-lg border border-red-400/30 px-3 text-red-300 hover:bg-red-500/10"
-          >
-            <Trash2 size={15} />
-          </button>
-        </div>
-      ))}
-      <button
-        onClick={() => setAnn([...ann, ""])}
-        className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-3 py-2 text-sm text-neutral-200 hover:bg-white/5 mb-4"
-      >
-        <Plus size={15} /> Add announcement
-      </button>
-      <div className="grid sm:grid-cols-2 gap-4 mb-4">
-        <div>
-          <Lbl>Phone number</Lbl>
-          <Inp value={phone} onChange={(e) => setPhone(e.target.value)} />
-        </div>
-        <div>
-          <Lbl>Footer text (copyright line)</Lbl>
-          <Inp value={footerText} onChange={(e) => setFooterText(e.target.value)} />
-        </div>
+    <div>
+      <h1 className="text-xl font-bold text-neutral-900 mb-4">Dashboard</h1>
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
+        <StatCard label="Total products" value={String(stats.total)} sub={`${stats.active} active · ${stats.draft} draft`} />
+        <StatCard label="Low stock (≤10)" value={String(stats.low)} sub="Active products running low" />
+        <StatCard label="Collections" value={String(stats.collections)} />
+        <StatCard label="Recent orders" value={String(stats.orders)} sub="Latest 20 from Shopify" />
+        <StatCard label="Blog posts" value={String((data.blogPosts || []).length)} />
+        <StatCard label="Hero slides" value={String((data.heroSlides || []).length)} />
       </div>
-      <SaveBtn onClick={() => save("settings", { announcements: ann, phone, footerText })} />
-    </Card>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Hero slides                                                        */
-/* ------------------------------------------------------------------ */
-
-function HeroTab({ data, save }: any) {
-  const [slides, setSlides] = useState<any[]>(data.heroSlides || []);
-  useEffect(() => setSlides(data.heroSlides || []), [data]);
-  const upd = (i: number, k: string, v: any) =>
-    setSlides(slides.map((s, j) => (j === i ? { ...s, [k]: v } : s)));
-
-  return (
-    <div>
-      {slides.map((s, i) => (
-        <Card
-          key={s.id || i}
-          title={`Slide ${i + 1}: ${s.title || "(untitled)"}`}
-          right={<DelBtn onClick={() => s.id && save("hero.delete", { id: s.id })} />}
-        >
-          <div className="grid sm:grid-cols-2 gap-4 mb-3">
-            <div className="sm:col-span-2">
-              <Lbl>Title (\n dile line break hobe)</Lbl>
-              <Inp value={s.title} onChange={(e) => upd(i, "title", e.target.value)} />
-            </div>
-            <div className="sm:col-span-2">
-              <Lbl>Description</Lbl>
-              <TA rows={2} value={s.description} onChange={(e) => upd(i, "description", e.target.value)} />
-            </div>
-            <div>
-              <Lbl>Badge</Lbl>
-              <Inp value={s.badge} onChange={(e) => upd(i, "badge", e.target.value)} />
-            </div>
-            <div>
-              <Lbl>Position</Lbl>
-              <Inp type="number" value={s.position} onChange={(e) => upd(i, "position", e.target.value)} />
-            </div>
-            <div>
-              <Lbl>Button text</Lbl>
-              <Inp value={s.buttonText} onChange={(e) => upd(i, "buttonText", e.target.value)} />
-            </div>
-            <div>
-              <Lbl>Button link</Lbl>
-              <Inp value={s.buttonLink} onChange={(e) => upd(i, "buttonLink", e.target.value)} />
-            </div>
-          </div>
-          <div className="flex items-start gap-4 mb-4">
-            {s.imageUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={s.imageUrl} alt="" className="h-20 w-32 rounded-lg object-cover border border-white/10" />
-            ) : (
-              <div className="h-20 w-32 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-xs text-neutral-500">
-                No image
-              </div>
-            )}
-            <div className="flex-1">
-              <Lbl>New image URL (paste korle save-er somoy upload hobe)</Lbl>
-              <Inp
-                placeholder="https://…"
-                value={s.newImageUrl || ""}
-                onChange={(e) => upd(i, "newImageUrl", e.target.value)}
-              />
-              <p className="text-xs text-neutral-500 mt-1">Khali rakhle purano chobi-i thakbe.</p>
-            </div>
-          </div>
-          <SaveBtn
-            onClick={() =>
-              save("hero.save", {
-                id: s.id || undefined,
-                title: s.title,
-                description: s.description,
-                badge: s.badge,
-                buttonText: s.buttonText,
-                buttonLink: s.buttonLink,
-                position: Number(s.position) || 0,
-                imageUrl: s.newImageUrl || undefined,
-              })
-            }
-          />
-        </Card>
-      ))}
-      <button
-        onClick={() =>
-          setSlides([
-            ...slides,
-            { title: "", description: "", badge: "", buttonText: "Shop Now", buttonLink: "/collections", position: slides.length + 1 },
-          ])
-        }
-        className="inline-flex items-center gap-1.5 rounded-lg bg-white/5 border border-white/15 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/10"
-      >
-        <Plus size={15} /> Add slide
-      </button>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Home sections + product picker                                     */
-/* ------------------------------------------------------------------ */
-
-function SectionsTab({ data, save }: any) {
-  const [sections, setSections] = useState<any[]>(data.sections || []);
-  const [query, setQuery] = useState<Record<string, string>>({});
-  useEffect(() => setSections(data.sections || []), [data]);
-  const upd = (i: number, k: string, v: any) =>
-    setSections(sections.map((s, j) => (j === i ? { ...s, [k]: v } : s)));
-  const byId = useMemo(() => {
-    const m: Record<string, any> = {};
-    for (const p of data.products || []) m[p.id] = p;
-    return m;
-  }, [data]);
-
-  return (
-    <div>
-      <p className="text-sm text-neutral-400 mb-4">
-        Prottek section-er title/subtitle/badge ar kon product dekhabe ekhan theke control hoy. TEREA ar JUUL
-        section-e product dile shei asol product-i dekhabe; na dile nicher “TEREA / JUUL Cards” tab-er card gula
-        dekhabe.
-      </p>
-      {sections.map((s, i) => {
-        const q = (query[s.id] || "").toLowerCase();
-        const results = q
-          ? (data.products || []).filter((p: any) => p.title.toLowerCase().includes(q)).slice(0, 8)
-          : [];
-        return (
-          <Card key={s.id} title={`Section: ${s.key}`}>
-            <div className="grid sm:grid-cols-3 gap-4 mb-4">
-              <div>
-                <Lbl>Title</Lbl>
-                <Inp value={s.title} onChange={(e) => upd(i, "title", e.target.value)} />
-              </div>
-              <div>
-                <Lbl>Subtitle</Lbl>
-                <Inp value={s.subtitle} onChange={(e) => upd(i, "subtitle", e.target.value)} />
-              </div>
-              <div>
-                <Lbl>Badge text</Lbl>
-                <Inp value={s.badgeText} onChange={(e) => upd(i, "badgeText", e.target.value)} />
-              </div>
-            </div>
-            <Lbl>Products ({(s.productIds || []).length} selected)</Lbl>
-            <div className="flex flex-wrap gap-2 mb-3">
-              {(s.productIds || []).map((pid: string, idx: number) => (
-                <span
-                  key={pid}
-                  className="inline-flex items-center gap-2 rounded-full bg-emerald-500/15 border border-emerald-400/30 px-3 py-1.5 text-xs text-emerald-100"
-                >
-                  {byId[pid]?.title || pid}
-                  <button
-                    className="text-emerald-300 hover:text-white"
-                    onClick={() => {
-                      const arr = [...s.productIds];
-                      if (idx > 0) [arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]];
-                      upd(i, "productIds", arr);
-                    }}
-                  >
-                    ↑
-                  </button>
-                  <button
-                    className="text-emerald-300 hover:text-white"
-                    onClick={() => {
-                      const arr = [...s.productIds];
-                      if (idx < arr.length - 1) [arr[idx + 1], arr[idx]] = [arr[idx], arr[idx + 1]];
-                      upd(i, "productIds", arr);
-                    }}
-                  >
-                    ↓
-                  </button>
-                  <button
-                    className="text-red-300 hover:text-white"
-                    onClick={() => upd(i, "productIds", s.productIds.filter((x: string) => x !== pid))}
-                  >
-                    ✕
-                  </button>
-                </span>
-              ))}
-              {!(s.productIds || []).length && (
-                <span className="text-xs text-neutral-500">Kono product select kora nai</span>
-              )}
-            </div>
-            <div className="relative mb-4 max-w-md">
-              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
-              <input
-                className={`${inputCls} pl-9`}
-                placeholder="Product search kore add koro…"
-                value={query[s.id] || ""}
-                onChange={(e) => setQuery({ ...query, [s.id]: e.target.value })}
-              />
-              {results.length > 0 && (
-                <div className="absolute z-20 mt-1 w-full rounded-lg border border-white/10 bg-[#0c1512] shadow-xl overflow-hidden">
-                  {results.map((p: any) => (
-                    <button
-                      key={p.id}
-                      className="flex w-full items-center gap-3 px-3 py-2 text-left text-sm text-neutral-200 hover:bg-white/5"
-                      onClick={() => {
-                        if (!s.productIds.includes(p.id)) upd(i, "productIds", [...s.productIds, p.id]);
-                        setQuery({ ...query, [s.id]: "" });
-                      }}
-                    >
-                      {p.image && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={p.image} alt="" className="h-8 w-8 rounded object-cover" />
-                      )}
-                      {p.title}
-                      <span className="ml-auto text-xs text-neutral-500">AED {p.price}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-            <SaveBtn
-              onClick={() =>
-                save("section.save", {
-                  id: s.id,
-                  title: s.title,
-                  subtitle: s.subtitle,
-                  badgeText: s.badgeText,
-                  productIds: s.productIds,
-                })
-              }
-            />
-          </Card>
-        );
-      })}
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Showcase cards (TEREA & JUUL carousels)                            */
-/* ------------------------------------------------------------------ */
-
-function ShowcaseTab({ data, save }: any) {
-  const [cards, setCards] = useState<any[]>(data.showcase || []);
-  const [filter, setFilter] = useState("tereaHeets");
-  useEffect(() => setCards(data.showcase || []), [data]);
-  const upd = (id: string, k: string, v: any) =>
-    setCards(cards.map((c) => (c.id === id || c._tmp === id ? { ...c, [k]: v } : c)));
-  const shown = cards.filter((c) => c.sectionKey === filter);
-
-  return (
-    <div>
-      <div className="flex gap-2 mb-4">
-        {[
-          { k: "tereaHeets", l: "TEREA & HEETS cards" },
-          { k: "juulProducts", l: "JUUL cards" },
-        ].map((t) => (
-          <button
-            key={t.k}
-            onClick={() => setFilter(t.k)}
-            className={`rounded-full px-4 py-2 text-sm font-semibold ${
-              filter === t.k ? "bg-emerald-500 text-white" : "bg-white/5 text-neutral-300"
-            }`}
-          >
-            {t.l}
-          </button>
-        ))}
-      </div>
-      {shown.map((c) => {
-        const key = c.id || c._tmp;
-        return (
-          <Card
-            key={key}
-            title={c.title || "New card"}
-            right={c.id ? <DelBtn onClick={() => save("showcase.delete", { id: c.id })} /> : undefined}
-          >
-            <div className="grid sm:grid-cols-3 gap-4 mb-3">
-              <div className="sm:col-span-2">
-                <Lbl>Title</Lbl>
-                <Inp value={c.title} onChange={(e) => upd(key, "title", e.target.value)} />
-              </div>
-              <div>
-                <Lbl>Position</Lbl>
-                <Inp type="number" value={c.position} onChange={(e) => upd(key, "position", e.target.value)} />
-              </div>
-              <div>
-                <Lbl>Price (AED)</Lbl>
-                <Inp value={c.price} onChange={(e) => upd(key, "price", e.target.value)} />
-              </div>
-              <div>
-                <Lbl>Reviews count</Lbl>
-                <Inp type="number" value={c.revs} onChange={(e) => upd(key, "revs", e.target.value)} />
-              </div>
-              <div>
-                <Lbl>Badge</Lbl>
-                <Inp value={c.badge} onChange={(e) => upd(key, "badge", e.target.value)} />
-              </div>
-              <div>
-                <Lbl>Brand label</Lbl>
-                <Inp value={c.brand} onChange={(e) => upd(key, "brand", e.target.value)} />
-              </div>
-              <div className="sm:col-span-2">
-                <Lbl>Image URL</Lbl>
-                <Inp value={c.imageUrl} onChange={(e) => upd(key, "imageUrl", e.target.value)} />
-              </div>
-            </div>
-            <SaveBtn
-              onClick={() =>
-                save("showcase.save", {
-                  id: c.id || undefined,
-                  sectionKey: c.sectionKey,
-                  title: c.title,
-                  price: c.price,
-                  revs: Number(c.revs) || 0,
-                  badge: c.badge,
-                  brand: c.brand,
-                  imageUrl: c.imageUrl,
-                  position: Number(c.position) || 0,
-                })
-              }
-            />
-          </Card>
-        );
-      })}
-      <button
-        onClick={() =>
-          setCards([
-            ...cards,
-            {
-              _tmp: `new-${Date.now()}`,
-              sectionKey: filter,
-              title: "",
-              price: "",
-              revs: 0,
-              badge: "",
-              brand: "",
-              imageUrl: "",
-              position: shown.length + 1,
-            },
-          ])
-        }
-        className="inline-flex items-center gap-1.5 rounded-lg bg-white/5 border border-white/15 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/10"
-      >
-        <Plus size={15} /> Add card
-      </button>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Reviews & FAQ                                                      */
-/* ------------------------------------------------------------------ */
-
-function ReviewsTab({ data, save }: any) {
-  const [items, setItems] = useState<any[]>(data.testimonials || []);
-  useEffect(() => setItems(data.testimonials || []), [data]);
-  const upd = (i: number, k: string, v: any) => setItems(items.map((t, j) => (j === i ? { ...t, [k]: v } : t)));
-  return (
-    <div>
-      {items.map((t, i) => (
-        <Card
-          key={t.id || i}
-          title={t.name || "New review"}
-          right={t.id ? <DelBtn onClick={() => save("testimonial.delete", { id: t.id })} /> : undefined}
-        >
-          <div className="grid sm:grid-cols-3 gap-4 mb-3">
-            <div>
-              <Lbl>Name</Lbl>
-              <Inp value={t.name} onChange={(e) => upd(i, "name", e.target.value)} />
-            </div>
-            <div>
-              <Lbl>Role</Lbl>
-              <Inp value={t.role} onChange={(e) => upd(i, "role", e.target.value)} />
-            </div>
-            <div>
-              <Lbl>Position</Lbl>
-              <Inp type="number" value={t.position} onChange={(e) => upd(i, "position", e.target.value)} />
-            </div>
-            <div className="sm:col-span-3">
-              <Lbl>Review title</Lbl>
-              <Inp value={t.title} onChange={(e) => upd(i, "title", e.target.value)} />
-            </div>
-            <div className="sm:col-span-3">
-              <Lbl>Review text</Lbl>
-              <TA rows={3} value={t.review} onChange={(e) => upd(i, "review", e.target.value)} />
-            </div>
-          </div>
-          <SaveBtn
-            onClick={() =>
-              save("testimonial.save", {
-                id: t.id || undefined,
-                name: t.name,
-                role: t.role,
-                title: t.title,
-                review: t.review,
-                position: Number(t.position) || 0,
-              })
-            }
-          />
-        </Card>
-      ))}
-      <button
-        onClick={() => setItems([...items, { name: "", role: "Verified Buyer", title: "", review: "", position: items.length + 1 }])}
-        className="inline-flex items-center gap-1.5 rounded-lg bg-white/5 border border-white/15 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/10"
-      >
-        <Plus size={15} /> Add review
-      </button>
-    </div>
-  );
-}
-
-function FaqTab({ data, save }: any) {
-  const [items, setItems] = useState<any[]>(data.faqs || []);
-  useEffect(() => setItems(data.faqs || []), [data]);
-  const upd = (i: number, k: string, v: any) => setItems(items.map((t, j) => (j === i ? { ...t, [k]: v } : t)));
-  return (
-    <div>
-      {items.map((t, i) => (
-        <Card
-          key={t.id || i}
-          title={t.question || "New FAQ"}
-          right={t.id ? <DelBtn onClick={() => save("faq.delete", { id: t.id })} /> : undefined}
-        >
-          <div className="grid sm:grid-cols-4 gap-4 mb-3">
-            <div className="sm:col-span-3">
-              <Lbl>Question</Lbl>
-              <Inp value={t.question} onChange={(e) => upd(i, "question", e.target.value)} />
-            </div>
-            <div>
-              <Lbl>Position</Lbl>
-              <Inp type="number" value={t.position} onChange={(e) => upd(i, "position", e.target.value)} />
-            </div>
-            <div className="sm:col-span-4">
-              <Lbl>Answer</Lbl>
-              <TA rows={3} value={t.answer} onChange={(e) => upd(i, "answer", e.target.value)} />
-            </div>
-          </div>
-          <SaveBtn
-            onClick={() =>
-              save("faq.save", {
-                id: t.id || undefined,
-                question: t.question,
-                answer: t.answer,
-                position: Number(t.position) || 0,
-              })
-            }
-          />
-        </Card>
-      ))}
-      <button
-        onClick={() => setItems([...items, { question: "", answer: "", position: items.length + 1 }])}
-        className="inline-flex items-center gap-1.5 rounded-lg bg-white/5 border border-white/15 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/10"
-      >
-        <Plus size={15} /> Add FAQ
-      </button>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Blog                                                               */
-/* ------------------------------------------------------------------ */
-
-function BlogTab({ data, save }: any) {
-  const [sel, setSel] = useState<string>("new");
-  const [form, setForm] = useState<any>({
-    title: "", body: "", summary: "", tags: "", category: "", quickAnswer: "", productSlugs: "", imageUrl: "",
-  });
-  const loadPost = (id: string) => {
-    setSel(id);
-    if (id === "new") {
-      setForm({ title: "", body: "", summary: "", tags: "", category: "", quickAnswer: "", productSlugs: "", imageUrl: "" });
-    } else {
-      const p = (data.blogPosts || []).find((x: any) => x.id === id);
-      if (p) setForm({ ...p, imageUrl: "" });
-    }
-  };
-  const set = (k: string, v: any) => setForm({ ...form, [k]: v });
-
-  return (
-    <div>
-      <div className="flex gap-2 overflow-x-auto pb-2 mb-4">
+      <div className="flex flex-wrap gap-2 mb-6">
+        <PrimaryBtn onClick={() => go("products")}>
+          <Plus size={15} /> Add product
+        </PrimaryBtn>
         <button
-          onClick={() => loadPost("new")}
-          className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold ${
-            sel === "new" ? "bg-emerald-500 text-white" : "bg-white/5 text-neutral-300"
-          }`}
+          onClick={() => go("blog")}
+          className="rounded-md border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-800 hover:bg-neutral-50"
         >
-          + New post
+          Write blog post
         </button>
-        {(data.blogPosts || []).map((p: any) => (
-          <button
-            key={p.id}
-            onClick={() => loadPost(p.id)}
-            className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold ${
-              sel === p.id ? "bg-emerald-500 text-white" : "bg-white/5 text-neutral-300"
-            }`}
-          >
-            {p.title}
-          </button>
-        ))}
+        <button
+          onClick={() => go("hero")}
+          className="rounded-md border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-800 hover:bg-neutral-50"
+        >
+          Edit hero slides
+        </button>
       </div>
-      <Card title={sel === "new" ? "New blog post" : `Edit: ${form.title}`}>
-        <div className="grid sm:grid-cols-2 gap-4 mb-3">
-          <div className="sm:col-span-2">
-            <Lbl>Title</Lbl>
-            <Inp value={form.title} onChange={(e) => set("title", e.target.value)} />
-          </div>
-          <div className="sm:col-span-2">
-            <Lbl>Body (HTML — &lt;p&gt;, &lt;h2&gt;, &lt;strong&gt; use kora jay)</Lbl>
-            <TA rows={12} value={form.body} onChange={(e) => set("body", e.target.value)} />
-          </div>
-          <div className="sm:col-span-2">
-            <Lbl>Summary (list page-er choto lekha)</Lbl>
-            <TA rows={2} value={form.summary} onChange={(e) => set("summary", e.target.value)} />
-          </div>
-          <div>
-            <Lbl>Category</Lbl>
-            <Inp value={form.category} onChange={(e) => set("category", e.target.value)} placeholder="Buying Guides / Safety / Education" />
-          </div>
-          <div>
-            <Lbl>Tags (comma diye)</Lbl>
-            <Inp value={form.tags} onChange={(e) => set("tags", e.target.value)} />
-          </div>
-          <div className="sm:col-span-2">
-            <Lbl>Quick Answer</Lbl>
-            <TA rows={2} value={form.quickAnswer} onChange={(e) => set("quickAnswer", e.target.value)} />
-          </div>
-          <div>
-            <Lbl>Related product slugs (comma diye)</Lbl>
-            <Inp value={form.productSlugs} onChange={(e) => set("productSlugs", e.target.value)} />
-          </div>
-          <div>
-            <Lbl>Featured image URL</Lbl>
-            <Inp value={form.imageUrl} onChange={(e) => set("imageUrl", e.target.value)} placeholder="https://…" />
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <SaveBtn
-            onClick={() =>
-              save("blog.save", {
-                id: sel === "new" ? undefined : sel,
-                title: form.title,
-                body: form.body,
-                summary: form.summary,
-                tags: form.tags,
-                category: form.category,
-                quickAnswer: form.quickAnswer,
-                productSlugs: form.productSlugs,
-                imageUrl: form.imageUrl || undefined,
-              })
-            }
-          >
-            {sel === "new" ? "Publish post" : "Save post"}
-          </SaveBtn>
-          {sel !== "new" && <DelBtn onClick={() => save("blog.delete", { id: sel })} />}
-        </div>
-        <p className="text-xs text-neutral-500 mt-3">
-          Post save korlei publish hoye jay ebong site-e 5–10 minute-er moddhe dekhabe.
-        </p>
-      </Card>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Pages                                                              */
-/* ------------------------------------------------------------------ */
-
-function PagesTab({ data, save }: any) {
-  const [sel, setSel] = useState<string>("");
-  const [body, setBody] = useState("");
-  const page = (data.pages || []).find((p: any) => p.id === sel) || (data.pages || [])[0];
-  useEffect(() => {
-    if (page) {
-      setSel(page.id);
-      setBody(page.body || "");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data]);
-
-  if (!page) return <p className="text-neutral-400">No pages found.</p>;
-  return (
-    <div>
-      <div className="flex gap-2 overflow-x-auto pb-2 mb-4">
-        {(data.pages || []).map((p: any) => (
-          <button
-            key={p.id}
-            onClick={() => {
-              setSel(p.id);
-              setBody(p.body || "");
-            }}
-            className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold ${
-              page.id === p.id ? "bg-emerald-500 text-white" : "bg-white/5 text-neutral-300"
-            }`}
-          >
-            {p.title} (/{p.handle})
-          </button>
-        ))}
-      </div>
-      <Card title={`${page.title} — body (HTML)`}>
-        <TA rows={16} value={body} onChange={(e) => setBody(e.target.value)} className={inputCls} />
-        <p className="text-xs text-neutral-500 my-3">
-          Privacy/Terms-e prottek section &lt;h2&gt; diye shuru koro. About-er body = story ongsho, Contact-er
-          body = form-er uporer intro.
-        </p>
-        <SaveBtn onClick={() => save("page.save", { id: page.id, title: page.title, body })} />
-      </Card>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Menu editor (3 levels)                                             */
-/* ------------------------------------------------------------------ */
-
-function MenuItems({ items, onChange, depth }: any) {
-  const upd = (i: number, patch: any) =>
-    onChange(items.map((it: any, j: number) => (j === i ? { ...it, ...patch } : it)));
-  const move = (i: number, dir: number) => {
-    const arr = [...items];
-    const j = i + dir;
-    if (j < 0 || j >= arr.length) return;
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-    onChange(arr);
-  };
-  return (
-    <div className={depth > 0 ? "ml-5 border-l border-white/10 pl-3" : ""}>
-      {items.map((it: any, i: number) => (
-        <div key={i} className="mb-2">
-          <div className="flex gap-2 items-center">
-            <input
-              className={`${inputCls} max-w-[220px]`}
-              value={it.title}
-              placeholder="Menu name"
-              onChange={(e) => upd(i, { title: e.target.value })}
-            />
-            <input
-              className={`${inputCls} max-w-[260px]`}
-              value={it.url}
-              placeholder="/link"
-              onChange={(e) => upd(i, { url: e.target.value })}
-            />
-            <button onClick={() => move(i, -1)} className="px-2 py-2 rounded-lg border border-white/10 text-neutral-300 hover:bg-white/5">↑</button>
-            <button onClick={() => move(i, 1)} className="px-2 py-2 rounded-lg border border-white/10 text-neutral-300 hover:bg-white/5">↓</button>
-            <button
-              onClick={() => onChange(items.filter((_: any, j: number) => j !== i))}
-              className="px-2 py-2 rounded-lg border border-red-400/30 text-red-300 hover:bg-red-500/10"
-            >
-              <Trash2 size={14} />
-            </button>
-            {depth < 2 && (
-              <button
-                onClick={() => upd(i, { children: [...(it.children || []), { title: "", url: "/", children: [] }] })}
-                className="px-2.5 py-2 rounded-lg border border-white/15 text-xs text-neutral-200 hover:bg-white/5 whitespace-nowrap"
-              >
-                + Sub-item
-              </button>
-            )}
-          </div>
-          {(it.children || []).length > 0 && (
-            <MenuItems items={it.children} depth={depth + 1} onChange={(ch: any) => upd(i, { children: ch })} />
+      <div className="grid lg:grid-cols-2 gap-4">
+        <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+          <h2 className="font-bold text-neutral-900 mb-3">Low stock</h2>
+          {low.length === 0 ? (
+            <p className="text-sm text-neutral-500">No low-stock active products.</p>
+          ) : (
+            <ul className="divide-y divide-neutral-100">
+              {low.map((p: any) => (
+                <li key={p.id} className="flex justify-between py-2 text-sm">
+                  <span className="text-neutral-800 truncate pr-3">{p.title}</span>
+                  <span className="font-semibold text-red-600 shrink-0">{p.inventoryQuantity} left</span>
+                </li>
+              ))}
+            </ul>
           )}
         </div>
-      ))}
-      <button
-        onClick={() => onChange([...items, { title: "", url: "/", children: [] }])}
-        className="inline-flex items-center gap-1 rounded-lg border border-white/15 px-3 py-1.5 text-xs text-neutral-200 hover:bg-white/5 mt-1"
-      >
-        <Plus size={13} /> Add item
-      </button>
+        <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+          <h2 className="font-bold text-neutral-900 mb-3">Recent orders</h2>
+          {(data.orders || []).length === 0 ? (
+            <p className="text-sm text-neutral-500">No orders yet.</p>
+          ) : (
+            <ul className="divide-y divide-neutral-100">
+              {(data.orders || []).slice(0, 8).map((o: any) => (
+                <li key={o.id} className="flex justify-between py-2 text-sm">
+                  <span className="text-neutral-800">
+                    {o.name} · {o.customer}
+                  </span>
+                  <span className="font-semibold text-neutral-900 shrink-0">
+                    {o.currency} {o.total}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+      <p className="text-xs text-neutral-500 mt-4">
+        Save korle site-e 5–10 minute-er moddhe update hoy (cache). Panel theke shob save Shopify-tei jay.
+      </p>
     </div>
   );
 }
 
-function MenuTab({ data, save }: any) {
-  const [menu, setMenu] = useState<any>(data.menu);
-  useEffect(() => setMenu(data.menu), [data]);
-  if (!menu) return <p className="text-neutral-400">Menu not found.</p>;
+/* ------------------------------------------------------------------ */
+/*  Products: list + full create/edit form                             */
+/* ------------------------------------------------------------------ */
+
+const VAPE_FIELDS: { key: string; label: string; type?: string }[] = [
+  { key: "badge", label: "Badge (BEST SELLER / NEW)" },
+  { key: "subtitle", label: "Subtitle" },
+  { key: "puff_count", label: "Puff count", type: "number" },
+  { key: "nicotine_strength", label: "Nicotine strength (20mg)" },
+  { key: "battery", label: "Battery" },
+  { key: "coil", label: "Coil" },
+  { key: "charging", label: "Charging" },
+  { key: "e_liquid", label: "E-liquid" },
+  { key: "sweetness", label: "Sweetness (1–5)", type: "number" },
+  { key: "cooling", label: "Cooling (1–5)", type: "number" },
+  { key: "throat_hit", label: "Throat hit (1–5)", type: "number" },
+  { key: "top_note", label: "Top note" },
+  { key: "heart_note", label: "Heart note" },
+  { key: "base_note", label: "Base note" },
+  { key: "rating", label: "Rating (4.8)" },
+  { key: "review_count", label: "Review count", type: "number" },
+];
+
+function parseJsonList(v: any): string[] {
+  if (!v) return [];
+  try {
+    const x = JSON.parse(v);
+    return Array.isArray(x) ? x.map(String) : [];
+  } catch {
+    return String(v).split(",").map((s) => s.trim()).filter(Boolean);
+  }
+}
+
+function ProductsManager({ data, notify, reload, initialQuery }: any) {
+  const [view, setView] = useState<any>({ name: "list" });
+  const [q, setQ] = useState(initialQuery || "");
+  const [status, setStatus] = useState("ALL");
+  const shown = (data.products || [])
+    .filter((p: any) => (status === "ALL" || p.status === status) && (!q || p.title.toLowerCase().includes(q.toLowerCase())))
+    .slice(0, 100);
+
+  if (view.name === "edit" || view.name === "new") {
+    return (
+      <ProductEditor
+        key={view.id || "new"}
+        productId={view.id}
+        data={data}
+        notify={notify}
+        reload={reload}
+        back={() => setView({ name: "list" })}
+      />
+    );
+  }
+
   return (
-    <Card title={`Menu: ${menu.title}`}>
-      <p className="text-sm text-neutral-400 mb-4">
-        Header navigation. Uporer item gulo main menu; sub-item diye dropdown/column banao.
-      </p>
-      <MenuItems items={menu.items || []} depth={0} onChange={(items: any) => setMenu({ ...menu, items })} />
-      <div className="mt-4">
-        <SaveBtn onClick={() => save("menu.save", { id: menu.id, title: menu.title, handle: menu.handle, items: menu.items })} />
+    <div>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <h1 className="text-xl font-bold text-neutral-900">Products</h1>
+        <PrimaryBtn onClick={() => setView({ name: "new" })}>
+          <Plus size={15} /> Add product
+        </PrimaryBtn>
       </div>
-    </Card>
+      <div className="flex flex-wrap gap-3 mb-4">
+        <div className="relative flex-1 min-w-[220px] max-w-md">
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+          <input className={`${inputCls} pl-9`} placeholder="Search products…" value={q} onChange={(e) => setQ(e.target.value)} />
+        </div>
+        <select className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm" value={status} onChange={(e) => setStatus(e.target.value)}>
+          <option value="ALL">All statuses</option>
+          <option value="ACTIVE">Active</option>
+          <option value="DRAFT">Draft</option>
+        </select>
+      </div>
+      <div className="rounded-xl border border-neutral-200 bg-white shadow-sm overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-neutral-200 bg-neutral-50 text-left text-xs uppercase tracking-wide text-neutral-500">
+              <th className="px-3 py-2.5 font-semibold">Product</th>
+              <th className="px-3 py-2.5 font-semibold hidden sm:table-cell">Status</th>
+              <th className="px-3 py-2.5 font-semibold hidden sm:table-cell">Inventory</th>
+              <th className="px-3 py-2.5 font-semibold">Price</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-neutral-100">
+            {shown.map((p: any) => (
+              <tr key={p.id} className="hover:bg-neutral-50 cursor-pointer" onClick={() => setView({ name: "edit", id: p.id })}>
+                <td className="px-3 py-2.5">
+                  <div className="flex items-center gap-3">
+                    {p.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={p.image} alt="" className="h-10 w-10 rounded-md object-cover border border-neutral-200" />
+                    ) : (
+                      <div className="h-10 w-10 rounded-md bg-neutral-100 border border-neutral-200" />
+                    )}
+                    <span className="font-medium text-neutral-900">{p.title}</span>
+                  </div>
+                </td>
+                <td className="px-3 py-2.5 hidden sm:table-cell">
+                  <span
+                    className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                      p.status === "ACTIVE" ? "bg-emerald-100 text-emerald-800" : "bg-neutral-200 text-neutral-700"
+                    }`}
+                  >
+                    {p.status}
+                  </span>
+                </td>
+                <td className="px-3 py-2.5 hidden sm:table-cell text-neutral-700">{p.inventoryQuantity}</td>
+                <td className="px-3 py-2.5 font-medium text-neutral-900">AED {p.price}</td>
+              </tr>
+            ))}
+            {shown.length === 0 && (
+              <tr>
+                <td colSpan={4} className="px-3 py-6 text-center text-neutral-500">
+                  No products found.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+      <p className="text-xs text-neutral-500 mt-3">First 100 matching products shown.</p>
+    </div>
+  );
+}
+
+function ProductEditor({ productId, data, notify, reload, back }: any) {
+  const isNew = !productId;
+  const [loading, setLoading] = useState(!isNew);
+  const [form, setForm] = useState<any>({
+    title: "", handle: "", descriptionHtml: "", vendor: "", productType: "", tags: "", status: "DRAFT",
+    price: "", compareAtPrice: "", sku: "", barcode: "", inventoryQuantity: "",
+    optionName: "", optionValues: "",
+  });
+  const [variants, setVariants] = useState<any[]>([]);
+  const [newVariants, setNewVariants] = useState<any[]>([]);
+  const [deleteVariantIds, setDeleteVariantIds] = useState<string[]>([]);
+  const [media, setMedia] = useState<any[]>([]);
+  const [newMedia, setNewMedia] = useState<any[]>([]);
+  const [deleteMediaIds, setDeleteMediaIds] = useState<string[]>([]);
+  const [collectionIds, setCollectionIds] = useState<string[]>([]);
+  const [vape, setVape] = useState<any>({});
+  const [nicOpts, setNicOpts] = useState("");
+  const [flavours, setFlavours] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [imgUrl, setImgUrl] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (isNew) return;
+    api({ action: "productDetail", id: productId }).then((r) => {
+      if (!r.ok) {
+        notify("Error: " + (r.error || "could not load product"));
+        back();
+        return;
+      }
+      const d = r.detail;
+      setForm({
+        title: d.title, handle: d.handle, descriptionHtml: d.descriptionHtml, vendor: d.vendor,
+        productType: d.productType, tags: d.tags, status: d.status,
+        price: "", compareAtPrice: "", sku: "", barcode: "", inventoryQuantity: "",
+        optionName: d.options?.[0]?.name || "", optionValues: (d.options?.[0]?.values || []).join(", "),
+      });
+      setVariants(d.variants);
+      setMedia(d.media);
+      setCollectionIds(d.collections);
+      setVape(d.vape || {});
+      setNicOpts(parseJsonList(d.vape?.nicotine_options).join(", "));
+      setFlavours(parseJsonList(d.vape?.flavours));
+      setLoading(false);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productId]);
+
+  const set = (k: string, v: any) => setForm({ ...form, [k]: v });
+
+  const onUpload = async (files: FileList | null) => {
+    if (!files || !files.length) return;
+    setUploading(true);
+    try {
+      for (const f of Array.from(files)) {
+        const resourceUrl = await uploadFile(f);
+        setNewMedia((prev) => [...prev, { preview: URL.createObjectURL(f), source: resourceUrl }]);
+      }
+      notify("Image uploaded — save the product to attach it.");
+    } catch (e: any) {
+      notify("Upload error: " + e.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const doSave = async () => {
+    if (!form.title.trim()) {
+      notify("Title is required.");
+      return;
+    }
+    setSaving(true);
+    const vapePayload: any = { ...vape };
+    vapePayload.nicotine_options = nicOpts.split(",").map((s) => s.trim()).filter(Boolean);
+    vapePayload.flavours = flavours;
+    const base = {
+      title: form.title, handle: form.handle || undefined, descriptionHtml: form.descriptionHtml,
+      vendor: form.vendor, productType: form.productType, tags: form.tags, status: form.status,
+      collectionIds, vape: vapePayload, locationId: data.locationId,
+      mediaSources: [...newMedia.map((m) => m.source), ...(imgUrl.trim() ? [imgUrl.trim()] : [])],
+    };
+    let r: any;
+    if (isNew) {
+      const optionName = form.optionName.trim();
+      const values = form.optionValues.split(",").map((s: string) => s.trim()).filter(Boolean);
+      r = await api({
+        action: "product.create",
+        payload: {
+          ...base,
+          price: form.price, compareAtPrice: form.compareAtPrice, sku: form.sku, barcode: form.barcode,
+          inventoryQuantity: form.inventoryQuantity,
+          options: optionName && values.length ? [{ name: optionName, values }] : [],
+          optionValues: optionName && values.length ? [values[0]] : undefined,
+        },
+      });
+    } else {
+      r = await api({
+        action: "product.update",
+        payload: {
+          ...base, id: productId,
+          variantUpdates: variants.map((v: any) => ({
+            id: v.id, price: v.price, compareAtPrice: v.compareAtPrice, sku: v.sku, barcode: v.barcode,
+          })),
+          inventoryUpdates: variants.map((v: any) => ({ inventoryItemId: v.inventoryItemId, quantity: v.inventoryQuantity })),
+          newVariants, deleteVariantIds, deleteMediaIds,
+        },
+      });
+    }
+    setSaving(false);
+    if (r.ok) {
+      notify(r.message || "Saved");
+      reload();
+      back();
+    } else notify("Error: " + (r.error || "save failed"));
+  };
+
+  const doDelete = async () => {
+    if (!window.confirm(`Delete "${form.title}" permanently? This cannot be undone.`)) return;
+    const r = await api({ action: "product.delete", id: productId });
+    if (r.ok) {
+      notify(r.message);
+      reload();
+      back();
+    } else notify("Error: " + (r.error || "delete failed"));
+  };
+
+  if (loading) return <p className="text-neutral-500">Loading product…</p>;
+
+  return (
+    <div>
+      <button onClick={back} className="text-sm font-medium text-neutral-600 hover:text-neutral-900 mb-3">
+        ← Back to products
+      </button>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <h1 className="text-xl font-bold text-neutral-900">{isNew ? "Add product" : form.title}</h1>
+        <div className="flex gap-2">
+          {!isNew && (
+            <button
+              onClick={doDelete}
+              className="inline-flex items-center gap-1.5 rounded-md border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100"
+            >
+              <Trash2 size={15} /> Delete
+            </button>
+          )}
+          <PrimaryBtn onClick={doSave}>
+            <Save size={15} /> {saving ? "Saving…" : "Save product"}
+          </PrimaryBtn>
+        </div>
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-4 items-start">
+        <div className="lg:col-span-2 space-y-4">
+          <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+            <h2 className="font-bold text-neutral-900 mb-3">Basic info</h2>
+            <div className="space-y-3">
+              <div>
+                <Lbl>Title *</Lbl>
+                <Inp value={form.title} onChange={(e) => set("title", e.target.value)} />
+              </div>
+              <div>
+                <Lbl>Description (HTML allowed)</Lbl>
+                <TA rows={6} value={form.descriptionHtml} onChange={(e) => set("descriptionHtml", e.target.value)} />
+              </div>
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div>
+                  <Lbl>Vendor / Brand</Lbl>
+                  <Inp value={form.vendor} onChange={(e) => set("vendor", e.target.value)} />
+                </div>
+                <div>
+                  <Lbl>Product type</Lbl>
+                  <Inp value={form.productType} onChange={(e) => set("productType", e.target.value)} />
+                </div>
+                <div>
+                  <Lbl>Tags (comma separated)</Lbl>
+                  <Inp value={form.tags} onChange={(e) => set("tags", e.target.value)} />
+                </div>
+                <div>
+                  <Lbl>Status</Lbl>
+                  <select className={inputCls} value={form.status} onChange={(e) => set("status", e.target.value)}>
+                    <option value="ACTIVE">Active</option>
+                    <option value="DRAFT">Draft</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+            <h2 className="font-bold text-neutral-900 mb-3">Media — images upload</h2>
+            <div className="flex flex-wrap gap-3 mb-3">
+              {media
+                .filter((m: any) => !deleteMediaIds.includes(m.id))
+                .map((m: any) => (
+                  <div key={m.id} className="relative">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={m.url} alt="" className="h-24 w-24 rounded-lg object-cover border border-neutral-200" />
+                    <button
+                      onClick={() => setDeleteMediaIds([...deleteMediaIds, m.id])}
+                      className="absolute -top-2 -right-2 rounded-full bg-red-600 p-1 text-white shadow"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                ))}
+              {newMedia.map((m: any, i: number) => (
+                <div key={i} className="relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={m.preview} alt="" className="h-24 w-24 rounded-lg object-cover border border-emerald-300" />
+                  <button
+                    onClick={() => setNewMedia(newMedia.filter((_: any, j: number) => j !== i))}
+                    className="absolute -top-2 -right-2 rounded-full bg-red-600 p-1 text-white shadow"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <label className="inline-flex items-center gap-2 rounded-md border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-800 hover:bg-neutral-50 cursor-pointer">
+              <Upload size={15} /> {uploading ? "Uploading…" : "Upload images"}
+              <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => onUpload(e.target.files)} />
+            </label>
+            <div className="flex gap-2 mt-3">
+              <Inp placeholder="Or paste an image URL…" value={imgUrl} onChange={(e) => setImgUrl(e.target.value)} />
+              <button
+                onClick={() => {
+                  if (imgUrl.trim()) {
+                    setNewMedia([...newMedia, { preview: imgUrl.trim(), source: imgUrl.trim() }]);
+                    setImgUrl("");
+                  }
+                }}
+                className="shrink-0 rounded-md border border-neutral-300 px-3 py-2 text-sm font-semibold text-neutral-800 hover:bg-neutral-50"
+              >
+                Add URL
+              </button>
+            </div>
+          </div>
+
+          {isNew ? (
+            <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+              <h2 className="font-bold text-neutral-900 mb-3">Pricing & inventory (first variant)</h2>
+              <div className="grid sm:grid-cols-3 gap-3">
+                <div>
+                  <Lbl>Price (AED)</Lbl>
+                  <Inp value={form.price} onChange={(e) => set("price", e.target.value)} />
+                </div>
+                <div>
+                  <Lbl>Compare at price</Lbl>
+                  <Inp value={form.compareAtPrice} onChange={(e) => set("compareAtPrice", e.target.value)} />
+                </div>
+                <div>
+                  <Lbl>Stock quantity</Lbl>
+                  <Inp type="number" value={form.inventoryQuantity} onChange={(e) => set("inventoryQuantity", e.target.value)} />
+                </div>
+                <div>
+                  <Lbl>SKU</Lbl>
+                  <Inp value={form.sku} onChange={(e) => set("sku", e.target.value)} />
+                </div>
+                <div>
+                  <Lbl>Barcode</Lbl>
+                  <Inp value={form.barcode} onChange={(e) => set("barcode", e.target.value)} />
+                </div>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-3 mt-3">
+                <div>
+                  <Lbl>Variant option name (optional, e.g. Flavor)</Lbl>
+                  <Inp value={form.optionName} onChange={(e) => set("optionName", e.target.value)} placeholder="Flavor" />
+                </div>
+                <div>
+                  <Lbl>Option values (comma separated)</Lbl>
+                  <Inp value={form.optionValues} onChange={(e) => set("optionValues", e.target.value)} placeholder="Mango Ice, Mint" />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+              <h2 className="font-bold text-neutral-900 mb-3">Variants</h2>
+              {variants.map((v: any, i: number) => (
+                <div key={v.id} className="grid grid-cols-2 sm:grid-cols-6 gap-2 mb-2 items-end">
+                  <div className="col-span-2">
+                    <Lbl>{v.title}</Lbl>
+                    <Inp value={v.price} onChange={(e) => setVariants(variants.map((x: any, j: number) => (j === i ? { ...x, price: e.target.value } : x)))} />
+                  </div>
+                  <div>
+                    <Lbl>Compare</Lbl>
+                    <Inp value={v.compareAtPrice} onChange={(e) => setVariants(variants.map((x: any, j: number) => (j === i ? { ...x, compareAtPrice: e.target.value } : x)))} />
+                  </div>
+                  <div>
+                    <Lbl>SKU</Lbl>
+                    <Inp value={v.sku} onChange={(e) => setVariants(variants.map((x: any, j: number) => (j === i ? { ...x, sku: e.target.value } : x)))} />
+                  </div>
+                  <div>
+                    <Lbl>Stock</Lbl>
+                    <Inp type="number" value={v.inventoryQuantity} onChange={(e) => setVariants(variants.map((x: any, j: number) => (j === i ? { ...x, inventoryQuantity: e.target.value } : x)))} />
+                  </div>
+                  <button
+                    onClick={() => {
+                      setDeleteVariantIds([...deleteVariantIds, v.id]);
+                      setVariants(variants.filter((_: any, j: number) => j !== i));
+                    }}
+                    className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-red-700 hover:bg-red-100"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+              ))}
+              <button
+                onClick={() => setNewVariants([...newVariants, { price: "", sku: "", inventoryQuantity: "" }])}
+                className="inline-flex items-center gap-1.5 rounded-md border border-neutral-300 px-3 py-2 text-sm font-semibold text-neutral-800 hover:bg-neutral-50 mt-1"
+              >
+                <Plus size={14} /> Add variant
+              </button>
+              {newVariants.map((v: any, i: number) => (
+                <div key={i} className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2">
+                  <Inp placeholder="Price" value={v.price} onChange={(e) => setNewVariants(newVariants.map((x: any, j: number) => (j === i ? { ...x, price: e.target.value } : x)))} />
+                  <Inp placeholder="SKU" value={v.sku} onChange={(e) => setNewVariants(newVariants.map((x: any, j: number) => (j === i ? { ...x, sku: e.target.value } : x)))} />
+                  <Inp placeholder="Stock" type="number" value={v.inventoryQuantity} onChange={(e) => setNewVariants(newVariants.map((x: any, j: number) => (j === i ? { ...x, inventoryQuantity: e.target.value } : x)))} />
+                  <button
+                    onClick={() => setNewVariants(newVariants.filter((_: any, j: number) => j !== i))}
+                    className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-red-700 hover:bg-red-100"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+              ))}
+              <p className="text-xs text-neutral-500 mt-2">
+                Option structure (e.g. Flavor values) Shopify thekei ashe — notun option structure add korte hole
+                product-ta Shopify-te ekbar khule option set koro, tarpor ekhane variant edit korte parba.
+              </p>
+            </div>
+          )}
+
+          <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+            <h2 className="font-bold text-neutral-900 mb-3">Vape specs (product page-er spec table)</h2>
+            <div className="grid sm:grid-cols-3 gap-3">
+              {VAPE_FIELDS.map((f) => (
+                <div key={f.key}>
+                  <Lbl>{f.label}</Lbl>
+                  <Inp
+                    type={f.type === "number" ? "number" : "text"}
+                    value={vape[f.key] ?? ""}
+                    onChange={(e) => setVape({ ...vape, [f.key]: e.target.value })}
+                  />
+                </div>
+              ))}
+              <div className="sm:col-span-2">
+                <Lbl>Nicotine options (comma separated)</Lbl>
+                <Inp value={nicOpts} onChange={(e) => setNicOpts(e.target.value)} placeholder="18mg, 20mg, 50mg" />
+              </div>
+            </div>
+            <div className="mt-3">
+              <Lbl>Flavours (tap to select)</Lbl>
+              <div className="flex flex-wrap gap-2">
+                {(data.flavors || []).map((fl: any) => {
+                  const on = flavours.includes(fl.id);
+                  return (
+                    <button
+                      key={fl.id}
+                      onClick={() => setFlavours(on ? flavours.filter((x) => x !== fl.id) : [...flavours, fl.id])}
+                      className={`rounded-full px-3 py-1.5 text-xs font-semibold border ${
+                        on ? "bg-neutral-900 text-white border-neutral-900" : "bg-white text-neutral-700 border-neutral-300"
+                      }`}
+                    >
+                      {fl.name}
+                    </button>
+                  );
+                })}
+                {!(data.flavors || []).length && <span className="text-xs text-neutral-500">No flavours defined yet.</span>}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+            <h2 className="font-bold text-neutral-900 mb-3">Collections</h2>
+            <div className="space-y-1.5 max-h-72 overflow-y-auto pr-1">
+              {(data.collections || []).map((c: any) => (
+                <label key={c.id} className="flex items-center gap-2 text-sm text-neutral-800 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={collectionIds.includes(c.id)}
+                    onChange={(e) =>
+                      setCollectionIds(e.target.checked ? [...collectionIds, c.id] : collectionIds.filter((x) => x !== c.id))
+                    }
+                    className="accent-neutral-900"
+                  />
+                  {c.title} <span className="text-neutral-400 text-xs">({c.productCount})</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          {!isNew && (
+            <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+              <h2 className="font-bold text-neutral-900 mb-2">Handle</h2>
+              <Inp value={form.handle} onChange={(e) => set("handle", e.target.value)} />
+              <p className="text-xs text-neutral-500 mt-1">URL: /products/{form.handle || "…"}</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/*  Products (price / compare price / stock / status)                */
+/*  Collections & Orders                                               */
 /* ------------------------------------------------------------------ */
 
-function ProductsTab({ data, save }: any) {
-  const [q, setQ] = useState("");
-  const [rows, setRows] = useState<any[]>(data.products || []);
-  useEffect(() => setRows(data.products || []), [data]);
-  const upd = (id: string, k: string, v: any) =>
-    setRows(rows.map((r) => (r.id === id ? { ...r, [k]: v } : r)));
-  const shown = rows.filter((r) => !q || r.title.toLowerCase().includes(q.toLowerCase())).slice(0, 60);
-
+function CollectionsTab({ data, notify, reload }: any) {
+  const [title, setTitle] = useState("");
+  const add = async () => {
+    if (!title.trim()) return;
+    const r = await api({ action: "collection.create", title: title.trim() });
+    if (r.ok) {
+      notify(r.message);
+      setTitle("");
+      reload();
+    } else notify("Error: " + (r.error || "failed"));
+  };
+  const del = async (c: any) => {
+    if (!window.confirm(`Delete collection "${c.title}"? Products stay, only the collection is removed.`)) return;
+    const r = await api({ action: "collection.delete", id: c.id });
+    if (r.ok) {
+      notify(r.message);
+      reload();
+    } else notify("Error: " + (r.error || "failed"));
+  };
   return (
     <div>
-      <div className="relative mb-4 max-w-md">
-        <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
-        <input className={`${inputCls} pl-9`} placeholder="Product search…" value={q} onChange={(e) => setQ(e.target.value)} />
+      <h1 className="text-xl font-bold text-neutral-900 mb-4">Collections</h1>
+      <div className="flex gap-2 mb-4 max-w-md">
+        <Inp placeholder="New collection name…" value={title} onChange={(e) => setTitle(e.target.value)} />
+        <PrimaryBtn onClick={add}>
+          <Plus size={15} /> Create
+        </PrimaryBtn>
       </div>
-      <p className="text-xs text-neutral-500 mb-3">
-        Prothom 60 ta product dekhacche. Price/stock first variant-er upor apply hoy.
-      </p>
-      {shown.map((r) => (
-        <div key={r.id} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 mb-3">
-          <div className="flex items-center gap-3 mb-3">
-            {r.image && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={r.image} alt="" className="h-11 w-11 rounded-lg object-cover border border-white/10" />
+      <div className="rounded-xl border border-neutral-200 bg-white shadow-sm overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-neutral-200 bg-neutral-50 text-left text-xs uppercase tracking-wide text-neutral-500">
+              <th className="px-3 py-2.5 font-semibold">Collection</th>
+              <th className="px-3 py-2.5 font-semibold">Products</th>
+              <th className="px-3 py-2.5 font-semibold"></th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-neutral-100">
+            {(data.collections || []).map((c: any) => (
+              <tr key={c.id} className="hover:bg-neutral-50">
+                <td className="px-3 py-2.5">
+                  <span className="font-medium text-neutral-900">{c.title}</span>
+                  <span className="text-neutral-400 text-xs"> /{c.handle}</span>
+                </td>
+                <td className="px-3 py-2.5 text-neutral-700">{c.productCount}</td>
+                <td className="px-3 py-2.5 text-right">
+                  <button onClick={() => del(c)} className="rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100">
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="text-xs text-neutral-500 mt-3">Collection-e product add/remove korte product editor-er Collections box use koro.</p>
+    </div>
+  );
+}
+
+function OrdersTab({ data }: any) {
+  return (
+    <div>
+      <h1 className="text-xl font-bold text-neutral-900 mb-4">Orders (view only)</h1>
+      <div className="rounded-xl border border-neutral-200 bg-white shadow-sm overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-neutral-200 bg-neutral-50 text-left text-xs uppercase tracking-wide text-neutral-500">
+              <th className="px-3 py-2.5 font-semibold">Order</th>
+              <th className="px-3 py-2.5 font-semibold">Customer</th>
+              <th className="px-3 py-2.5 font-semibold">Fulfillment</th>
+              <th className="px-3 py-2.5 font-semibold">Total</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-neutral-100">
+            {(data.orders || []).map((o: any) => (
+              <tr key={o.id} className="hover:bg-neutral-50">
+                <td className="px-3 py-2.5 font-medium text-neutral-900">{o.name}</td>
+                <td className="px-3 py-2.5 text-neutral-700">{o.customer}</td>
+                <td className="px-3 py-2.5 text-neutral-700">{o.fulfillment || "—"}</td>
+                <td className="px-3 py-2.5 font-medium text-neutral-900">
+                  {o.currency} {o.total}
+                </td>
+              </tr>
+            ))}
+            {!(data.orders || []).length && (
+              <tr>
+                <td colSpan={4} className="px-3 py-6 text-center text-neutral-500">
+                  No orders yet.
+                </td>
+              </tr>
             )}
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-white truncate">{r.title}</p>
-              <p className="text-xs text-neutral-500">
-                /{r.handle} · {r.status}
-              </p>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 items-end">
-            <div>
-              <Lbl>Price (AED)</Lbl>
-              <Inp value={r.price} onChange={(e) => upd(r.id, "price", e.target.value)} />
-            </div>
-            <div>
-              <Lbl>Compare price</Lbl>
-              <Inp value={r.compareAtPrice} onChange={(e) => upd(r.id, "compareAtPrice", e.target.value)} />
-            </div>
-            <div>
-              <Lbl>Stock</Lbl>
-              <Inp type="number" value={r.inventoryQuantity} onChange={(e) => upd(r.id, "inventoryQuantity", e.target.value)} />
-            </div>
-            <div>
-              <Lbl>Status</Lbl>
-              <select
-                className={inputCls}
-                value={r.status}
-                onChange={(e) => upd(r.id, "status", e.target.value)}
-              >
-                <option value="ACTIVE">ACTIVE</option>
-                <option value="DRAFT">DRAFT</option>
-              </select>
-            </div>
-            <SaveBtn
-              onClick={() =>
-                save("product.save", {
-                  id: r.id,
-                  variantId: r.variantId,
-                  price: r.price,
-                  compareAtPrice: r.compareAtPrice,
-                  status: r.status,
-                  inventoryItemId: r.inventoryItemId,
-                  locationId: data.locationId,
-                  inventoryQuantity: r.inventoryQuantity,
-                })
-              }
-            />
-          </div>
-        </div>
-      ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="text-xs text-neutral-500 mt-3">Order fulfill/refund Shopify app theke korte hobe — panel-e shudhu dekha jay.</p>
     </div>
   );
 }

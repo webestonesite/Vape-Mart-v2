@@ -6,6 +6,13 @@ import {
   setupPassword,
   login,
   getPanelData,
+  getPanelExtras,
+  getProductDetail,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  createCollection,
+  deleteCollection,
   saveAction,
 } from "@/lib/admin-panel";
 
@@ -72,8 +79,38 @@ export async function POST(req: Request) {
     }
 
     if (action === "data") {
-      const data = await getPanelData();
-      return NextResponse.json({ ok: true, data });
+      const [data, extras] = await Promise.all([getPanelData(), getPanelExtras()]);
+      return NextResponse.json({ ok: true, data: { ...data, ...extras } });
+    }
+
+    if (action === "productDetail") {
+      const detail = await getProductDetail(String(body.id || ""));
+      return NextResponse.json({ ok: true, detail });
+    }
+
+    if (action === "product.create") {
+      const result = await createProduct(body.payload ?? {});
+      return NextResponse.json({ ok: true, ...result });
+    }
+
+    if (action === "product.update") {
+      const result = await updateProduct(body.payload ?? {});
+      return NextResponse.json({ ok: true, ...result });
+    }
+
+    if (action === "product.delete") {
+      const result = await deleteProduct(String(body.id || ""));
+      return NextResponse.json({ ok: true, ...result });
+    }
+
+    if (action === "collection.create") {
+      const result = await createCollection(String(body.title || ""));
+      return NextResponse.json({ ok: true, ...result });
+    }
+
+    if (action === "collection.delete") {
+      const result = await deleteCollection(String(body.id || ""));
+      return NextResponse.json({ ok: true, ...result });
     }
 
     if (action === "save") {
