@@ -542,17 +542,7 @@ export async function saveAction(action: string, p: any): Promise<SaveResult> {
 
     case "product.save": {
       if (p.variantId && (p.price !== undefined || p.compareAtPrice !== undefined)) {
-        const variant: Record<string, unknown> = { id: p.variantId };
-        if (p.price !== undefined && p.price !== "") variant.price = String(p.price);
-        if (p.compareAtPrice !== undefined) variant.compareAtPrice = p.compareAtPrice === "" ? null : String(p.compareAtPrice);
-        const d = await gql<any>(
-          `mutation VarUpdate($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
-             productVariantsBulkUpdate(productId: $productId, variants: $variants) { productVariants { id } userErrors { message } }
-           }`,
-          { productId: p.id, variants: [variant] }
-        );
-        const errs = d.productVariantsBulkUpdate?.userErrors ?? [];
-        if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
+        await bulkUpdateVariants(p.id, [{ id: p.variantId, price: p.price, compareAtPrice: p.compareAtPrice }]);
       }
       if (p.status) {
         const d = await gql<any>(
@@ -565,21 +555,7 @@ export async function saveAction(action: string, p: any): Promise<SaveResult> {
         if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
       }
       if (p.inventoryItemId && p.locationId && p.inventoryQuantity !== undefined && p.inventoryQuantity !== "") {
-        const d = await gql<any>(
-          `mutation InvSet($input: InventorySetQuantitiesInput!) {
-             inventorySetQuantities(input: $input) { inventoryAdjustmentGroup { id } userErrors { message } }
-           }`,
-          {
-            input: {
-              name: "available",
-              reason: "correction",
-              ignoreCompareQuantity: true,
-              quantities: [{ inventoryItemId: p.inventoryItemId, locationId: p.locationId, quantity: parseInt(String(p.inventoryQuantity), 10) || 0 }],
-            },
-          }
-        );
-        const errs = d.inventorySetQuantities?.userErrors ?? [];
-        if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
+        await setInventory(p.inventoryItemId, p.locationId, parseInt(String(p.inventoryQuantity), 10) || 0);
       }
       return { message: "Product updated." };
     }
@@ -587,6 +563,22 @@ export async function saveAction(action: string, p: any): Promise<SaveResult> {
     default:
       throw new Error(`Unknown action: ${action}`);
   }
+}
+
+/* Try GraphQL docs in order (first success wins). Used where the Admin
+   API changed shapes between versions (e.g. 2025-07 vs 2026-10): a
+   schema-validation error throws before anything executes, so falling
+   back to the other shape is safe. */
+async function gqlTry(docs: { query: string; variables: any }[]): Promise<any> {
+  let last: any = null;
+  for (const d of docs) {
+    try {
+      return await gql<any>(d.query, d.variables);
+    } catch (e) {
+      last = e;
+    }
+  }
+  throw last;
 }
 
 /* ------------------------------------------------------------------ */
@@ -745,38 +737,95 @@ async function addMedia(productId: string, sources: string[]): Promise<void> {
   if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
 }
 
+async function setInventory(itemId: string, locationId: string, quantity: number): Promise<void> {
+  const base = {
+    name: "available",
+    reason: "correction",
+    quantities: [{ inventoryItemId: itemId, locationId, quantity }],
+  };
+  await gqlTry([
+    {
+      query: `mutation InvSet($input: InventorySetQuantitiesInput!) {
+         inventorySetQuantities(input: $input) { inventoryAdjustmentGroup { id } userErrors { message } }
+       }`,
+      variables: { input: { ...base, ignoreCompareQuantity: true } },
+    },
+    {
+      query: `mutation InvSet($input: InventorySetQuantitiesInput!) {
+         inventorySetQuantities(input: $input) { inventoryAdjustmentGroup { id } userErrors { message } }
+       }`,
+      variables: { input: base },
+    },
+  ]);
+}
+
+async function bulkUpdateVariants(productId: string, variants: any[]): Promise<void> {
+  const clean = variants.map((v: any) => {
+    const out: Record<string, unknown> = { id: v.id };
+    if (v.price !== undefined && v.price !== "") out.price = String(v.price);
+    if (v.compareAtPrice !== undefined) out.compareAtPrice = v.compareAtPrice === "" ? null : String(v.compareAtPrice);
+    return out;
+  });
+  const d = await gql<any>(
+    `mutation VarBulk($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
+       productVariantsBulkUpdate(productId: $productId, variants: $variants) { productVariants { id } userErrors { message } }
+     }`,
+    { productId, variants: clean }
+  );
+  const errs = d.productVariantsBulkUpdate?.userErrors ?? [];
+  if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
+}
+
 export async function createProduct(p: any): Promise<SaveResult> {
-  const variants: any[] = [];
-  const first: Record<string, unknown> = { price: String(p.price || "0") };
-  if (p.compareAtPrice) first.compareAtPrice = String(p.compareAtPrice);
-  if (p.sku) first.sku = String(p.sku);
-  if (p.barcode) first.barcode = String(p.barcode);
-  if (p.locationId && p.inventoryQuantity !== undefined && p.inventoryQuantity !== "")
-    first.inventoryQuantities = [{ availableQuantity: parseInt(String(p.inventoryQuantity), 10) || 0, locationId: p.locationId }];
-  if (Array.isArray(p.optionValues) && p.optionValues.length) {
-    first.options = p.optionValues;
-  }
-  variants.push(first);
-  const input: Record<string, unknown> = {
+  const baseInput: Record<string, unknown> = {
     title: p.title,
     descriptionHtml: p.descriptionHtml || "",
     vendor: p.vendor || "",
     productType: p.productType || "",
     tags: String(p.tags || "").split(",").map((x: string) => x.trim()).filter(Boolean),
     status: p.status || "DRAFT",
-    variants,
   };
-  if (Array.isArray(p.options) && p.options.length)
-    input.options = p.options.map((o: any) => ({ name: o.name, values: (o.values || []).map((v: string) => ({ name: v })) }));
-  const d = await gql<any>(
-    `mutation ProductCreate($input: ProductInput!) {
-       productCreate(input: $input) { product { id handle } userErrors { message } }
-     }`,
-    { input }
-  );
-  const errs = d.productCreate?.userErrors ?? [];
-  if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
-  const id = d.productCreate.product.id as string;
+  const first: Record<string, unknown> = { price: String(p.price || "0") };
+  if (p.compareAtPrice) first.compareAtPrice = String(p.compareAtPrice);
+  if (p.sku) first.sku = String(p.sku);
+  if (p.barcode) first.barcode = String(p.barcode);
+  if (p.locationId && p.inventoryQuantity !== undefined && p.inventoryQuantity !== "")
+    first.inventoryQuantities = [{ availableQuantity: parseInt(String(p.inventoryQuantity), 10) || 0, locationId: p.locationId }];
+  if (Array.isArray(p.optionValues) && p.optionValues.length) first.options = p.optionValues;
+  let id: string;
+  try {
+    const input = { ...baseInput, variants: [first] };
+    if (Array.isArray(p.options) && p.options.length)
+      (input as any).options = p.options.map((o: any) => ({ name: o.name, values: (o.values || []).map((v: string) => ({ name: v })) }));
+    const d = await gql<any>(
+      `mutation ProductCreate($input: ProductInput!) {
+         productCreate(input: $input) { product { id handle } userErrors { message } }
+       }`,
+      { input }
+    );
+    const errs = d.productCreate?.userErrors ?? [];
+    if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
+    id = d.productCreate.product.id as string;
+  } catch {
+    // Newer API versions dropped ProductInput.variants: create bare, then
+    // price/stock the auto-created default variant.
+    const d = await gql<any>(
+      `mutation ProductCreate($input: ProductInput!) {
+         productCreate(input: $input) { product { id handle } userErrors { message } }
+       }`,
+      { input: baseInput }
+    );
+    const errs = d.productCreate?.userErrors ?? [];
+    if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
+    id = d.productCreate.product.id as string;
+    const detail = await getProductDetail(id);
+    const dv = detail.variants[0];
+    if (dv) {
+      await bulkUpdateVariants(id, [{ id: dv.id, price: first.price, compareAtPrice: first.compareAtPrice }]);
+      if (p.locationId && p.inventoryQuantity !== undefined && p.inventoryQuantity !== "" && dv.inventoryItemId)
+        await setInventory(dv.inventoryItemId, p.locationId, parseInt(String(p.inventoryQuantity), 10) || 0);
+    }
+  }
   if (Array.isArray(p.mediaSources) && p.mediaSources.length) await addMedia(id, p.mediaSources);
   if (Array.isArray(p.collectionIds) && p.collectionIds.length) {
     await gql<any>(
@@ -815,22 +864,22 @@ export async function updateProduct(p: any): Promise<SaveResult> {
   if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
 
   if (Array.isArray(p.variantUpdates) && p.variantUpdates.length) {
-    const variants = p.variantUpdates.map((v: any) => {
-      const out: Record<string, unknown> = { id: v.id };
-      if (v.price !== undefined && v.price !== "") out.price = String(v.price);
-      if (v.compareAtPrice !== undefined) out.compareAtPrice = v.compareAtPrice === "" ? null : String(v.compareAtPrice);
-      if (v.sku !== undefined) out.sku = v.sku;
-      if (v.barcode !== undefined) out.barcode = v.barcode;
-      return out;
-    });
-    const d2 = await gql<any>(
-      `mutation VarBulk($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
-         productVariantsBulkUpdate(productId: $productId, variants: $variants) { productVariants { id } userErrors { message } }
-       }`,
-      { productId: p.id, variants }
-    );
-    const errs2 = d2.productVariantsBulkUpdate?.userErrors ?? [];
-    if (errs2.length) throw new Error(errs2.map((e: any) => e.message).join("; "));
+    await bulkUpdateVariants(p.id, p.variantUpdates);
+    // SKU/barcode live on the variant in older API versions only; try the
+    // classic single-variant update, and ignore a schema rejection.
+    for (const v of p.variantUpdates) {
+      if (v.sku === undefined && v.barcode === undefined) continue;
+      try {
+        await gql<any>(
+          `mutation VarSingle($input: ProductVariantUpdateInput!) {
+             productVariantUpdate(input: $input) { productVariant { id } userErrors { message } }
+           }`,
+          { input: { id: v.id, sku: v.sku || null, barcode: v.barcode || null } }
+        );
+      } catch {
+        /* newer API: SKU/barcode moved off the variant input — skip */
+      }
+    }
   }
   if (Array.isArray(p.newVariants) && p.newVariants.length) {
     const variants = p.newVariants.map((v: any) => {
@@ -872,35 +921,26 @@ export async function updateProduct(p: any): Promise<SaveResult> {
   }
   if (Array.isArray(p.mediaSources) && p.mediaSources.length) await addMedia(p.id, p.mediaSources);
   if (Array.isArray(p.inventoryUpdates) && p.inventoryUpdates.length && p.locationId) {
-    const d5 = await gql<any>(
-      `mutation InvSet($input: InventorySetQuantitiesInput!) {
-         inventorySetQuantities(input: $input) { inventoryAdjustmentGroup { id } userErrors { message } }
-       }`,
-      {
-        input: {
-          name: "available",
-          reason: "correction",
-          ignoreCompareQuantity: true,
-          quantities: p.inventoryUpdates.map((u: any) => ({
-            inventoryItemId: u.inventoryItemId,
-            locationId: p.locationId,
-            quantity: parseInt(String(u.quantity), 10) || 0,
-          })),
-        },
-      }
-    );
-    const errs5 = d5.inventorySetQuantities?.userErrors ?? [];
-    if (errs5.length) throw new Error(errs5.map((e: any) => e.message).join("; "));
+    for (const u of p.inventoryUpdates) {
+      if (!u.inventoryItemId) continue;
+      await setInventory(u.inventoryItemId, p.locationId, parseInt(String(u.quantity), 10) || 0);
+    }
   }
   if (p.vape) await setProductMetafields(p.id, vapeMetafieldEntries(p.id, p.vape));
   return { message: "Product updated." };
 }
 
 export async function deleteProduct(id: string): Promise<SaveResult> {
-  const d = await gql<any>(
-    `mutation ProdDelete($id: ID!) { productDelete(id: $id) { deletedProductId userErrors { message } } }`,
-    { id }
-  );
+  const d = await gqlTry([
+    {
+      query: `mutation ProdDelete($id: ID!) { productDelete(id: $id) { deletedProductId userErrors { message } } }`,
+      variables: { id },
+    },
+    {
+      query: `mutation ProdDelete($input: ProductDeleteInput!) { productDelete(input: $input) { deletedProductId userErrors { message } } }`,
+      variables: { input: { id } },
+    },
+  ]);
   const errs = d.productDelete?.userErrors ?? [];
   if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
   return { message: "Product deleted." };
@@ -919,10 +959,16 @@ export async function createCollection(title: string): Promise<SaveResult> {
 }
 
 export async function deleteCollection(id: string): Promise<SaveResult> {
-  const d = await gql<any>(
-    `mutation CollDelete($id: ID!) { collectionDelete(id: $id) { deletedCollectionId userErrors { message } } }`,
-    { id }
-  );
+  const d = await gqlTry([
+    {
+      query: `mutation CollDelete($id: ID!) { collectionDelete(id: $id) { deletedCollectionId userErrors { message } } }`,
+      variables: { id },
+    },
+    {
+      query: `mutation CollDelete($input: CollectionDeleteInput!) { collectionDelete(input: $input) { deletedCollectionId userErrors { message } } }`,
+      variables: { input: { id } },
+    },
+  ]);
   const errs = d.collectionDelete?.userErrors ?? [];
   if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
   return { message: "Collection deleted." };
