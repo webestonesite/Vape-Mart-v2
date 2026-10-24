@@ -350,6 +350,11 @@ export async function getPanelData() {
       announcements: settings.announcements,
       phone: settings.phone,
       footerText: settings.footerText,
+      logoUrl: settings.logoUrl,
+      checkout: settings.checkout,
+      productPage: settings.productPage,
+      collectionPage: settings.collectionPage,
+      theme: settings.theme,
     },
     heroSlides,
     sections,
@@ -620,6 +625,55 @@ export async function saveAction(action: string, p: any): Promise<SaveResult> {
       const errs = d.collectionUpdate?.userErrors ?? [];
       if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
       return { message: "Collection saved." };
+    }
+
+    case "checkout.save": {
+      await setShopMetafields([
+        { namespace: "checkout", key: "free_shipping_threshold", type: "number_integer", value: String(parseInt(String(p.freeShippingThreshold ?? 0), 10) || 0) },
+        { namespace: "checkout", key: "delivery_fee", type: "number_decimal", value: String(parseFloat(String(p.deliveryFee ?? 0)) || 0) },
+        { namespace: "checkout", key: "vat_note", type: "single_line_text_field", value: String(p.vatNote || "") },
+        { namespace: "checkout", key: "city_promises", type: "json", value: JSON.stringify(p.cityPromises ?? []) },
+        { namespace: "checkout", key: "payment_labels", type: "json", value: JSON.stringify(p.paymentLabels ?? []) },
+      ]);
+      return { message: "Cart & checkout settings saved." };
+    }
+
+    case "productPage.save": {
+      await setShopMetafields([
+        { namespace: "product_page", key: "trust_badges", type: "json", value: JSON.stringify(p.trustBadges ?? []) },
+        { namespace: "product_page", key: "shipping_text", type: "multi_line_text_field", value: String(p.shippingText || "") },
+        { namespace: "product_page", key: "return_text", type: "multi_line_text_field", value: String(p.returnText || "") },
+        { namespace: "product_page", key: "spec_order", type: "list.single_line_text_field", value: JSON.stringify((p.specOrder ?? []).map(String)) },
+      ]);
+      return { message: "Product page settings saved." };
+    }
+
+    case "collectionPage.save": {
+      await setShopMetafields([
+        { namespace: "collection_page", key: "items_per_page", type: "number_integer", value: String(parseInt(String(p.itemsPerPage ?? 0), 10) || 0) },
+        { namespace: "collection_page", key: "compare_limit", type: "number_integer", value: String(parseInt(String(p.compareLimit ?? 0), 10) || 0) },
+        { namespace: "collection_page", key: "sort_options", type: "json", value: JSON.stringify(p.sortOptions ?? []) },
+        { namespace: "collection_page", key: "puff_buckets", type: "json", value: JSON.stringify(p.puffBuckets ?? []) },
+        { namespace: "collection_page", key: "flavor_families", type: "json", value: JSON.stringify(p.flavorFamilies ?? []) },
+        { namespace: "collection_page", key: "quiz_steps", type: "json", value: JSON.stringify(p.quizSteps ?? []) },
+        { namespace: "collection_page", key: "shop_all_hero", type: "json", value: JSON.stringify(p.shopAllHero ?? {}) },
+      ]);
+      return { message: "Collection page settings saved." };
+    }
+
+    case "theme.save": {
+      const entries: { namespace?: string; key: string; type: string; value: string }[] = [
+        { namespace: "theme", key: "search_placeholder", type: "single_line_text_field", value: String(p.searchPlaceholder || "") },
+        { namespace: "theme", key: "topbar_links", type: "json", value: JSON.stringify(p.topbarLinks ?? []) },
+        { namespace: "theme", key: "footer_links", type: "json", value: JSON.stringify(p.footerLinks ?? []) },
+        { namespace: "theme", key: "newsletter_text", type: "single_line_text_field", value: String(p.newsletterText || "") },
+      ];
+      if (p.logoUrl) {
+        const fileId = await fileFromUrl(String(p.logoUrl), "Store logo");
+        entries.push({ namespace: "store", key: "logo", type: "file_reference", value: fileId });
+      }
+      await setShopMetafields(entries);
+      return { message: "Theme settings saved." };
     }
 
     default:

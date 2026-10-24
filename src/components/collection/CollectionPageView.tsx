@@ -37,6 +37,7 @@ import {
   CreditCard,
 } from "lucide-react";
 import { ProductItem, CollectionCategory, CartItem } from "@/types/product";
+import type { CollectionPageSettings } from "@/lib/shopify";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
@@ -44,6 +45,7 @@ import { CartDrawer } from "@/components/CartDrawer";
 
 interface CollectionPageViewProps {
   category?: CollectionCategory;
+  pageSettings?: CollectionPageSettings;
   allCategories: CollectionCategory[];
   products: ProductItem[];
   catalogProducts?: ProductItem[];
@@ -151,7 +153,7 @@ function QuizDropdown({
   );
 }
 
-export function CollectionPageView({ category, allCategories, products, catalogProducts }: CollectionPageViewProps) {
+export function CollectionPageView({ category, allCategories, products, catalogProducts, pageSettings}: CollectionPageViewProps) {
   const catalog = catalogProducts ?? products;
   // ---- filter state ----
   // Menu links like /collections?search=elf+bar pre-fill the search box
@@ -249,12 +251,12 @@ export function CollectionPageView({ category, allCategories, products, catalogP
     return c;
   }, []);
   const flavorFamilies = useMemo(() => {
-    const defs = [
+    const defs: { id: string; name: string; desc: string }[] = pageSettings?.flavorFamilies?.length ? pageSettings.flavorFamilies : [
       { id: "fruit_ice", name: "Fruit Ice", desc: "Icy fruit blends — mango ice, blue razz, watermelon chill" },
       { id: "menthol", name: "Menthol & Mint", desc: "Cool, crisp and refreshing with every puff" },
       { id: "tobacco", name: "Tobacco", desc: "Classic rich tobacco notes for traditional taste" },
       { id: "dessert", name: "Dessert & Sweet", desc: "Vanilla custard, candy and sweet treats" },
-    ] as const;
+    ];
     return defs.map((d) => ({
       ...d,
       image: catalog.find((p) => p.flavorFamily === d.id)?.primaryImage ?? "",
@@ -269,14 +271,18 @@ export function CollectionPageView({ category, allCategories, products, catalogP
   const nicotines = useMemo(() => Object.keys(nicotineCounts).sort(), [nicotineCounts]);
 
   const puffBuckets = useMemo(() => {
-    const defs = [
-      { id: "under-10k", label: "Under 10,000", test: (p?: number) => (p ?? 0) < 10000 },
-      { id: "10k-20k", label: "10,000 – 20,000", test: (p?: number) => (p ?? 0) >= 10000 && (p ?? 0) < 20000 },
-      { id: "20k-35k", label: "20,000 – 35,000", test: (p?: number) => (p ?? 0) >= 20000 && (p ?? 0) < 35000 },
-      { id: "35k-plus", label: "35,000+", test: (p?: number) => (p ?? 0) >= 35000 },
+    const raw: { id: string; label: string; min: number | null; max: number | null }[] = pageSettings?.puffBuckets?.length ? pageSettings.puffBuckets : [
+      { id: "under-10k", label: "Under 10,000", min: null, max: 10000 },
+      { id: "10k-20k", label: "10,000 – 20,000", min: 10000, max: 20000 },
+      { id: "20k-35k", label: "20,000 – 35,000", min: 20000, max: 35000 },
+      { id: "35k-plus", label: "35,000+", min: 35000, max: null },
     ];
+    const defs = raw.map((d) => ({
+      ...d,
+      test: (p?: number) => (d.min == null || (p ?? 0) >= d.min) && (d.max == null || (p ?? 0) < d.max),
+    }));
     return defs.map((d) => ({ ...d, count: products.filter((p) => d.test(p.puffs)).length }));
-  }, [products]);
+  }, [products, pageSettings]);
 
   const priceBounds = useMemo(() => {
     if (products.length === 0) return { min: 0, max: 0 };
@@ -312,9 +318,10 @@ export function CollectionPageView({ category, allCategories, products, catalogP
   // reset to page 1 whenever filters change (bug fix: pagination math)
   useEffect(() => { setCurrentPage(1); }, [searchQuery, selectedBrands, selectedNicotines, selectedPuffs, selectedFlavorFamilies, priceMin, priceMax, inStockOnly, sortBy, products]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+  const itemsPerPage = pageSettings?.itemsPerPage || ITEMS_PER_PAGE;
+  const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
   const safePage = Math.min(currentPage, totalPages);
-  const pageItems = filtered.slice((safePage - 1) * ITEMS_PER_PAGE, safePage * ITEMS_PER_PAGE);
+  const pageItems = filtered.slice((safePage - 1) * itemsPerPage, safePage * itemsPerPage);
 
   const toggleIn = (arr: string[], v: string, set: (x: string[]) => void) =>
     set(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
@@ -351,8 +358,8 @@ export function CollectionPageView({ category, allCategories, products, catalogP
   };
 
   const pageTitle = category ? category.title : "All Vape Products & Collections";
-  const pageEyebrow = category ? category.badge : "THE FULL CATALOG";
-  const pageSubtitle = category ? category.subtitle : "100% authentic disposable vapes, pod systems, e-liquids and heated tobacco — with express UAE delivery.";
+  const pageEyebrow = category ? category.badge : (pageSettings?.shopAllHero?.title || "THE FULL CATALOG");
+  const pageSubtitle = category ? category.subtitle : (pageSettings?.shopAllHero?.subtitle || "100% authentic disposable vapes, pod systems, e-liquids and heated tobacco — with express UAE delivery.");
 
   const allReviews = useMemo(() => products.flatMap((p) => p.reviews.map((r) => ({ ...r, product: p.title }))).slice(0, 3), [products]);
   const avgRating = useMemo(() => {
@@ -379,7 +386,7 @@ export function CollectionPageView({ category, allCategories, products, catalogP
     [compareIds, products]
   );
   const toggleCompare = (id: string) =>
-    setCompareIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : prev.length >= 3 ? prev : [...prev, id]));
+    setCompareIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : prev.length >= (pageSettings?.compareLimit || 3) ? prev : [...prev, id]));
 
   const openQuiz = () => {
     setQuizStep(0); setQuizPuffs(null); setQuizNicotine(null); setQuizFlavor(null);
@@ -800,11 +807,15 @@ export function CollectionPageView({ category, allCategories, products, catalogP
                     aria-label="Sort products"
                     className="h-11 appearance-none rounded-xl border border-emerald-900/15 bg-white pl-4 pr-10 text-sm font-semibold text-emerald-950 outline-none focus:border-amber-500 cursor-pointer"
                   >
-                    <option value="popular">Most Popular</option>
-                    <option value="rating">Top Rated</option>
-                    <option value="price_asc">Price: Low → High</option>
-                    <option value="price_desc">Price: High → Low</option>
-                    <option value="newest">Newest</option>
+                    {(pageSettings?.sortOptions?.length ? pageSettings.sortOptions : [
+                      { value: "popular", label: "Most Popular" },
+                      { value: "rating", label: "Top Rated" },
+                      { value: "price_asc", label: "Price: Low → High" },
+                      { value: "price_desc", label: "Price: High → Low" },
+                      { value: "newest", label: "Newest" },
+                    ]).map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
                   </select>
                   <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-800 pointer-events-none" />
                 </div>

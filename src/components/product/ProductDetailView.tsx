@@ -28,6 +28,7 @@ import {
   HelpCircle,
 } from "lucide-react";
 import { ProductItem, CartItem } from "@/types/product";
+import type { ProductPageSettings } from "@/lib/shopify";
 import { buildSeoSections, buildProductFaqs, SeoSection } from "./productSeo";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -37,10 +38,9 @@ import { CartDrawer } from "@/components/CartDrawer";
 interface ProductDetailViewProps {
   product: ProductItem;
   relatedProducts: ProductItem[];
+  pageSettings?: ProductPageSettings;
+  phone?: string;
 }
-
-const WHATSAPP_LINK = "https://wa.me/971551688299?text=Hi%20Vape%20Mart!%20I%20have%20a%20question%20about%20a%20product.";
-const WHATSAPP_PHONE = "+971 55 168 8299";
 
 function formatAED(n: number): string {
   return `AED ${n.toFixed(2)}`;
@@ -77,7 +77,30 @@ function SeoBlock({ section }: { section: SeoSection }) {
   );
 }
 
-export function ProductDetailView({ product, relatedProducts }: ProductDetailViewProps) {
+export function ProductDetailView({ product, relatedProducts, pageSettings, phone }: ProductDetailViewProps) {
+  // WhatsApp number comes from the panel (store.phone); literals are fallback.
+  const waPhoneDisplay = phone || "+971 55 168 8299";
+  const waDigits = waPhoneDisplay.replace(/[^0-9]/g, "");
+  const waLink = `https://wa.me/${waDigits}?text=Hi%20Vape%20Mart!%20I%20have%20a%20question%20about%20a%20product.`;
+  // Spec order from the panel (case-insensitive); unordered specs keep their place.
+  const orderedSpecs = (() => {
+    const order = (pageSettings?.specOrder || []).map((x) => x.toLowerCase());
+    if (!order.length) return product.specifications;
+    const byLabel = new Map(product.specifications.map((sp) => [sp.label.toLowerCase(), sp]));
+    const ordered = order.map((o) => byLabel.get(o)).filter((x): x is { label: string; value: string } => Boolean(x));
+    const rest = product.specifications.filter((sp) => !order.includes(sp.label.toLowerCase()));
+    return [...ordered, ...rest];
+  })();
+  // Trust badges from the panel; icon names map to lucide components.
+  const BADGE_ICONS: Record<string, any> = { Truck, ShieldCheck, Zap, Clock, Star, BadgeCheck };
+  const trustBadges = pageSettings?.trustBadges?.length
+    ? pageSettings.trustBadges.map((b) => ({ icon: BADGE_ICONS[b.icon] || ShieldCheck, t: b.title, d: b.sub }))
+    : [
+        { icon: Truck, t: "Free Shipping", d: "On orders over AED 350" },
+        { icon: ShieldCheck, t: "Payment Methods", d: "Cash on Delivery" },
+        { icon: Zap, t: "Fast Delivery", d: "UAE-wide in 24–48 hours" },
+        { icon: Clock, t: "Same Day Delivery", d: "Within Dubai on most items" },
+      ];
   const galleryImages = product.images.length > 0 ? product.images : [product.primaryImage];
   const [imgIdx, setImgIdx] = useState(0);
   const [flavorId, setFlavorId] = useState("");
@@ -449,12 +472,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
 
         {/* ============ TRUST BADGES ============ */}
         <section className="mt-8 sm:mt-10 grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {[
-            { icon: Truck, t: "Free Shipping", d: "On orders over AED 350" },
-            { icon: ShieldCheck, t: "Payment Methods", d: "Cash on Delivery" },
-            { icon: Zap, t: "Fast Delivery", d: "UAE-wide in 24–48 hours" },
-            { icon: Clock, t: "Same Day Delivery", d: "Within Dubai on most items" },
-          ].map((b) => (
+          {trustBadges.map((b) => (
             <div key={b.t} className="rounded-2xl bg-white border border-emerald-900/10 p-4 sm:p-5 xl:p-7 text-center shadow-[0_10px_30px_-18px_rgba(6,78,59,0.4)]">
               <b.icon size={26} className="mx-auto text-amber-500 mb-2" />
               <p className="text-sm font-extrabold text-emerald-950">{b.t}</p>
@@ -537,7 +555,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
                 <div className="mt-7">
                   <h3 className="font-cinzel text-xs tracking-[0.2em] text-emerald-900 font-bold mb-4">KEY SPECIFICATIONS</h3>
                   <ul className="rounded-2xl border border-emerald-900/10 bg-white divide-y divide-emerald-900/10 overflow-hidden">
-                    {product.specifications.slice(0, 8).map((s, i) => (
+                    {orderedSpecs.slice(0, 8).map((s, i) => (
                       <li key={i} className="flex gap-3 px-5 py-3.5 items-start">
                         <Check size={16} className="text-amber-500 shrink-0 mt-1" strokeWidth={3} />
                         <p className="text-[15px] text-neutral-600 leading-relaxed"><strong className="text-emerald-950 font-bold">{s.label}:</strong> {s.value}</p>
@@ -556,7 +574,11 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
             )}
 
             {tab === "ship" && (
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="w-full grid sm:grid-cols-3 gap-4">
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="w-full">
+                {pageSettings?.shippingText && (
+                  <p className="mb-4 text-[15px] leading-relaxed text-neutral-600">{pageSettings.shippingText}</p>
+                )}
+                <div className="grid sm:grid-cols-3 gap-4">
                 {[
                   { icon: Zap, t: "Dubai Express", d: "Order before 9pm — delivered in 2–3 hours across most Dubai areas. Same-day for Sharjah & Ajman." },
                   { icon: Truck, t: "UAE Nationwide", d: "Next-day delivery to Abu Dhabi, Ras Al Khaimah, Fujairah & all Emirates. Free over AED 350." },
@@ -568,6 +590,10 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
                     <p className="mt-1.5 text-sm text-neutral-600 leading-relaxed">{c.d}</p>
                   </div>
                 ))}
+                </div>
+                {pageSettings?.returnText && (
+                  <p className="mt-4 text-[15px] leading-relaxed text-neutral-600">{pageSettings.returnText}</p>
+                )}
               </motion.div>
             )}
           </div>
@@ -660,7 +686,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
               <span className="font-cinzel text-[11px] tracking-[0.18em] text-amber-300 font-bold">FEATURE</span>
               <span className="font-cinzel text-[11px] tracking-[0.18em] text-amber-300 font-bold">DETAILS</span>
             </div>
-            {product.specifications.map((s, i) => (
+            {orderedSpecs.map((s, i) => (
               <div key={i} className={`grid grid-cols-2 px-5 py-3.5 text-sm ${i % 2 ? "bg-emerald-50/50" : "bg-white"}`}>
                 <span className="font-bold text-emerald-950">{s.label}</span>
                 <span className="text-neutral-600">{s.value}</span>
@@ -805,7 +831,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
                 </div>
                 <h3 className="font-luxury text-xl sm:text-2xl font-bold text-white mb-3">Still have questions?</h3>
                 <p className="text-emerald-100/70 text-sm mb-6 leading-relaxed">Can&apos;t find the answer you&apos;re looking for? Our vape experts reply in minutes on WhatsApp.</p>
-                <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" className="w-full py-3.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-emerald-950 font-bold text-sm hover:brightness-105 transition-all flex items-center justify-center gap-2">
+                <a href={waLink} target="_blank" rel="noopener noreferrer" className="w-full py-3.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-emerald-950 font-bold text-sm hover:brightness-105 transition-all flex items-center justify-center gap-2">
                   Contact Support <ArrowRight size={16} />
                 </a>
               </div>
@@ -850,7 +876,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
                 <h2 className="font-luxury text-2xl sm:text-3xl xl:text-4xl font-bold">Need Help Ordering?</h2>
                 <p className="mt-2 text-sm text-emerald-100/85 max-w-xl">Get instant help from our team — authenticity checks, flavor advice, bulk pricing.</p>
                 <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-sm">
-                  <span className="inline-flex items-center gap-1.5 text-emerald-100/90"><Phone size={14} className="text-amber-300" /> {WHATSAPP_PHONE}</span>
+                  <span className="inline-flex items-center gap-1.5 text-emerald-100/90"><Phone size={14} className="text-amber-300" /> {waPhoneDisplay}</span>
                   <span className="inline-flex items-center gap-1.5 text-emerald-100/90"><Clock size={14} className="text-amber-300" /> Mon – Sun: 9 AM – 11 PM</span>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -860,7 +886,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
                 </div>
               </div>
             </div>
-            <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" className="shrink-0 h-[56px] xl:h-[64px] px-8 xl:px-10 rounded-2xl bg-[#25D366] text-white font-extrabold text-sm tracking-wide flex items-center justify-center gap-2.5 hover:brightness-110 active:scale-[0.98] transition-all">
+            <a href={waLink} target="_blank" rel="noopener noreferrer" className="shrink-0 h-[56px] xl:h-[64px] px-8 xl:px-10 rounded-2xl bg-[#25D366] text-white font-extrabold text-sm tracking-wide flex items-center justify-center gap-2.5 hover:brightness-110 active:scale-[0.98] transition-all">
               <MessageCircle size={20} /> CHAT ON WHATSAPP
             </a>
           </div>
@@ -872,7 +898,7 @@ export function ProductDetailView({ product, relatedProducts }: ProductDetailVie
 
       {/* floating WhatsApp */}
       <a
-        href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" aria-label="Chat on WhatsApp"
+        href={waLink} target="_blank" rel="noopener noreferrer" aria-label="Chat on WhatsApp"
         className="fixed z-30 right-4 bottom-[calc(88px+env(safe-area-inset-bottom))] sm:bottom-6 w-14 h-14 rounded-full bg-[#25D366] text-white flex items-center justify-center shadow-[0_10px_30px_-8px_rgba(37,211,102,0.7)] hover:brightness-110 hover:scale-105 active:scale-95 transition-all"
       >
         <MessageCircle size={26} />

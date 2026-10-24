@@ -7,6 +7,7 @@ import {
   fetchAllProducts,
   getCategoryBySlugSync,
 } from "@/data/products-shopify";
+import { fetchShopSettings } from "@/lib/shopify";
 import { CollectionPageView } from "@/components/collection/CollectionPageView";
 
 interface CollectionSlugPageProps {
@@ -45,12 +46,12 @@ export async function generateMetadata({ params }: CollectionSlugPageProps): Pro
 
 export default async function CollectionSlugPage({ params }: CollectionSlugPageProps) {
   const { slug } = await params;
-  const [categories, allProducts] = await Promise.all([fetchCategories(), fetchAllProducts()]);
+  const [categories, allProducts, settings] = await Promise.all([fetchCategories(), fetchAllProducts(), fetchShopSettings()]);
   const category = categories.find((c) => c.slug === slug) || getCategoryBySlugSync(slug);
 
   if (!category) {
     // If not matching a category, fallback to all products
-    return <CollectionPageView allCategories={categories} products={allProducts} catalogProducts={allProducts} />;
+    return <CollectionPageView allCategories={categories} products={allProducts} catalogProducts={allProducts} pageSettings={settings.collectionPage} />;
   }
 
   const categoryProducts = await fetchProductsByCategory(category.slug);
@@ -104,6 +105,7 @@ export default async function CollectionSlugPage({ params }: CollectionSlugPageP
           allCategories={categories}
           products={categoryProducts.length > 0 ? categoryProducts : allProducts}
           catalogProducts={allProducts}
+          pageSettings={settings.collectionPage}
         />
       </Suspense>
     </>

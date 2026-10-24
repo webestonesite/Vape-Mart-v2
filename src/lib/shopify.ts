@@ -498,28 +498,102 @@ export async function fetchShopifyMenu(): Promise<MenuLink[]> {
 
 /* ------------------------------------------------------------------ */
 /*  Shop settings (announcements, phone, footer text, logo)            */
+/*  Phase 3 adds the panel-managed namespaces: checkout, product_page, */
+/*  collection_page and theme. Empty values mean "use the code literal" */
+/*  fallback in the component, so nothing changes until the owner edits */
+/*  something in the panel.                                             */
 /* ------------------------------------------------------------------ */
+
+export interface CheckoutSettings {
+  freeShippingThreshold: number;
+  deliveryFee: number;
+  vatNote: string;
+  cityPromises: { city: string; promise: string }[];
+  paymentLabels: { key: string; label: string }[];
+}
+
+export interface ProductPageSettings {
+  trustBadges: { icon: string; title: string; sub: string }[];
+  shippingText: string;
+  returnText: string;
+  specOrder: string[];
+}
+
+export interface CollectionPageSettings {
+  itemsPerPage: number;
+  compareLimit: number;
+  sortOptions: { value: string; label: string }[];
+  puffBuckets: { id: string; label: string; min: number | null; max: number | null }[];
+  flavorFamilies: { id: string; name: string; desc: string }[];
+  quizSteps: any[];
+  shopAllHero: { title: string; subtitle: string; image: string };
+}
+
+export interface ThemeSettings {
+  searchPlaceholder: string;
+  topbarLinks: { label: string; url: string }[];
+  footerLinks: { title: string; links: { label: string; url: string }[] }[];
+  newsletterText: string;
+}
 
 export interface ShopSettings {
   announcements: string[];
   phone: string;
   footerText: string;
   logoUrl: string;
+  checkout: CheckoutSettings;
+  productPage: ProductPageSettings;
+  collectionPage: CollectionPageSettings;
+  theme: ThemeSettings;
+}
+
+function parseJson<T>(raw: string | undefined, fallback: T): T {
+  if (!raw) return fallback;
+  try {
+    const v = JSON.parse(raw);
+    return v ?? fallback;
+  } catch {
+    return fallback;
+  }
 }
 
 const SHOP_META_QUERY = `
   query ShopMeta {
     shop {
-      metafields(first: 20, namespace: "store") { nodes { namespace key type value } }
+      store: metafields(first: 50, namespace: "store") { nodes { namespace key type value } }
+      checkout: metafields(first: 50, namespace: "checkout") { nodes { namespace key type value } }
+      productPage: metafields(first: 50, namespace: "product_page") { nodes { namespace key type value } }
+      collectionPage: metafields(first: 50, namespace: "collection_page") { nodes { namespace key type value } }
+      theme: metafields(first: 50, namespace: "theme") { nodes { namespace key type value } }
     }
   }
 `;
 
 export async function fetchShopSettings(): Promise<ShopSettings> {
-  const fallback: ShopSettings = { announcements: [], phone: "", footerText: "", logoUrl: "" };
+  const fallback: ShopSettings = {
+    announcements: [], phone: "", footerText: "", logoUrl: "",
+    checkout: { freeShippingThreshold: 0, deliveryFee: 0, vatNote: "", cityPromises: [], paymentLabels: [] },
+    productPage: { trustBadges: [], shippingText: "", returnText: "", specOrder: [] },
+    collectionPage: { itemsPerPage: 0, compareLimit: 0, sortOptions: [], puffBuckets: [], flavorFamilies: [], quizSteps: [], shopAllHero: { title: "", subtitle: "", image: "" } },
+    theme: { searchPlaceholder: "", topbarLinks: [], footerLinks: [], newsletterText: "" },
+  };
   try {
-    const data = await shopifyAdmin<{ shop: { metafields: { nodes: MetafieldNode[] } } }>(SHOP_META_QUERY, {}, 600);
-    const mf = mfMap(data.shop.metafields.nodes);
+    const data = await shopifyAdmin<{
+      shop: {
+        store: { nodes: MetafieldNode[] };
+        checkout: { nodes: MetafieldNode[] };
+        productPage: { nodes: MetafieldNode[] };
+        collectionPage: { nodes: MetafieldNode[] };
+        theme: { nodes: MetafieldNode[] };
+      };
+    }>(SHOP_META_QUERY, {}, 600);
+    const mf = mfMap([
+      ...(data.shop.store?.nodes ?? []),
+      ...(data.shop.checkout?.nodes ?? []),
+      ...(data.shop.productPage?.nodes ?? []),
+      ...(data.shop.collectionPage?.nodes ?? []),
+      ...(data.shop.theme?.nodes ?? []),
+    ]);
     let logoUrl = "";
     try {
       const logoRef = JSON.parse(mf["store.logo"] || "null");
@@ -530,6 +604,34 @@ export async function fetchShopSettings(): Promise<ShopSettings> {
       phone: mf["store.phone"] || "",
       footerText: mf["store.footer_text"] || "",
       logoUrl,
+      checkout: {
+        freeShippingThreshold: parseInt(mf["checkout.free_shipping_threshold"] || "0", 10) || 0,
+        deliveryFee: parseFloat(mf["checkout.delivery_fee"] || "0") || 0,
+        vatNote: mf["checkout.vat_note"] || "",
+        cityPromises: parseJson(mf["checkout.city_promises"], []),
+        paymentLabels: parseJson(mf["checkout.payment_labels"], []),
+      },
+      productPage: {
+        trustBadges: parseJson(mf["product_page.trust_badges"], []),
+        shippingText: mf["product_page.shipping_text"] || "",
+        returnText: mf["product_page.return_text"] || "",
+        specOrder: parseList(mf["product_page.spec_order"]),
+      },
+      collectionPage: {
+        itemsPerPage: parseInt(mf["collection_page.items_per_page"] || "0", 10) || 0,
+        compareLimit: parseInt(mf["collection_page.compare_limit"] || "0", 10) || 0,
+        sortOptions: parseJson(mf["collection_page.sort_options"], []),
+        puffBuckets: parseJson(mf["collection_page.puff_buckets"], []),
+        flavorFamilies: parseJson(mf["collection_page.flavor_families"], []),
+        quizSteps: parseJson(mf["collection_page.quiz_steps"], []),
+        shopAllHero: parseJson(mf["collection_page.shop_all_hero"], { title: "", subtitle: "", image: "" }),
+      },
+      theme: {
+        searchPlaceholder: mf["theme.search_placeholder"] || "",
+        topbarLinks: parseJson(mf["theme.topbar_links"], []),
+        footerLinks: parseJson(mf["theme.footer_links"], []),
+        newsletterText: mf["theme.newsletter_text"] || "",
+      },
     };
   } catch {
     return fallback;

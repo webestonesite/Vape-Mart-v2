@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { fetchAllProducts, fetchCategories } from "@/data/products-shopify";
+import { fetchShopSettings } from "@/lib/shopify";
 import { CollectionPageView } from "@/components/collection/CollectionPageView";
 
 export const metadata: Metadata = {
@@ -24,7 +25,7 @@ export default async function AllCollectionsPage() {
     url: "https://vapemart.ae/collections"
   };
 
-  const [categories, allProducts] = await Promise.all([fetchCategories(), fetchAllProducts()]);
+  const [categories, allProducts, settings] = await Promise.all([fetchCategories(), fetchAllProducts(), fetchShopSettings()]);
 
   return (
     <>
@@ -33,7 +34,7 @@ export default async function AllCollectionsPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <Suspense fallback={null}>
-        <CollectionPageView allCategories={categories} products={allProducts} catalogProducts={allProducts} />
+        <CollectionPageView allCategories={categories} products={allProducts} catalogProducts={allProducts} pageSettings={settings.collectionPage} />
       </Suspense>
     </>
   );
