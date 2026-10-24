@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Package, FolderOpen, ShoppingBag, FileText, Menu as MenuIcon,
   Search, Plus, ExternalLink, LogOut, RefreshCw, Megaphone,
   Image as ImageIcon, Layers, Star, HelpCircle, PenLine, MessageSquare, Droplets,
-  Palette, ShoppingCart, LayoutTemplate, LayoutGrid,
+  Palette, ShoppingCart, LayoutTemplate, LayoutGrid, User, Tag, ArrowRight,
 } from "lucide-react";
 
 const tabLoading = () => <p className="text-neutral-500">Loading…</p>;
@@ -21,6 +21,12 @@ const ProductPageTab = dynamic(() => import("./settings-tabs").then((m) => m.Pro
 const CollectionPageTab = dynamic(() => import("./settings-tabs").then((m) => m.CollectionPageTab), { loading: tabLoading });
 const ThemeTab = dynamic(() => import("./settings-tabs").then((m) => m.ThemeTab), { loading: tabLoading });
 const HomeTab = dynamic(() => import("./settings-tabs").then((m) => m.HomeTab), { loading: tabLoading });
+const BlogSettingsTab = dynamic(() => import("./settings-tabs").then((m) => m.BlogSettingsTab), { loading: tabLoading });
+const InfoPagesTab = dynamic(() => import("./settings-tabs").then((m) => m.InfoPagesTab), { loading: tabLoading });
+const DraftsTab = dynamic(() => import("./ops-tabs").then((m) => m.DraftsTab), { loading: tabLoading });
+const CustomersTab = dynamic(() => import("./ops-tabs").then((m) => m.CustomersTab), { loading: tabLoading });
+const DiscountsTab = dynamic(() => import("./ops-tabs").then((m) => m.DiscountsTab), { loading: tabLoading });
+const RedirectsTab = dynamic(() => import("./ops-tabs").then((m) => m.RedirectsTab), { loading: tabLoading });
 const SettingsTab = dynamic(() => import("./content-tabs").then((m) => m.SettingsTab), { loading: tabLoading });
 const HeroTab = dynamic(() => import("./content-tabs").then((m) => m.HeroTab), { loading: tabLoading });
 const SectionsTab = dynamic(() => import("./content-tabs").then((m) => m.SectionsTab), { loading: tabLoading });
@@ -119,6 +125,10 @@ const NAV = [
       { key: "pages", label: "Pages", icon: FileText },
       { key: "menu", label: "Menu", icon: MenuIcon },
       { key: "orders", label: "Orders", icon: ShoppingBag },
+      { key: "drafts", label: "Draft Orders", icon: ShoppingBag },
+      { key: "customers", label: "Customers", icon: User },
+      { key: "discounts", label: "Discounts", icon: Tag },
+      { key: "redirects", label: "Redirects", icon: ArrowRight },
     ],
   },
   {
@@ -129,6 +139,8 @@ const NAV = [
       { key: "cart", label: "Cart & Checkout", icon: ShoppingCart },
       { key: "product-page", label: "Product Page", icon: LayoutTemplate },
       { key: "collection-page", label: "Collection Page", icon: LayoutGrid },
+      { key: "blog-settings", label: "Blog Settings", icon: PenLine },
+      { key: "info-pages", label: "Info Pages", icon: FileText },
     ],
   },
 ];
@@ -354,6 +366,12 @@ export default function AdminPage() {
               {tab === "media" && <MediaTab data={data} notify={notify} reload={loadData} />}
               {tab === "theme" && <ThemeTab data={data} save={save} />}
               {tab === "home" && <HomeTab data={data} save={save} />}
+              {tab === "blog-settings" && <BlogSettingsTab data={data} save={save} />}
+              {tab === "info-pages" && <InfoPagesTab data={data} save={save} />}
+              {tab === "drafts" && <DraftsTab data={data} />}
+              {tab === "customers" && <CustomersTab data={data} />}
+              {tab === "discounts" && <DiscountsTab data={data} />}
+              {tab === "redirects" && <RedirectsTab data={data} save={save} />}
               {tab === "cart" && <CartTab data={data} save={save} />}
               {tab === "product-page" && <ProductPageTab data={data} save={save} />}
               {tab === "collection-page" && <CollectionPageTab data={data} save={save} />}

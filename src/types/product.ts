@@ -61,6 +61,7 @@ export interface ProductItem {
   id: string;
   slug: string;
   title: string;
+  seo?: { title: string; description: string };
   subtitle?: string;
   brand: string;
   category: string;

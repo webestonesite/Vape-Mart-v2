@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ShieldCheck, Truck, BadgeCheck } from "lucide-react";
 import { getDisplayPosts } from "@/lib/blog-adapter";
+import { fetchShopSettings } from "@/lib/shopify";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { BlogExplorer } from "@/components/blog/BlogExplorer";
@@ -13,6 +14,7 @@ export const metadata: Metadata = {
 
 export default async function BlogPage() {
   const posts = await getDisplayPosts();
+  const settings = await fetchShopSettings();
   return (
     <>
       <Header />
@@ -29,7 +31,7 @@ export default async function BlogPage() {
         </div>
 
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-8 sm:py-12">
-          <BlogExplorer posts={posts} />
+          <BlogExplorer posts={posts} categories={settings.blog.categories} categoryColors={settings.blog.categoryColors} />
         </div>
 
         {/* Trust strip */}

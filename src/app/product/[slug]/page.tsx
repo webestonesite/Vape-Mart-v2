@@ -19,9 +19,12 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
     };
   }
 
+  // Panel-managed SEO (product editor) wins; otherwise the built title/description.
+  const seoTitle = product.seo?.title?.trim();
+  const seoDesc = product.seo?.description?.trim();
   return {
-    title: `${product.title} - AED ${product.price.toFixed(2)} | Vape Mart UAE`,
-    description: `${product.shortDescription} 100% authentic with same-day express delivery in Dubai and cash on delivery.`,
+    title: seoTitle || `${product.title} - AED ${product.price.toFixed(2)} | Vape Mart UAE`,
+    description: seoDesc || `${product.shortDescription} 100% authentic with same-day express delivery in Dubai and cash on delivery.`,
     openGraph: {
       title: `${product.title} | Vape Mart UAE`,
       description: product.shortDescription,

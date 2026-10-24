@@ -181,7 +181,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
   const [form, setForm] = useState<any>({
     title: "", handle: "", descriptionHtml: "", vendor: "", productType: "", tags: "", status: "DRAFT",
     price: "", compareAtPrice: "", sku: "", barcode: "", inventoryQuantity: "",
-    optionName: "", optionValues: "",
+    optionName: "", optionValues: "", seoTitle: "", seoDescription: "",
   });
   const [variants, setVariants] = useState<any[]>([]);
   const [newVariants, setNewVariants] = useState<any[]>([]);
@@ -211,6 +211,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
         productType: d.productType, tags: d.tags, status: d.status,
         price: "", compareAtPrice: "", sku: "", barcode: "", inventoryQuantity: "",
         optionName: d.options?.[0]?.name || "", optionValues: (d.options?.[0]?.values || []).join(", "),
+        seoTitle: d.seoTitle || "", seoDescription: d.seoDescription || "",
       });
       setVariants(d.variants);
       setMedia(d.media);
@@ -253,6 +254,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
     const base = {
       title: form.title, handle: form.handle || undefined, descriptionHtml: form.descriptionHtml,
       vendor: form.vendor, productType: form.productType, tags: form.tags, status: form.status,
+      seoTitle: form.seoTitle, seoDescription: form.seoDescription,
       collectionIds, vape: vapePayload, locationId: data.locationId,
       mediaSources: [...newMedia.map((m) => m.source), ...(imgUrl.trim() ? [imgUrl.trim()] : [])],
     };
@@ -337,6 +339,14 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
               <div>
                 <Lbl>Description (HTML allowed)</Lbl>
                 <TA rows={6} value={form.descriptionHtml} onChange={(e) => set("descriptionHtml", e.target.value)} />
+              </div>
+              <div>
+                <Lbl>SEO title (Google search title — khali rakhle auto title hobe)</Lbl>
+                <Inp value={form.seoTitle} onChange={(e) => set("seoTitle", e.target.value)} placeholder="e.g. Juul Pods Menthol 4-Pack | Vape Mart UAE" />
+              </div>
+              <div>
+                <Lbl>SEO description (Google search snippet — khali rakhle auto description hobe)</Lbl>
+                <TA rows={3} value={form.seoDescription} onChange={(e) => set("seoDescription", e.target.value)} placeholder="e.g. 100% authentic Juul pods with same-day Dubai delivery..." />
               </div>
               <div className="grid sm:grid-cols-2 gap-3">
                 <div>

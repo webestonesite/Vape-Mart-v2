@@ -10,6 +10,19 @@ export const categoryBadge: Record<string, string> = {
   Regulations: "bg-amber-500",
 };
 
+/** Badge classes the panel may assign. Listed literally so Tailwind generates them. */
+export const CATEGORY_COLOR_OPTIONS = [
+  "bg-emerald-600", "bg-red-600", "bg-blue-600", "bg-amber-500", "bg-teal-600",
+  "bg-purple-600", "bg-rose-600", "bg-orange-500", "bg-cyan-600", "bg-slate-600",
+];
+
+/** Panel color wins when it is one of the generated options; else the built-in map. */
+export function resolveBadgeClass(category: string, colors?: Record<string, string>) {
+  const c = colors?.[category];
+  if (c && CATEGORY_COLOR_OPTIONS.includes(c)) return c;
+  return categoryBadge[category] || "bg-slate-600";
+}
+
 const categoryIcon: Record<string, typeof ShieldCheck> = {
   "Buying Guides": ShoppingBag,
   Safety: ShieldCheck,
@@ -48,7 +61,7 @@ export function CoverImage({ post, className }: { post: BlogPost; className?: st
   );
 }
 
-export function BlogCard({ post }: { post: BlogPost }) {
+export function BlogCard({ post, badgeClass }: { post: BlogPost; badgeClass?: string }) {
   return (
     <Link
       href={`/blog/${post.slug}`}
@@ -59,7 +72,7 @@ export function BlogCard({ post }: { post: BlogPost }) {
           <CoverImage post={post} />
         </div>
         <span
-          className={`absolute top-3 left-3 px-2.5 py-1 rounded-full text-white text-[11px] font-bold uppercase tracking-wide shadow ${categoryBadge[post.category] ?? "bg-slate-600"}`}
+          className={`absolute top-3 left-3 px-2.5 py-1 rounded-full text-white text-[11px] font-bold uppercase tracking-wide shadow ${badgeClass || categoryBadge[post.category] || "bg-slate-600"}`}
         >
           {post.category}
         </span>

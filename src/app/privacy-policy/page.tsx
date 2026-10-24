@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { PageHero } from "@/components/PageHero";
 import { getShopifyPageSections } from "@/lib/shopify-pages";
+import { fetchShopSettings } from "@/lib/shopify";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 
@@ -65,6 +66,7 @@ const localSections = [
 export default async function PrivacyPolicyPage() {
   const cmsSections = await getShopifyPageSections("privacy-policy");
   const sections = cmsSections.length ? cmsSections : localSections;
+  const settings = await fetchShopSettings();
   return (
     <>
       <Header />
@@ -72,7 +74,7 @@ export default async function PrivacyPolicyPage() {
         <PageHero
           badge="Legal"
           title="Privacy Policy"
-          subtitle="Your privacy matters. Here is exactly what we collect, why we collect it, and how we protect it."
+          subtitle={settings.pages.pageHeroSubtitles?.["privacy-policy"] || "Your privacy matters. Here is exactly what we collect, why we collect it, and how we protect it."}
           crumbs={[{ label: "Home", href: "/" }, { label: "Privacy Policy" }]}
         />
 

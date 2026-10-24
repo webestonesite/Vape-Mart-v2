@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ShieldCheck, Truck, BadgeCheck, Headset, ArrowRight, Award, PackageCheck, Timer } from "lucide-react";
 import { PageHero } from "@/components/PageHero";
 import { getShopifyPageBody } from "@/lib/shopify-pages";
+import { fetchShopSettings } from "@/lib/shopify";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 
@@ -43,6 +44,15 @@ const stats = [
 
 export default async function AboutPage() {
   const storyHtml = await getShopifyPageBody("about");
+  const settings = await fetchShopSettings();
+  const pages = settings.pages;
+  const ABOUT_ICONS: Record<string, any> = { BadgeCheck, ShieldCheck, Truck, Headset, PackageCheck, Award, Timer };
+  const valuesList = pages.aboutValues?.length
+    ? pages.aboutValues.map((v: any) => ({ icon: ABOUT_ICONS[v.icon] || ShieldCheck, title: v.title || "", text: v.text || "" }))
+    : values;
+  const statsList = pages.aboutStats?.length
+    ? pages.aboutStats.map((v: any) => ({ icon: ABOUT_ICONS[v.icon] || PackageCheck, value: v.value || "", label: v.label || "" }))
+    : stats;
   return (
     <>
       <Header />
@@ -50,7 +60,7 @@ export default async function AboutPage() {
         <PageHero
           badge="Our Story"
           title="About Vape Mart"
-          subtitle="The UAE's premier destination for luxury vaping — built on authenticity, compliance, and service adult vapers can trust."
+          subtitle={pages.pageHeroSubtitles?.about || "The UAE's premier destination for luxury vaping — built on authenticity, compliance, and service adult vapers can trust."}
           crumbs={[{ label: "Home", href: "/" }, { label: "About Us" }]}
         />
 
@@ -96,7 +106,7 @@ export default async function AboutPage() {
               <div className="absolute -top-20 -right-20 w-72 h-72 bg-amber-400/15 rounded-full blur-[70px] pointer-events-none" />
               <div className="absolute -bottom-20 -left-20 w-72 h-72 bg-emerald-400/15 rounded-full blur-[70px] pointer-events-none" />
               <div className="relative z-10 grid grid-cols-1 gap-6">
-                {stats.map((s) => (
+                {statsList.map((s) => (
                   <div key={s.label} className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-2xl bg-amber-400/15 border border-amber-400/30 flex items-center justify-center shrink-0">
                       <s.icon size={22} className="text-amber-300" />
@@ -121,7 +131,7 @@ export default async function AboutPage() {
             </h2>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6 mb-12 sm:mb-16">
-            {values.map((v) => (
+            {valuesList.map((v) => (
               <div
                 key={v.title}
                 className="rounded-[20px] border border-slate-200 bg-white p-6 sm:p-7 shadow-sm hover:shadow-xl hover:border-emerald-200 transition-all"
