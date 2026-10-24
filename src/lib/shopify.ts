@@ -274,7 +274,9 @@ function toProductItem(node: ShopifyProductNode, flavorObjects: FlavorMetaobject
     coilType: mf["vape.coil_type"] || undefined,
     activation: mf["vape.activation"] || undefined,
     flavors,
-    flavorFamily: "fruit_ice",
+    flavorFamily: (["fruit_ice", "menthol", "tobacco", "dessert"].includes(mf["vape.flavor_family"] || "")
+      ? mf["vape.flavor_family"]
+      : "") as "fruit_ice" | "menthol" | "tobacco" | "dessert" | "",
     sensoryProfile: {
       sweetness: num(mf["vape.sweetness"], 3),
       cooling: num(mf["vape.cooling"], 3),

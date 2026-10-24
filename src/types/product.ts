@@ -90,7 +90,7 @@ export interface ProductItem {
   coilType?: string;
   activation?: string;
   flavors: ProductFlavor[];
-  flavorFamily: "fruit_ice" | "menthol" | "tobacco" | "dessert";
+  flavorFamily: "fruit_ice" | "menthol" | "tobacco" | "dessert" | "";
   sensoryProfile: SensoryProfile;
   highlights: ProductHighlight[];
   specifications: ProductSpecification[];

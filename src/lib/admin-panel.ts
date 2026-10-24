@@ -691,12 +691,17 @@ function vapeMetafieldEntries(productId: string, vape: Record<string, any>): any
   };
   put("badge", "single_line_text_field", vape.badge);
   put("subtitle", "single_line_text_field", vape.subtitle);
-  put("puff_count", "number_integer", vape.puff_count);
+  put("short_description", "multi_line_text_field", vape.short_description);
+  put("puffs", "number_integer", vape.puffs);
+  put("puff_range", "single_line_text_field", vape.puff_range);
   put("nicotine_strength", "single_line_text_field", vape.nicotine_strength);
-  put("battery", "single_line_text_field", vape.battery);
-  put("coil", "single_line_text_field", vape.coil);
-  put("charging", "single_line_text_field", vape.charging);
-  put("e_liquid", "single_line_text_field", vape.e_liquid);
+  put("battery_capacity", "single_line_text_field", vape.battery_capacity);
+  put("coil_type", "single_line_text_field", vape.coil_type);
+  put("charging_type", "single_line_text_field", vape.charging_type);
+  put("e_liquid_capacity", "single_line_text_field", vape.e_liquid_capacity);
+  put("activation", "single_line_text_field", vape.activation);
+  put("vg_pg_ratio", "single_line_text_field", vape.vg_pg_ratio);
+  put("flavor_family", "single_line_text_field", vape.flavor_family);
   put("sweetness", "number_integer", vape.sweetness);
   put("cooling", "number_integer", vape.cooling);
   put("throat_hit", "number_integer", vape.throat_hit);
@@ -707,8 +712,8 @@ function vapeMetafieldEntries(productId: string, vape: Record<string, any>): any
   put("review_count", "number_integer", vape.review_count);
   if (Array.isArray(vape.nicotine_options))
     out.push({ ownerId: productId, namespace: "vape", key: "nicotine_options", type: "list.single_line_text_field", value: JSON.stringify(vape.nicotine_options) });
-  if (Array.isArray(vape.flavours))
-    out.push({ ownerId: productId, namespace: "vape", key: "flavours", type: "list.metaobject_reference", value: JSON.stringify(vape.flavours) });
+  if (Array.isArray(vape.flavors))
+    out.push({ ownerId: productId, namespace: "vape", key: "flavors", type: "list.metaobject_reference", value: JSON.stringify(vape.flavors) });
   return out;
 }
 

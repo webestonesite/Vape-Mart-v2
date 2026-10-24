@@ -52,12 +52,17 @@ function PrimaryBtn({ onClick, children }: { onClick: () => void; children: Reac
 const VAPE_FIELDS: { key: string; label: string; type?: string }[] = [
   { key: "badge", label: "Badge (BEST SELLER / NEW)" },
   { key: "subtitle", label: "Subtitle" },
-  { key: "puff_count", label: "Puff count", type: "number" },
+  { key: "short_description", label: "Short description" },
+  { key: "puffs", label: "Puff count", type: "number" },
+  { key: "puff_range", label: "Puff range (e.g. 10000 Puffs)" },
   { key: "nicotine_strength", label: "Nicotine strength (20mg)" },
-  { key: "battery", label: "Battery" },
-  { key: "coil", label: "Coil" },
-  { key: "charging", label: "Charging" },
-  { key: "e_liquid", label: "E-liquid" },
+  { key: "battery_capacity", label: "Battery" },
+  { key: "coil_type", label: "Coil" },
+  { key: "charging_type", label: "Charging" },
+  { key: "e_liquid_capacity", label: "E-liquid" },
+  { key: "activation", label: "Activation" },
+  { key: "vg_pg_ratio", label: "VG/PG ratio" },
+  { key: "flavor_family", label: "Flavor family (fruit_ice / menthol / tobacco / dessert)" },
   { key: "sweetness", label: "Sweetness (1–5)", type: "number" },
   { key: "cooling", label: "Cooling (1–5)", type: "number" },
   { key: "throat_hit", label: "Throat hit (1–5)", type: "number" },
@@ -187,7 +192,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
   const [collectionIds, setCollectionIds] = useState<string[]>([]);
   const [vape, setVape] = useState<any>({});
   const [nicOpts, setNicOpts] = useState("");
-  const [flavours, setFlavours] = useState<string[]>([]);
+  const [selFlavors, setSelFlavors] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [imgUrl, setImgUrl] = useState("");
   const [saving, setSaving] = useState(false);
@@ -212,7 +217,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
       setCollectionIds(d.collections);
       setVape(d.vape || {});
       setNicOpts(parseJsonList(d.vape?.nicotine_options).join(", "));
-      setFlavours(parseJsonList(d.vape?.flavours));
+      setSelFlavors(parseJsonList(d.vape?.flavors));
       setLoading(false);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -244,7 +249,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
     setSaving(true);
     const vapePayload: any = { ...vape };
     vapePayload.nicotine_options = nicOpts.split(",").map((s) => s.trim()).filter(Boolean);
-    vapePayload.flavours = flavours;
+    vapePayload.flavors = selFlavors;
     const base = {
       title: form.title, handle: form.handle || undefined, descriptionHtml: form.descriptionHtml,
       vendor: form.vendor, productType: form.productType, tags: form.tags, status: form.status,
@@ -523,11 +528,11 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
               <Lbl>Flavours (tap to select)</Lbl>
               <div className="flex flex-wrap gap-2">
                 {(data.flavors || []).map((fl: any) => {
-                  const on = flavours.includes(fl.id);
+                  const on = selFlavors.includes(fl.id);
                   return (
                     <button
                       key={fl.id}
-                      onClick={() => setFlavours(on ? flavours.filter((x) => x !== fl.id) : [...flavours, fl.id])}
+                      onClick={() => setSelFlavors(on ? selFlavors.filter((x) => x !== fl.id) : [...selFlavors, fl.id])}
                       className={`rounded-full px-3 py-1.5 text-xs font-semibold border ${
                         on ? "bg-neutral-900 text-white border-neutral-900" : "bg-white text-neutral-700 border-neutral-300"
                       }`}
