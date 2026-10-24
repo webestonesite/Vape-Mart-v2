@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import React from "react";
 
 export const metadata: Metadata = {
-  title: "Admin Panel | Vape Mart Theme & Header Manager",
-  description: "Manage header, navigation, and storefront customizer settings for Vape Mart.",
+  title: "Admin | Vape Mart",
+  description: "Manage the Vape Mart store: products, content, blog, menu and settings.",
 };
 
 export default function AdminLayout({
@@ -12,7 +12,7 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-[#070d0b] text-neutral-100 antialiased selection:bg-emerald-500 selection:text-white">
+    <div className="min-h-screen bg-[#f6f6f7] text-neutral-900 antialiased selection:bg-emerald-500 selection:text-white">
       {children}
     </div>
   );
