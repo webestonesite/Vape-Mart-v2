@@ -97,6 +97,14 @@ async function shopifyAdmin<T>(query: string, variables: Record<string, unknown>
 }
 
 /* ------------------------------------------------------------------ */
+/*  Admin writes (used by the /admin panel API — never cached)         */
+/* ------------------------------------------------------------------ */
+
+export async function shopifyAdminMutation<T>(query: string, variables: Record<string, unknown> = {}): Promise<T> {
+  return shopifyAdmin<T>(query, variables, 0);
+}
+
+/* ------------------------------------------------------------------ */
 /*  Metafield helpers                                                  */
 /* ------------------------------------------------------------------ */
 
@@ -574,11 +582,23 @@ export interface FaqItem {
   position: number;
 }
 
+export interface ShowcaseCard {
+  sectionKey: string;
+  title: string;
+  price: string;
+  revs: number;
+  badge: string;
+  brand: string;
+  imageUrl: string;
+  position: number;
+}
+
 export interface SiteContent {
   heroSlides: HeroSlide[];
   homeSections: HomeSectionData[];
   testimonials: Testimonial[];
   faqs: FaqItem[];
+  showcaseCards: ShowcaseCard[];
 }
 
 interface MetaobjectNode {
@@ -616,11 +636,14 @@ const SITE_CONTENT_QUERY = `
     faqItems: metaobjects(type: "faq_item", first: 20) {
       nodes { id fields { key value } }
     }
+    showcaseCards: metaobjects(type: "showcase_card", first: 40) {
+      nodes { id fields { key value } }
+    }
   }
 `;
 
 export async function fetchSiteContent(): Promise<SiteContent> {
-  const empty: SiteContent = { heroSlides: [], homeSections: [], testimonials: [], faqs: [] };
+  const empty: SiteContent = { heroSlides: [], homeSections: [], testimonials: [], faqs: [], showcaseCards: [] };
   try {
     const data = await shopifyAdmin<any>(SITE_CONTENT_QUERY, {}, 600);
     const heroSlides: HeroSlide[] = (data.heroSlides?.nodes ?? [])
@@ -677,7 +700,23 @@ export async function fetchSiteContent(): Promise<SiteContent> {
       })
       .filter((t: FaqItem) => t.question && t.answer)
       .sort((a: FaqItem, b: FaqItem) => a.position - b.position);
-    return { heroSlides, homeSections, testimonials, faqs };
+    const showcaseCards: ShowcaseCard[] = (data.showcaseCards?.nodes ?? [])
+      .map((n: MetaobjectNode) => {
+        const f = moFields(n);
+        return {
+          sectionKey: f.section_key || "",
+          title: f.title || "",
+          price: f.price || "",
+          revs: parseInt(f.revs || "0", 10) || 0,
+          badge: f.badge || "",
+          brand: f.brand || "",
+          imageUrl: f.image_url || "",
+          position: parseInt(f.position || "0", 10) || 0,
+        };
+      })
+      .filter((c: ShowcaseCard) => c.sectionKey && c.title)
+      .sort((a: ShowcaseCard, b: ShowcaseCard) => a.position - b.position);
+    return { heroSlides, homeSections, testimonials, faqs, showcaseCards };
   } catch {
     return empty;
   }

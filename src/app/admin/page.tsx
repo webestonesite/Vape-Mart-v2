@@ -1,1310 +1,1061 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
-import Image from "next/image";
-import Link from "next/link";
-import {
-  Sliders,
-  Layout,
-  Menu,
-  Layers,
-  Save,
-  RotateCcw,
-  Plus,
-  Trash2,
-  MoveUp,
-  MoveDown,
-  Phone,
-  Search,
-  ExternalLink,
-  CheckCircle2,
-  AlertCircle,
-  HelpCircle,
-  ChevronDown,
-  ChevronRight,
-  ShoppingBag,
-  Heart,
-  User,
-  ShieldCheck,
-  Eye,
-  Lock,
-  Tag,
-  Truck,
-  Star,
-  FolderPlus,
-  Grid,
-} from "lucide-react";
-import defaultTheme from "@/data/theme-published.json";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Save, Plus, Trash2, LogOut, RefreshCw, Search } from "lucide-react";
 
-export interface SubMenuItem {
-  title: string;
-  href: string;
-  badge?: string;
-  desc?: string;
+/* ------------------------------------------------------------------ */
+/*  Vape Mart Admin Panel                                              */
+/*  Manages everything the storefront reads from Shopify — top bar,    */
+/*  hero, sections, showcase cards, reviews, FAQ, blog, pages, menu    */
+/*  and basic product price/stock — without opening Shopify admin.     */
+/* ------------------------------------------------------------------ */
+
+async function api(body: any): Promise<any> {
+  const res = await fetch("/api/admin-panel", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  return res.json();
 }
 
-export interface MegaMenuColumn {
-  heading: string;
-  items: SubMenuItem[];
+const inputCls =
+  "w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder:text-neutral-500 outline-none focus:border-emerald-400/60";
+const labelCls = "block text-[11px] font-semibold uppercase tracking-wider text-emerald-300/80 mb-1";
+
+function Lbl({ children }: { children: React.ReactNode }) {
+  return <label className={labelCls}>{children}</label>;
+}
+function Inp(props: React.InputHTMLAttributes<HTMLInputElement>) {
+  return <input {...props} className={inputCls} />;
+}
+function TA(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  return <textarea {...props} className={inputCls} />;
+}
+function SaveBtn({ onClick, children }: { onClick: () => void; children?: React.ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500 px-3.5 py-2 text-sm font-semibold text-white hover:bg-emerald-400 transition"
+    >
+      <Save size={15} /> {children || "Save"}
+    </button>
+  );
+}
+function DelBtn({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="inline-flex items-center gap-1.5 rounded-lg bg-red-500/15 border border-red-400/30 px-3 py-2 text-sm font-semibold text-red-300 hover:bg-red-500/25 transition"
+    >
+      <Trash2 size={15} /> Delete
+    </button>
+  );
+}
+function Card({ title, children, right }: { title: string; children: React.ReactNode; right?: React.ReactNode }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-5 mb-5">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-base font-bold text-white">{title}</h3>
+        {right}
+      </div>
+      {children}
+    </div>
+  );
 }
 
-export interface MegaMenuBanner {
-  title: string;
-  subtitle?: string;
-  image?: string;
-  badge?: string;
-  href?: string;
-  buttonText?: string;
-}
-
-export interface NavItemConfig {
-  label: string;
-  href: string;
-  badge?: string;
-  hasDropdown?: boolean;
-  columns?: MegaMenuColumn[];
-  featuredBanner?: MegaMenuBanner;
-}
-
-export interface HeaderConfig {
-  topBar: {
-    enabled: boolean;
-    announcements: string[];
-    phone: string;
-    phoneHref?: string;
-    links: { label: string; href: string }[];
-  };
-  logo: {
-    src: string;
-    alt: string;
-    width?: number;
-    height?: number;
-  };
-  search: {
-    placeholder: string;
-  };
-  navItems: NavItemConfig[];
-  actions?: {
-    showWishlist?: boolean;
-    showAccount?: boolean;
-    showCart?: boolean;
-  };
-}
+const TABS = [
+  { key: "settings", label: "Top Bar & Footer" },
+  { key: "hero", label: "Hero Slides" },
+  { key: "sections", label: "Home Sections" },
+  { key: "showcase", label: "TEREA / JUUL Cards" },
+  { key: "reviews", label: "Reviews" },
+  { key: "faq", label: "FAQ" },
+  { key: "blog", label: "Blog Posts" },
+  { key: "pages", label: "Pages" },
+  { key: "menu", label: "Menu" },
+  { key: "products", label: "Products" },
+] as const;
 
 export default function AdminPage() {
-  const [headerConfig, setHeaderConfig] = useState<HeaderConfig>(() => {
-    return (
-      (defaultTheme as { header?: HeaderConfig }).header || {
-        topBar: {
-          enabled: true,
-          announcements: [
-            "Secure Payment | COD Available",
-            "Exclusive offer up to 10% OFF",
-            "100% Authentic Products - Original Brands Guaranteed",
-            "Free Delivery on Orders Above AED 350",
-            "20,000+ Happy Customers",
-          ],
-          phone: "+971 55 168 8299",
-          phoneHref: "tel:+971551688299",
-          links: [
-            { label: "About Us", href: "#" },
-            { label: "Contact Us", href: "#" },
-          ],
-        },
-        logo: {
-          src: "/vape-mart-text-logo-white.png",
-          alt: "Vape Mart Logo",
-          width: 170,
-          height: 40,
-        },
-        search: {
-          placeholder: "Search for vapes, e-liquids, brands...",
-        },
-        navItems: [
-          { label: "HOME", href: "/", badge: "Main" },
-          { label: "SHOP", href: "#", badge: "Hot" },
-          { label: "DISPOSABLE VAPE", href: "#", badge: "Popular", hasDropdown: true },
-          { label: "NICOTINE POUCHES", href: "#", badge: "Fresh" },
-          { label: "SHISHA/HOOKAH", href: "#", badge: "", hasDropdown: true },
-          { label: "PODS SYSTEM", href: "#", badge: "Sale", hasDropdown: true },
-          { label: "E-LIQUID", href: "#", badge: "Top", hasDropdown: true },
-          { label: "VAPE KIT", href: "#", badge: "" },
-          { label: "BRANDS", href: "#", badge: "" },
-          { label: "OFFERS", href: "#", badge: "10% OFF" },
-        ],
-        actions: {
-          showWishlist: true,
-          showAccount: true,
-          showCart: true,
-        },
-      }
-    );
-  });
+  const [phase, setPhase] = useState<"loading" | "setup" | "login" | "app">("loading");
+  const [authError, setAuthError] = useState("");
+  const [setupCode, setSetupCode] = useState("");
+  const [password, setPassword] = useState("");
+  const [data, setData] = useState<any>(null);
+  const [tab, setTab] = useState<string>("settings");
+  const [toast, setToast] = useState("");
 
-  const [activeTab, setActiveTab] = useState<"topbar" | "logo" | "nav" | "preview">("nav");
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
-  const [errorMessage, setErrorMessage] = useState<string>("");
-  const [isPending, startTransition] = useTransition();
-  const [expandedDropdownIdx, setExpandedDropdownIdx] = useState<number | null>(2); // Default expand 1st dropdown (DISPOSABLE VAPE)
-
-  // Fetch current stored theme on mount
-  useEffect(() => {
-    fetch("/api/admin/theme")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data?.data?.header) {
-          setHeaderConfig(data.data.header);
-        }
-      })
-      .catch((err) => {
-        console.error("Failed to load header config from API:", err);
-      });
+  const notify = useCallback((msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(""), 4200);
   }, []);
 
-  const handleSave = async () => {
-    setSaveStatus("saving");
-    setErrorMessage("");
+  const loadData = useCallback(async () => {
+    const r = await api({ action: "data" });
+    if (r.ok) setData(r.data);
+    else notify(r.error || "Failed to load data");
+  }, [notify]);
 
-    try {
-      const res = await fetch("/api/admin/theme", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ header: headerConfig }),
-      });
+  useEffect(() => {
+    fetch("/api/admin-panel")
+      .then((r) => r.json())
+      .then((s) => {
+        if (s.setupNeeded) setPhase("setup");
+        else if (s.authed) {
+          setPhase("app");
+          loadData();
+        } else setPhase("login");
+      })
+      .catch(() => setPhase("login"));
+  }, [loadData]);
 
-      const json = await res.json();
-      if (!res.ok || !json.success) {
-        throw new Error(json.error || "Failed to save header configuration");
-      }
-
-      setSaveStatus("success");
-      setTimeout(() => {
-        setSaveStatus("idle");
-      }, 3500);
-    } catch (err: unknown) {
-      setSaveStatus("error");
-      setErrorMessage(err instanceof Error ? err.message : "Network error");
-    }
+  const doSetup = async () => {
+    setAuthError("");
+    const r = await api({ action: "setup", code: setupCode.trim(), password });
+    if (r.ok) {
+      setPhase("app");
+      loadData();
+    } else setAuthError(r.error || "Setup failed");
+  };
+  const doLogin = async () => {
+    setAuthError("");
+    const r = await api({ action: "login", password });
+    if (r.ok) {
+      setPhase("app");
+      loadData();
+    } else setAuthError(r.error || "Login failed");
+  };
+  const doLogout = async () => {
+    await api({ action: "logout" });
+    setData(null);
+    setPhase("login");
   };
 
-  const handleReset = () => {
-    if (confirm("Reset edits back to original settings?")) {
-      startTransition(() => {
-        fetch("/api/admin/theme")
-          .then((res) => res.json())
-          .then((data) => {
-            if (data?.data?.header) {
-              setHeaderConfig(data.data.header);
-            }
-          });
-      });
-    }
-  };
+  const save = useCallback(
+    async (saveAction: string, payload: any) => {
+      const r = await api({ action: "save", saveAction, payload });
+      if (r.ok) {
+        notify(r.message || "Saved");
+        loadData();
+      } else notify("Error: " + (r.error || "save failed"));
+      return r;
+    },
+    [notify, loadData]
+  );
 
-  // Top Bar Handlers
-  const handleAnnouncementChange = (index: number, val: string) => {
-    const list = [...headerConfig.topBar.announcements];
-    list[index] = val;
-    setHeaderConfig({
-      ...headerConfig,
-      topBar: { ...headerConfig.topBar, announcements: list },
-    });
-  };
+  if (phase === "loading") {
+    return <div className="flex min-h-screen items-center justify-center text-neutral-400">Loading panel…</div>;
+  }
 
-  const handleAddAnnouncement = () => {
-    setHeaderConfig({
-      ...headerConfig,
-      topBar: {
-        ...headerConfig.topBar,
-        announcements: [...headerConfig.topBar.announcements, "New promotional notice"],
-      },
-    });
-  };
-
-  const handleRemoveAnnouncement = (index: number) => {
-    const list = headerConfig.topBar.announcements.filter((_, i) => i !== index);
-    setHeaderConfig({
-      ...headerConfig,
-      topBar: { ...headerConfig.topBar, announcements: list },
-    });
-  };
-
-  const handleMoveAnnouncement = (index: number, direction: "up" | "down") => {
-    const list = [...headerConfig.topBar.announcements];
-    const target = direction === "up" ? index - 1 : index + 1;
-    if (target < 0 || target >= list.length) return;
-    const temp = list[index];
-    list[index] = list[target];
-    list[target] = temp;
-    setHeaderConfig({
-      ...headerConfig,
-      topBar: { ...headerConfig.topBar, announcements: list },
-    });
-  };
-
-  // Nav Items Handlers
-  const handleNavItemChange = (index: number, field: keyof NavItemConfig, val: unknown) => {
-    const list = [...headerConfig.navItems];
-    list[index] = { ...list[index], [field]: val };
-
-    // If enabling dropdown and no columns exist, provide a sensible default template
-    if (field === "hasDropdown" && val === true && (!list[index].columns || list[index].columns?.length === 0)) {
-      list[index].columns = [
-        {
-          heading: "Popular Categories",
-          items: [
-            { title: "Best Sellers", href: "#", badge: "HOT" },
-            { title: "New Arrivals", href: "#" },
-          ],
-        },
-        {
-          heading: "Shop By Type",
-          items: [
-            { title: "Premium Series", href: "#" },
-            { title: "Standard Kits", href: "#" },
-          ],
-        },
-      ];
-      list[index].featuredBanner = {
-        title: `${list[index].label} Special`,
-        subtitle: "Exclusive deals with same-day delivery in UAE",
-        badge: "SALE",
-        image: "/images/disposable_vape.png",
-        href: "#",
-      };
-      setExpandedDropdownIdx(index);
-    }
-
-    setHeaderConfig({ ...headerConfig, navItems: list });
-  };
-
-  const handleAddNavItem = () => {
-    setHeaderConfig({
-      ...headerConfig,
-      navItems: [
-        ...headerConfig.navItems,
-        { label: "NEW LINK", href: "#", badge: "", hasDropdown: false },
-      ],
-    });
-  };
-
-  const handleRemoveNavItem = (index: number) => {
-    const list = headerConfig.navItems.filter((_, i) => i !== index);
-    setHeaderConfig({ ...headerConfig, navItems: list });
-    if (expandedDropdownIdx === index) {
-      setExpandedDropdownIdx(null);
-    }
-  };
-
-  const handleMoveNavItem = (index: number, direction: "up" | "down") => {
-    const list = [...headerConfig.navItems];
-    const target = direction === "up" ? index - 1 : index + 1;
-    if (target < 0 || target >= list.length) return;
-    const temp = list[index];
-    list[index] = list[target];
-    list[target] = temp;
-    setHeaderConfig({ ...headerConfig, navItems: list });
-    if (expandedDropdownIdx === index) setExpandedDropdownIdx(target);
-  };
-
-  // Mega Menu Handlers
-  const handleAddColumn = (navIdx: number) => {
-    const list = [...headerConfig.navItems];
-    const item = { ...list[navIdx] };
-    const cols = [...(item.columns || [])];
-    cols.push({
-      heading: "New Column",
-      items: [
-        { title: "Sub Category 1", href: "#" },
-        { title: "Sub Category 2", href: "#" },
-      ],
-    });
-    item.columns = cols;
-    list[navIdx] = item;
-    setHeaderConfig({ ...headerConfig, navItems: list });
-  };
-
-  const handleRemoveColumn = (navIdx: number, colIdx: number) => {
-    const list = [...headerConfig.navItems];
-    const item = { ...list[navIdx] };
-    item.columns = (item.columns || []).filter((_, i) => i !== colIdx);
-    list[navIdx] = item;
-    setHeaderConfig({ ...headerConfig, navItems: list });
-  };
-
-  const handleColumnHeadingChange = (navIdx: number, colIdx: number, heading: string) => {
-    const list = [...headerConfig.navItems];
-    const item = { ...list[navIdx] };
-    const cols = [...(item.columns || [])];
-    cols[colIdx] = { ...cols[colIdx], heading };
-    item.columns = cols;
-    list[navIdx] = item;
-    setHeaderConfig({ ...headerConfig, navItems: list });
-  };
-
-  const handleAddSubItem = (navIdx: number, colIdx: number) => {
-    const list = [...headerConfig.navItems];
-    const item = { ...list[navIdx] };
-    const cols = [...(item.columns || [])];
-    const subItems = [...(cols[colIdx].items || [])];
-    subItems.push({ title: "New Item", href: "#", badge: "" });
-    cols[colIdx] = { ...cols[colIdx], items: subItems };
-    item.columns = cols;
-    list[navIdx] = item;
-    setHeaderConfig({ ...headerConfig, navItems: list });
-  };
-
-  const handleRemoveSubItem = (navIdx: number, colIdx: number, subIdx: number) => {
-    const list = [...headerConfig.navItems];
-    const item = { ...list[navIdx] };
-    const cols = [...(item.columns || [])];
-    cols[colIdx] = {
-      ...cols[colIdx],
-      items: cols[colIdx].items.filter((_, i) => i !== subIdx),
-    };
-    item.columns = cols;
-    list[navIdx] = item;
-    setHeaderConfig({ ...headerConfig, navItems: list });
-  };
-
-  const handleSubItemChange = (
-    navIdx: number,
-    colIdx: number,
-    subIdx: number,
-    field: keyof SubMenuItem,
-    val: string
-  ) => {
-    const list = [...headerConfig.navItems];
-    const item = { ...list[navIdx] };
-    const cols = [...(item.columns || [])];
-    const subItems = [...cols[colIdx].items];
-    subItems[subIdx] = { ...subItems[subIdx], [field]: val };
-    cols[colIdx] = { ...cols[colIdx], items: subItems };
-    item.columns = cols;
-    list[navIdx] = item;
-    setHeaderConfig({ ...headerConfig, navItems: list });
-  };
-
-  const handleBannerChange = (
-    navIdx: number,
-    field: keyof MegaMenuBanner,
-    val: string
-  ) => {
-    const list = [...headerConfig.navItems];
-    const item = { ...list[navIdx] };
-    item.featuredBanner = {
-      title: "",
-      ...item.featuredBanner,
-      [field]: val,
-    };
-    list[navIdx] = item;
-    setHeaderConfig({ ...headerConfig, navItems: list });
-  };
+  if (phase === "setup" || phase === "login") {
+    return (
+      <div className="flex min-h-screen items-center justify-center px-4">
+        <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+          <h1 className="text-xl font-bold text-white mb-1">Vape Mart Admin</h1>
+          <p className="text-sm text-neutral-400 mb-5">
+            {phase === "setup"
+              ? "First time setup: enter the setup code you received and choose a panel password."
+              : "Enter your panel password to manage the whole site from here."}
+          </p>
+          {phase === "setup" && (
+            <div className="mb-3">
+              <Lbl>Setup code</Lbl>
+              <Inp value={setupCode} onChange={(e) => setSetupCode(e.target.value)} placeholder="Setup code" />
+            </div>
+          )}
+          <div className="mb-4">
+            <Lbl>{phase === "setup" ? "New panel password (min 8 characters)" : "Password"}</Lbl>
+            <Inp
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              onKeyDown={(e) => e.key === "Enter" && (phase === "setup" ? doSetup() : doLogin())}
+            />
+          </div>
+          {authError && <p className="text-sm text-red-300 mb-3">{authError}</p>}
+          <button
+            onClick={phase === "setup" ? doSetup : doLogin}
+            className="w-full rounded-lg bg-emerald-500 py-2.5 font-semibold text-white hover:bg-emerald-400 transition"
+          >
+            {phase === "setup" ? "Set password & enter" : "Log in"}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen">
-      {/* Sidebar Navigation */}
-      <aside className="w-full lg:w-72 bg-[#031c15] border-b lg:border-b-0 lg:border-r border-emerald-900/60 flex flex-col justify-between shrink-0">
+    <div className="mx-auto max-w-6xl px-3 sm:px-5 py-5">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
         <div>
-          {/* Brand header */}
-          <div className="p-6 border-b border-emerald-900/40 flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-emerald-400 font-bold">
-                  VM
-                </div>
-                <div>
-                  <h1 className="text-base font-bold text-white tracking-wide">Vape Mart</h1>
-                  <span className="text-[10px] text-emerald-400/80 font-mono tracking-widest uppercase">Admin Panel</span>
-                </div>
-              </div>
-            </div>
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 text-[10px] font-semibold">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              Live
-            </span>
-          </div>
-
-          {/* Navigation Links */}
-          <nav className="p-4 space-y-1.5">
-            <button
-              onClick={() => setActiveTab("nav")}
-              className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-semibold tracking-wide transition-all ${
-                activeTab === "nav"
-                  ? "bg-emerald-600 text-white shadow-lg shadow-emerald-900/40"
-                  : "text-neutral-300 hover:bg-emerald-950/40 hover:text-white"
-              }`}
-            >
-              <Menu size={16} />
-              <span>Navigation & Mega Menu</span>
-              <span className="ml-auto bg-emerald-950/80 text-emerald-300 px-2 py-0.5 rounded-full text-[10px] font-mono border border-emerald-800/40">
-                {headerConfig.navItems.length}
-              </span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab("topbar")}
-              className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-semibold tracking-wide transition-all ${
-                activeTab === "topbar"
-                  ? "bg-emerald-600 text-white shadow-lg shadow-emerald-900/40"
-                  : "text-neutral-300 hover:bg-emerald-950/40 hover:text-white"
-              }`}
-            >
-              <Layout size={16} />
-              <span>Top Bar & Ticker</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab("logo")}
-              className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-semibold tracking-wide transition-all ${
-                activeTab === "logo"
-                  ? "bg-emerald-600 text-white shadow-lg shadow-emerald-900/40"
-                  : "text-neutral-300 hover:bg-emerald-950/40 hover:text-white"
-              }`}
-            >
-              <Sliders size={16} />
-              <span>Logo & Search Bar</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab("preview")}
-              className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-semibold tracking-wide transition-all ${
-                activeTab === "preview"
-                  ? "bg-emerald-600 text-white shadow-lg shadow-emerald-900/40"
-                  : "text-neutral-300 hover:bg-emerald-950/40 hover:text-white"
-              }`}
-            >
-              <Eye size={16} />
-              <span>Live Visual Preview</span>
-            </button>
-          </nav>
+          <h1 className="text-xl sm:text-2xl font-bold text-white">Vape Mart Admin Panel</h1>
+          <p className="text-xs sm:text-sm text-neutral-400">
+            Sob content ekhan thekei manage hobe. Save korle site-e 5–10 minute-er moddhe update hoy.
+          </p>
         </div>
-
-        {/* Footer Actions in Sidebar */}
-        <div className="p-4 border-t border-emerald-900/40 space-y-3">
-          <Link
-            href="/"
-            target="_blank"
-            className="flex items-center justify-center gap-2 w-full py-2.5 px-3 rounded-xl text-xs font-semibold bg-emerald-950/60 hover:bg-emerald-900/40 text-emerald-200 border border-emerald-800/50 transition-colors"
+        <div className="flex gap-2">
+          <button
+            onClick={loadData}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-3 py-2 text-sm text-neutral-200 hover:bg-white/5"
           >
-            <ExternalLink size={14} />
-            <span>View Public Storefront</span>
-          </Link>
-          <div className="text-[11px] text-neutral-400 text-center font-mono">
-            Vape Mart Customizer v2.4
-          </div>
+            <RefreshCw size={15} /> Reload
+          </button>
+          <button
+            onClick={doLogout}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-3 py-2 text-sm text-neutral-200 hover:bg-white/5"
+          >
+            <LogOut size={15} /> Log out
+          </button>
         </div>
-      </aside>
+      </div>
 
-      {/* Main Content Workspace */}
-      <main className="flex-1 flex flex-col bg-[#05130f] overflow-y-auto min-h-screen">
-        {/* Top Control Bar */}
-        <header className="sticky top-0 z-30 bg-[#041a13]/90 backdrop-blur-md border-b border-emerald-900/50 px-6 py-4 flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h2 className="text-lg font-bold text-white flex items-center gap-2.5">
-              <span>Header & Mega Menu Customizer</span>
-              <span className="text-xs px-2.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                theme-published.json
-              </span>
-            </h2>
-            <p className="text-xs text-neutral-400 mt-0.5">
-              Configure top bar, logo, and multi-column mega menus for categories like Disposable Vapes, Shisha, Pods.
-            </p>
+      <div className="flex gap-2 overflow-x-auto pb-2 mb-4 -mx-1 px-1">
+        {TABS.map((t) => (
+          <button
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition ${
+              tab === t.key ? "bg-emerald-500 text-white" : "bg-white/5 text-neutral-300 hover:bg-white/10"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {!data ? (
+        <p className="text-neutral-400">Loading content…</p>
+      ) : (
+        <>
+          {tab === "settings" && <SettingsTab data={data} save={save} />}
+          {tab === "hero" && <HeroTab data={data} save={save} />}
+          {tab === "sections" && <SectionsTab data={data} save={save} />}
+          {tab === "showcase" && <ShowcaseTab data={data} save={save} />}
+          {tab === "reviews" && <ReviewsTab data={data} save={save} />}
+          {tab === "faq" && <FaqTab data={data} save={save} />}
+          {tab === "blog" && <BlogTab data={data} save={save} />}
+          {tab === "pages" && <PagesTab data={data} save={save} />}
+          {tab === "menu" && <MenuTab data={data} save={save} />}
+          {tab === "products" && <ProductsTab data={data} save={save} />}
+        </>
+      )}
+
+      {toast && (
+        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-xl max-w-[92vw] text-center">
+          {toast}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Settings: announcements, phone, footer                             */
+/* ------------------------------------------------------------------ */
+
+function SettingsTab({ data, save }: any) {
+  const [ann, setAnn] = useState<string[]>(data.settings.announcements || []);
+  const [phone, setPhone] = useState(data.settings.phone || "");
+  const [footerText, setFooterText] = useState(data.settings.footerText || "");
+  useEffect(() => {
+    setAnn(data.settings.announcements || []);
+    setPhone(data.settings.phone || "");
+    setFooterText(data.settings.footerText || "");
+  }, [data]);
+
+  return (
+    <Card title="Top bar, phone & footer">
+      <Lbl>Announcements (top bar-e ghure)</Lbl>
+      {ann.map((a, i) => (
+        <div key={i} className="flex gap-2 mb-2">
+          <Inp value={a} onChange={(e) => setAnn(ann.map((x, j) => (j === i ? e.target.value : x)))} />
+          <button
+            onClick={() => setAnn(ann.filter((_, j) => j !== i))}
+            className="shrink-0 rounded-lg border border-red-400/30 px-3 text-red-300 hover:bg-red-500/10"
+          >
+            <Trash2 size={15} />
+          </button>
+        </div>
+      ))}
+      <button
+        onClick={() => setAnn([...ann, ""])}
+        className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-3 py-2 text-sm text-neutral-200 hover:bg-white/5 mb-4"
+      >
+        <Plus size={15} /> Add announcement
+      </button>
+      <div className="grid sm:grid-cols-2 gap-4 mb-4">
+        <div>
+          <Lbl>Phone number</Lbl>
+          <Inp value={phone} onChange={(e) => setPhone(e.target.value)} />
+        </div>
+        <div>
+          <Lbl>Footer text (copyright line)</Lbl>
+          <Inp value={footerText} onChange={(e) => setFooterText(e.target.value)} />
+        </div>
+      </div>
+      <SaveBtn onClick={() => save("settings", { announcements: ann, phone, footerText })} />
+    </Card>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Hero slides                                                        */
+/* ------------------------------------------------------------------ */
+
+function HeroTab({ data, save }: any) {
+  const [slides, setSlides] = useState<any[]>(data.heroSlides || []);
+  useEffect(() => setSlides(data.heroSlides || []), [data]);
+  const upd = (i: number, k: string, v: any) =>
+    setSlides(slides.map((s, j) => (j === i ? { ...s, [k]: v } : s)));
+
+  return (
+    <div>
+      {slides.map((s, i) => (
+        <Card
+          key={s.id || i}
+          title={`Slide ${i + 1}: ${s.title || "(untitled)"}`}
+          right={<DelBtn onClick={() => s.id && save("hero.delete", { id: s.id })} />}
+        >
+          <div className="grid sm:grid-cols-2 gap-4 mb-3">
+            <div className="sm:col-span-2">
+              <Lbl>Title (\n dile line break hobe)</Lbl>
+              <Inp value={s.title} onChange={(e) => upd(i, "title", e.target.value)} />
+            </div>
+            <div className="sm:col-span-2">
+              <Lbl>Description</Lbl>
+              <TA rows={2} value={s.description} onChange={(e) => upd(i, "description", e.target.value)} />
+            </div>
+            <div>
+              <Lbl>Badge</Lbl>
+              <Inp value={s.badge} onChange={(e) => upd(i, "badge", e.target.value)} />
+            </div>
+            <div>
+              <Lbl>Position</Lbl>
+              <Inp type="number" value={s.position} onChange={(e) => upd(i, "position", e.target.value)} />
+            </div>
+            <div>
+              <Lbl>Button text</Lbl>
+              <Inp value={s.buttonText} onChange={(e) => upd(i, "buttonText", e.target.value)} />
+            </div>
+            <div>
+              <Lbl>Button link</Lbl>
+              <Inp value={s.buttonLink} onChange={(e) => upd(i, "buttonLink", e.target.value)} />
+            </div>
           </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleReset}
-              disabled={isPending || saveStatus === "saving"}
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-white/5 hover:bg-white/10 text-neutral-200 border border-white/10 transition-colors cursor-pointer disabled:opacity-50"
-            >
-              <RotateCcw size={14} />
-              <span>Reset</span>
-            </button>
-
-            <button
-              onClick={handleSave}
-              disabled={saveStatus === "saving"}
-              className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-black shadow-lg shadow-emerald-500/25 transition-all transform active:scale-95 cursor-pointer disabled:opacity-50"
-            >
-              {saveStatus === "saving" ? (
-                <>
-                  <span className="w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                  <span>Saving...</span>
-                </>
-              ) : (
-                <>
-                  <Save size={14} />
-                  <span>Publish Header</span>
-                </>
-              )}
-            </button>
+          <div className="flex items-start gap-4 mb-4">
+            {s.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={s.imageUrl} alt="" className="h-20 w-32 rounded-lg object-cover border border-white/10" />
+            ) : (
+              <div className="h-20 w-32 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-xs text-neutral-500">
+                No image
+              </div>
+            )}
+            <div className="flex-1">
+              <Lbl>New image URL (paste korle save-er somoy upload hobe)</Lbl>
+              <Inp
+                placeholder="https://…"
+                value={s.newImageUrl || ""}
+                onChange={(e) => upd(i, "newImageUrl", e.target.value)}
+              />
+              <p className="text-xs text-neutral-500 mt-1">Khali rakhle purano chobi-i thakbe.</p>
+            </div>
           </div>
-        </header>
+          <SaveBtn
+            onClick={() =>
+              save("hero.save", {
+                id: s.id || undefined,
+                title: s.title,
+                description: s.description,
+                badge: s.badge,
+                buttonText: s.buttonText,
+                buttonLink: s.buttonLink,
+                position: Number(s.position) || 0,
+                imageUrl: s.newImageUrl || undefined,
+              })
+            }
+          />
+        </Card>
+      ))}
+      <button
+        onClick={() =>
+          setSlides([
+            ...slides,
+            { title: "", description: "", badge: "", buttonText: "Shop Now", buttonLink: "/collections", position: slides.length + 1 },
+          ])
+        }
+        className="inline-flex items-center gap-1.5 rounded-lg bg-white/5 border border-white/15 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/10"
+      >
+        <Plus size={15} /> Add slide
+      </button>
+    </div>
+  );
+}
 
-        {/* Status Alerts */}
-        {saveStatus === "success" && (
-          <div className="mx-6 mt-4 p-4 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-emerald-200 text-xs flex items-center gap-3 animate-fade-in shadow-lg">
-            <CheckCircle2 size={18} className="text-emerald-400 shrink-0" />
-            <span>Changes successfully written to <strong>src/data/theme-published.json</strong> and active storefront!</span>
-          </div>
-        )}
+/* ------------------------------------------------------------------ */
+/*  Home sections + product picker                                     */
+/* ------------------------------------------------------------------ */
 
-        {saveStatus === "error" && (
-          <div className="mx-6 mt-4 p-4 rounded-xl bg-red-950/80 border border-red-500/40 text-red-200 text-xs flex items-center gap-3 animate-fade-in shadow-lg">
-            <AlertCircle size={18} className="text-red-400 shrink-0" />
-            <span>Error saving changes: {errorMessage}</span>
-          </div>
-        )}
+function SectionsTab({ data, save }: any) {
+  const [sections, setSections] = useState<any[]>(data.sections || []);
+  const [query, setQuery] = useState<Record<string, string>>({});
+  useEffect(() => setSections(data.sections || []), [data]);
+  const upd = (i: number, k: string, v: any) =>
+    setSections(sections.map((s, j) => (j === i ? { ...s, [k]: v } : s)));
+  const byId = useMemo(() => {
+    const m: Record<string, any> = {};
+    for (const p of data.products || []) m[p.id] = p;
+    return m;
+  }, [data]);
 
-        {/* Tab Content Body */}
-        <div className="p-6 max-w-5xl space-y-6">
-          {/* TAB 1: NAVIGATION MENU LINKS & MEGA MENU BUILDER */}
-          {activeTab === "nav" && (
-            <div className="space-y-6">
-              <div className="p-5 rounded-2xl bg-[#031d16] border border-emerald-900/60 shadow-xl space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                      <Grid size={16} className="text-emerald-400" />
-                      <span>Navigation Links & Mega Menu Structure</span>
-                    </h3>
-                    <p className="text-xs text-neutral-400 mt-0.5">
-                      Enable <strong>Dropdown</strong> on any link to customize multi-column categories, links, and promo banners.
-                    </p>
-                  </div>
-                  <button
-                    onClick={handleAddNavItem}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-600/50 transition-colors cursor-pointer"
-                  >
-                    <Plus size={14} />
-                    <span>Add Nav Link</span>
-                  </button>
-                </div>
-
-                <div className="space-y-4">
-                  {headerConfig.navItems.map((item, idx) => {
-                    const isDropdownOpen = expandedDropdownIdx === idx;
-                    return (
-                      <div
-                        key={idx}
-                        className="rounded-2xl bg-[#051712] border border-emerald-900/60 hover:border-emerald-700/80 transition-all overflow-hidden"
-                      >
-                        {/* Top row for nav link details */}
-                        <div className="p-4 flex flex-col md:flex-row items-start md:items-center gap-3 bg-[#051712]">
-                          <span className="text-xs font-mono text-emerald-400 font-bold w-6 shrink-0">
-                            #{idx + 1}
-                          </span>
-
-                          {/* Label */}
-                          <div className="flex-1 w-full md:w-auto">
-                            <label className="text-[10px] text-neutral-400 uppercase font-mono block mb-1">
-                              Menu Label
-                            </label>
-                            <input
-                              type="text"
-                              value={item.label}
-                              onChange={(e) => handleNavItemChange(idx, "label", e.target.value)}
-                              className="w-full bg-[#03140f] border border-emerald-900/80 focus:border-emerald-400 rounded-lg px-3 py-1.5 text-xs text-white outline-none font-semibold"
-                              placeholder="DISPOSABLE VAPE"
-                            />
-                          </div>
-
-                          {/* Href */}
-                          <div className="w-full md:w-40">
-                            <label className="text-[10px] text-neutral-400 uppercase font-mono block mb-1">
-                              Link URL
-                            </label>
-                            <input
-                              type="text"
-                              value={item.href}
-                              onChange={(e) => handleNavItemChange(idx, "href", e.target.value)}
-                              className="w-full bg-[#03140f] border border-emerald-900/80 focus:border-emerald-400 rounded-lg px-3 py-1.5 text-xs text-white outline-none"
-                              placeholder="# or /collections/vape"
-                            />
-                          </div>
-
-                          {/* Badge */}
-                          <div className="w-full md:w-28">
-                            <label className="text-[10px] text-neutral-400 uppercase font-mono block mb-1">
-                              Badge (Tag)
-                            </label>
-                            <input
-                              type="text"
-                              value={item.badge || ""}
-                              onChange={(e) => handleNavItemChange(idx, "badge", e.target.value)}
-                              className="w-full bg-[#03140f] border border-emerald-900/80 focus:border-emerald-400 rounded-lg px-3 py-1.5 text-xs text-white outline-none placeholder:text-neutral-600"
-                              placeholder="HOT, SALE"
-                            />
-                          </div>
-
-                          {/* Dropdown Toggle Checkbox */}
-                          <div className="flex items-center gap-2 pt-2 md:pt-4">
-                            <label className="flex items-center gap-1.5 text-xs text-neutral-300 cursor-pointer bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/10 hover:bg-white/10">
-                              <input
-                                type="checkbox"
-                                checked={!!item.hasDropdown}
-                                onChange={(e) => handleNavItemChange(idx, "hasDropdown", e.target.checked)}
-                                className="rounded accent-emerald-500"
-                              />
-                              <span className="text-[11px] font-semibold text-emerald-300">Mega Dropdown</span>
-                            </label>
-                          </div>
-
-                          {/* Reorder and Delete Actions */}
-                          <div className="flex items-center gap-1 ml-auto pt-2 md:pt-4">
-                            <button
-                              onClick={() => handleMoveNavItem(idx, "up")}
-                              disabled={idx === 0}
-                              className="p-1.5 text-neutral-400 hover:text-white disabled:opacity-30 cursor-pointer"
-                              title="Move Up"
-                            >
-                              <MoveUp size={14} />
-                            </button>
-                            <button
-                              onClick={() => handleMoveNavItem(idx, "down")}
-                              disabled={idx === headerConfig.navItems.length - 1}
-                              className="p-1.5 text-neutral-400 hover:text-white disabled:opacity-30 cursor-pointer"
-                              title="Move Down"
-                            >
-                              <MoveDown size={14} />
-                            </button>
-                            <button
-                              onClick={() => handleRemoveNavItem(idx)}
-                              className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-950/50 rounded-lg cursor-pointer"
-                              title="Delete Link"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Dropdown / Mega Menu Editor Accordion */}
-                        {item.hasDropdown && (
-                          <div className="border-t border-emerald-900/60 bg-[#021811]">
-                            <button
-                              onClick={() => setExpandedDropdownIdx(isDropdownOpen ? null : idx)}
-                              className="w-full px-5 py-3 flex items-center justify-between text-xs font-bold text-amber-300 bg-emerald-950/40 hover:bg-emerald-950/80 transition-colors"
-                            >
-                              <span className="flex items-center gap-2">
-                                <Layers size={14} />
-                                <span>
-                                  Configure Mega Menu Dropdown Content for &ldquo;{item.label}&rdquo; (
-                                  {(item.columns || []).length} Columns)
-                                </span>
-                              </span>
-                              <ChevronDown
-                                size={16}
-                                className={`transform transition-transform ${isDropdownOpen ? "rotate-180" : ""}`}
-                              />
-                            </button>
-
-                            {isDropdownOpen && (
-                              <div className="p-5 space-y-6 border-t border-emerald-900/40">
-                                {/* Columns Management */}
-                                <div className="space-y-4">
-                                  <div className="flex items-center justify-between">
-                                    <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                                      <span>Mega Menu Columns</span>
-                                      <span className="text-[10px] text-neutral-400 font-normal">
-                                        (Organize by brands, puff count, flavor, etc.)
-                                      </span>
-                                    </h4>
-                                    <button
-                                      onClick={() => handleAddColumn(idx)}
-                                      className="inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 transition-colors cursor-pointer"
-                                    >
-                                      <Plus size={13} />
-                                      <span>Add Column</span>
-                                    </button>
-                                  </div>
-
-                                  {/* Columns Grid */}
-                                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {(item.columns || []).map((col, colIdx) => (
-                                      <div
-                                        key={colIdx}
-                                        className="p-4 rounded-xl bg-[#041d15] border border-emerald-900/80 flex flex-col justify-between space-y-3"
-                                      >
-                                        <div className="space-y-3">
-                                          <div className="flex items-center justify-between gap-2">
-                                            <input
-                                              type="text"
-                                              value={col.heading}
-                                              onChange={(e) =>
-                                                handleColumnHeadingChange(idx, colIdx, e.target.value)
-                                              }
-                                              placeholder="Column Heading"
-                                              className="bg-transparent border-b border-emerald-700 focus:border-amber-400 text-xs font-bold text-amber-300 py-1 outline-none w-full"
-                                            />
-                                            <button
-                                              onClick={() => handleRemoveColumn(idx, colIdx)}
-                                              className="text-red-400 hover:text-red-300 p-1"
-                                              title="Delete Column"
-                                            >
-                                              <Trash2 size={13} />
-                                            </button>
-                                          </div>
-
-                                          {/* Sub-items in this column */}
-                                          <div className="space-y-2">
-                                            {col.items.map((subItem, subIdx) => (
-                                              <div
-                                                key={subIdx}
-                                                className="flex items-center gap-1.5 p-1.5 bg-[#02140e] rounded-lg border border-emerald-950"
-                                              >
-                                                <input
-                                                  type="text"
-                                                  value={subItem.title}
-                                                  onChange={(e) =>
-                                                    handleSubItemChange(
-                                                      idx,
-                                                      colIdx,
-                                                      subIdx,
-                                                      "title",
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                  placeholder="Link Title"
-                                                  className="flex-1 bg-transparent text-[11px] text-white outline-none"
-                                                />
-                                                <input
-                                                  type="text"
-                                                  value={subItem.href}
-                                                  onChange={(e) =>
-                                                    handleSubItemChange(
-                                                      idx,
-                                                      colIdx,
-                                                      subIdx,
-                                                      "href",
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                  placeholder="URL (#)"
-                                                  className="w-16 bg-transparent text-[10px] text-neutral-400 font-mono outline-none"
-                                                />
-                                                <input
-                                                  type="text"
-                                                  value={subItem.badge || ""}
-                                                  onChange={(e) =>
-                                                    handleSubItemChange(
-                                                      idx,
-                                                      colIdx,
-                                                      subIdx,
-                                                      "badge",
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                  placeholder="Tag"
-                                                  className="w-12 bg-transparent text-[10px] text-amber-300 font-bold outline-none placeholder:text-neutral-700"
-                                                />
-                                                <button
-                                                  onClick={() => handleRemoveSubItem(idx, colIdx, subIdx)}
-                                                  className="text-neutral-500 hover:text-red-400 p-1"
-                                                >
-                                                  <Trash2 size={12} />
-                                                </button>
-                                              </div>
-                                            ))}
-                                          </div>
-                                        </div>
-
-                                        <button
-                                          onClick={() => handleAddSubItem(idx, colIdx)}
-                                          className="w-full py-1.5 rounded-lg text-[11px] font-semibold bg-emerald-950/60 hover:bg-emerald-900/60 text-emerald-300 border border-emerald-800/40 flex items-center justify-center gap-1 cursor-pointer transition-colors"
-                                        >
-                                          <Plus size={12} />
-                                          <span>Add Sub-Item</span>
-                                        </button>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-
-                                {/* Promo Card Configuration */}
-                                <div className="p-4 rounded-xl bg-[#041d15] border border-emerald-900/80 space-y-3">
-                                  <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                                    <span>Featured Promotional Card inside Mega Menu</span>
-                                    <span className="text-[10px] text-neutral-400 font-normal">
-                                      (Visual highlight card on right side of mega dropdown)
-                                    </span>
-                                  </h4>
-
-                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                    <div>
-                                      <label className="text-[10px] text-neutral-400 block mb-1">
-                                        Promo Title
-                                      </label>
-                                      <input
-                                        type="text"
-                                        value={item.featuredBanner?.title || ""}
-                                        onChange={(e) => handleBannerChange(idx, "title", e.target.value)}
-                                        className="w-full bg-[#02140e] border border-emerald-900/80 rounded-lg px-2.5 py-1.5 text-xs text-white outline-none"
-                                        placeholder="Tugboat Super 24K"
-                                      />
-                                    </div>
-
-                                    <div>
-                                      <label className="text-[10px] text-neutral-400 block mb-1">
-                                        Promo Subtitle
-                                      </label>
-                                      <input
-                                        type="text"
-                                        value={item.featuredBanner?.subtitle || ""}
-                                        onChange={(e) => handleBannerChange(idx, "subtitle", e.target.value)}
-                                        className="w-full bg-[#02140e] border border-emerald-900/80 rounded-lg px-2.5 py-1.5 text-xs text-white outline-none"
-                                        placeholder="24,000 Puffs with Smart Screen"
-                                      />
-                                    </div>
-
-                                    <div>
-                                      <label className="text-[10px] text-neutral-400 block mb-1">
-                                        Badge Label
-                                      </label>
-                                      <input
-                                        type="text"
-                                        value={item.featuredBanner?.badge || ""}
-                                        onChange={(e) => handleBannerChange(idx, "badge", e.target.value)}
-                                        className="w-full bg-[#02140e] border border-emerald-900/80 rounded-lg px-2.5 py-1.5 text-xs text-white outline-none"
-                                        placeholder="20% OFF or NEW"
-                                      />
-                                    </div>
-
-                                    <div className="md:col-span-2">
-                                      <label className="text-[10px] text-neutral-400 block mb-1">
-                                        Image Path
-                                      </label>
-                                      <input
-                                        type="text"
-                                        value={item.featuredBanner?.image || ""}
-                                        onChange={(e) => handleBannerChange(idx, "image", e.target.value)}
-                                        className="w-full bg-[#02140e] border border-emerald-900/80 rounded-lg px-2.5 py-1.5 text-xs text-white outline-none"
-                                        placeholder="/images/disposable_vape.png"
-                                      />
-                                      <div className="flex gap-2 mt-1.5">
-                                        <button
-                                          onClick={() =>
-                                            handleBannerChange(idx, "image", "/images/disposable_vape.png")
-                                          }
-                                          className="text-[9px] px-2 py-0.5 rounded bg-white/5 text-emerald-300"
-                                        >
-                                          Disposable Image
-                                        </button>
-                                        <button
-                                          onClick={() =>
-                                            handleBannerChange(idx, "image", "/images/terea_heets.jpg")
-                                          }
-                                          className="text-[9px] px-2 py-0.5 rounded bg-white/5 text-emerald-300"
-                                        >
-                                          Terea/IQOS Image
-                                        </button>
-                                        <button
-                                          onClick={() =>
-                                            handleBannerChange(idx, "image", "/images/hero_slide_2.jpg")
-                                          }
-                                          className="text-[9px] px-2 py-0.5 rounded bg-white/5 text-emerald-300"
-                                        >
-                                          Pod Devices Image
-                                        </button>
-                                      </div>
-                                    </div>
-
-                                    <div>
-                                      <label className="text-[10px] text-neutral-400 block mb-1">
-                                        Link URL (href)
-                                      </label>
-                                      <input
-                                        type="text"
-                                        value={item.featuredBanner?.href || ""}
-                                        onChange={(e) => handleBannerChange(idx, "href", e.target.value)}
-                                        className="w-full bg-[#02140e] border border-emerald-900/80 rounded-lg px-2.5 py-1.5 text-xs text-white outline-none"
-                                        placeholder="# or /collections/vape"
-                                      />
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+  return (
+    <div>
+      <p className="text-sm text-neutral-400 mb-4">
+        Prottek section-er title/subtitle/badge ar kon product dekhabe ekhan theke control hoy. TEREA ar JUUL
+        section-e product dile shei asol product-i dekhabe; na dile nicher “TEREA / JUUL Cards” tab-er card gula
+        dekhabe.
+      </p>
+      {sections.map((s, i) => {
+        const q = (query[s.id] || "").toLowerCase();
+        const results = q
+          ? (data.products || []).filter((p: any) => p.title.toLowerCase().includes(q)).slice(0, 8)
+          : [];
+        return (
+          <Card key={s.id} title={`Section: ${s.key}`}>
+            <div className="grid sm:grid-cols-3 gap-4 mb-4">
+              <div>
+                <Lbl>Title</Lbl>
+                <Inp value={s.title} onChange={(e) => upd(i, "title", e.target.value)} />
+              </div>
+              <div>
+                <Lbl>Subtitle</Lbl>
+                <Inp value={s.subtitle} onChange={(e) => upd(i, "subtitle", e.target.value)} />
+              </div>
+              <div>
+                <Lbl>Badge text</Lbl>
+                <Inp value={s.badgeText} onChange={(e) => upd(i, "badgeText", e.target.value)} />
               </div>
             </div>
-          )}
-
-          {/* TAB 2: TOP BAR & TICKER */}
-          {activeTab === "topbar" && (
-            <div className="space-y-6">
-              {/* Ticker Enabled Toggle Card */}
-              <div className="p-5 rounded-2xl bg-[#031d16] border border-emerald-900/60 shadow-xl space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-sm font-bold text-white">Top Announcement Strip</h3>
-                    <p className="text-xs text-neutral-400 mt-0.5">
-                      Enable or disable the top marquee banner above the header.
-                    </p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={headerConfig.topBar.enabled}
-                      onChange={(e) =>
-                        setHeaderConfig({
-                          ...headerConfig,
-                          topBar: { ...headerConfig.topBar, enabled: e.target.checked },
-                        })
-                      }
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-neutral-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500" />
-                  </label>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-emerald-900/40">
-                  <div>
-                    <label className="block text-xs font-semibold text-emerald-200 mb-1.5">
-                      Customer Service Phone
-                    </label>
-                    <div className="relative">
-                      <Phone size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-400/70" />
-                      <input
-                        type="text"
-                        value={headerConfig.topBar.phone}
-                        onChange={(e) =>
-                          setHeaderConfig({
-                            ...headerConfig,
-                            topBar: {
-                              ...headerConfig.topBar,
-                              phone: e.target.value,
-                              phoneHref: `tel:${e.target.value.replace(/[^0-9+]/g, "")}`,
-                            },
-                          })
-                        }
-                        className="w-full bg-[#051712] border border-emerald-900/80 focus:border-emerald-400 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white outline-none transition-colors"
-                        placeholder="+971 55 168 8299"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-emerald-200 mb-1.5">
-                      Quick Links (Comma separated)
-                    </label>
-                    <input
-                      type="text"
-                      value={headerConfig.topBar.links.map((l) => l.label).join(", ")}
-                      onChange={(e) => {
-                        const labels = e.target.value.split(",").map((s) => s.trim()).filter(Boolean);
-                        setHeaderConfig({
-                          ...headerConfig,
-                          topBar: {
-                            ...headerConfig.topBar,
-                            links: labels.map((label) => ({ label, href: "#" })),
-                          },
-                        });
-                      }}
-                      className="w-full bg-[#051712] border border-emerald-900/80 focus:border-emerald-400 rounded-xl px-4 py-2.5 text-xs text-white outline-none transition-colors"
-                      placeholder="About Us, Contact Us"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Announcements List Editor */}
-              <div className="p-5 rounded-2xl bg-[#031d16] border border-emerald-900/60 shadow-xl space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-sm font-bold text-white">Marquee Announcement Messages</h3>
-                    <p className="text-xs text-neutral-400 mt-0.5">
-                      Items rotate smoothly in the continuous infinite ticker.
-                    </p>
-                  </div>
+            <Lbl>Products ({(s.productIds || []).length} selected)</Lbl>
+            <div className="flex flex-wrap gap-2 mb-3">
+              {(s.productIds || []).map((pid: string, idx: number) => (
+                <span
+                  key={pid}
+                  className="inline-flex items-center gap-2 rounded-full bg-emerald-500/15 border border-emerald-400/30 px-3 py-1.5 text-xs text-emerald-100"
+                >
+                  {byId[pid]?.title || pid}
                   <button
-                    onClick={handleAddAnnouncement}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-600/50 transition-colors cursor-pointer"
+                    className="text-emerald-300 hover:text-white"
+                    onClick={() => {
+                      const arr = [...s.productIds];
+                      if (idx > 0) [arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]];
+                      upd(i, "productIds", arr);
+                    }}
                   >
-                    <Plus size={14} />
-                    <span>Add Item</span>
+                    ↑
                   </button>
-                </div>
-
-                <div className="space-y-2.5">
-                  {headerConfig.topBar.announcements.map((msg, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center gap-2 p-2.5 rounded-xl bg-[#051712] border border-emerald-900/50 hover:border-emerald-800 transition-colors"
+                  <button
+                    className="text-emerald-300 hover:text-white"
+                    onClick={() => {
+                      const arr = [...s.productIds];
+                      if (idx < arr.length - 1) [arr[idx + 1], arr[idx]] = [arr[idx], arr[idx + 1]];
+                      upd(i, "productIds", arr);
+                    }}
+                  >
+                    ↓
+                  </button>
+                  <button
+                    className="text-red-300 hover:text-white"
+                    onClick={() => upd(i, "productIds", s.productIds.filter((x: string) => x !== pid))}
+                  >
+                    ✕
+                  </button>
+                </span>
+              ))}
+              {!(s.productIds || []).length && (
+                <span className="text-xs text-neutral-500">Kono product select kora nai</span>
+              )}
+            </div>
+            <div className="relative mb-4 max-w-md">
+              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
+              <input
+                className={`${inputCls} pl-9`}
+                placeholder="Product search kore add koro…"
+                value={query[s.id] || ""}
+                onChange={(e) => setQuery({ ...query, [s.id]: e.target.value })}
+              />
+              {results.length > 0 && (
+                <div className="absolute z-20 mt-1 w-full rounded-lg border border-white/10 bg-[#0c1512] shadow-xl overflow-hidden">
+                  {results.map((p: any) => (
+                    <button
+                      key={p.id}
+                      className="flex w-full items-center gap-3 px-3 py-2 text-left text-sm text-neutral-200 hover:bg-white/5"
+                      onClick={() => {
+                        if (!s.productIds.includes(p.id)) upd(i, "productIds", [...s.productIds, p.id]);
+                        setQuery({ ...query, [s.id]: "" });
+                      }}
                     >
-                      <span className="text-[11px] font-mono text-emerald-400/70 w-6 text-center shrink-0">
-                        #{idx + 1}
-                      </span>
-                      <input
-                        type="text"
-                        value={msg}
-                        onChange={(e) => handleAnnouncementChange(idx, e.target.value)}
-                        className="flex-1 bg-transparent border-none text-xs text-white focus:outline-none"
-                      />
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => handleMoveAnnouncement(idx, "up")}
-                          disabled={idx === 0}
-                          className="p-1.5 text-neutral-400 hover:text-white disabled:opacity-30 cursor-pointer"
-                          title="Move Up"
-                        >
-                          <MoveUp size={14} />
-                        </button>
-                        <button
-                          onClick={() => handleMoveAnnouncement(idx, "down")}
-                          disabled={idx === headerConfig.topBar.announcements.length - 1}
-                          className="p-1.5 text-neutral-400 hover:text-white disabled:opacity-30 cursor-pointer"
-                          title="Move Down"
-                        >
-                          <MoveDown size={14} />
-                        </button>
-                        <button
-                          onClick={() => handleRemoveAnnouncement(idx)}
-                          className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-950/50 rounded-lg cursor-pointer"
-                          title="Delete"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </div>
+                      {p.image && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={p.image} alt="" className="h-8 w-8 rounded object-cover" />
+                      )}
+                      {p.title}
+                      <span className="ml-auto text-xs text-neutral-500">AED {p.price}</span>
+                    </button>
                   ))}
                 </div>
+              )}
+            </div>
+            <SaveBtn
+              onClick={() =>
+                save("section.save", {
+                  id: s.id,
+                  title: s.title,
+                  subtitle: s.subtitle,
+                  badgeText: s.badgeText,
+                  productIds: s.productIds,
+                })
+              }
+            />
+          </Card>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Showcase cards (TEREA & JUUL carousels)                            */
+/* ------------------------------------------------------------------ */
+
+function ShowcaseTab({ data, save }: any) {
+  const [cards, setCards] = useState<any[]>(data.showcase || []);
+  const [filter, setFilter] = useState("tereaHeets");
+  useEffect(() => setCards(data.showcase || []), [data]);
+  const upd = (id: string, k: string, v: any) =>
+    setCards(cards.map((c) => (c.id === id || c._tmp === id ? { ...c, [k]: v } : c)));
+  const shown = cards.filter((c) => c.sectionKey === filter);
+
+  return (
+    <div>
+      <div className="flex gap-2 mb-4">
+        {[
+          { k: "tereaHeets", l: "TEREA & HEETS cards" },
+          { k: "juulProducts", l: "JUUL cards" },
+        ].map((t) => (
+          <button
+            key={t.k}
+            onClick={() => setFilter(t.k)}
+            className={`rounded-full px-4 py-2 text-sm font-semibold ${
+              filter === t.k ? "bg-emerald-500 text-white" : "bg-white/5 text-neutral-300"
+            }`}
+          >
+            {t.l}
+          </button>
+        ))}
+      </div>
+      {shown.map((c) => {
+        const key = c.id || c._tmp;
+        return (
+          <Card
+            key={key}
+            title={c.title || "New card"}
+            right={c.id ? <DelBtn onClick={() => save("showcase.delete", { id: c.id })} /> : undefined}
+          >
+            <div className="grid sm:grid-cols-3 gap-4 mb-3">
+              <div className="sm:col-span-2">
+                <Lbl>Title</Lbl>
+                <Inp value={c.title} onChange={(e) => upd(key, "title", e.target.value)} />
+              </div>
+              <div>
+                <Lbl>Position</Lbl>
+                <Inp type="number" value={c.position} onChange={(e) => upd(key, "position", e.target.value)} />
+              </div>
+              <div>
+                <Lbl>Price (AED)</Lbl>
+                <Inp value={c.price} onChange={(e) => upd(key, "price", e.target.value)} />
+              </div>
+              <div>
+                <Lbl>Reviews count</Lbl>
+                <Inp type="number" value={c.revs} onChange={(e) => upd(key, "revs", e.target.value)} />
+              </div>
+              <div>
+                <Lbl>Badge</Lbl>
+                <Inp value={c.badge} onChange={(e) => upd(key, "badge", e.target.value)} />
+              </div>
+              <div>
+                <Lbl>Brand label</Lbl>
+                <Inp value={c.brand} onChange={(e) => upd(key, "brand", e.target.value)} />
+              </div>
+              <div className="sm:col-span-2">
+                <Lbl>Image URL</Lbl>
+                <Inp value={c.imageUrl} onChange={(e) => upd(key, "imageUrl", e.target.value)} />
               </div>
             </div>
-          )}
+            <SaveBtn
+              onClick={() =>
+                save("showcase.save", {
+                  id: c.id || undefined,
+                  sectionKey: c.sectionKey,
+                  title: c.title,
+                  price: c.price,
+                  revs: Number(c.revs) || 0,
+                  badge: c.badge,
+                  brand: c.brand,
+                  imageUrl: c.imageUrl,
+                  position: Number(c.position) || 0,
+                })
+              }
+            />
+          </Card>
+        );
+      })}
+      <button
+        onClick={() =>
+          setCards([
+            ...cards,
+            {
+              _tmp: `new-${Date.now()}`,
+              sectionKey: filter,
+              title: "",
+              price: "",
+              revs: 0,
+              badge: "",
+              brand: "",
+              imageUrl: "",
+              position: shown.length + 1,
+            },
+          ])
+        }
+        className="inline-flex items-center gap-1.5 rounded-lg bg-white/5 border border-white/15 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/10"
+      >
+        <Plus size={15} /> Add card
+      </button>
+    </div>
+  );
+}
 
-          {/* TAB 3: BRAND LOGO & SEARCH */}
-          {activeTab === "logo" && (
-            <div className="space-y-6">
-              {/* Logo Card */}
-              <div className="p-5 rounded-2xl bg-[#031d16] border border-emerald-900/60 shadow-xl space-y-4">
-                <div>
-                  <h3 className="text-sm font-bold text-white">Brand Logo Configuration</h3>
-                  <p className="text-xs text-neutral-400 mt-0.5">
-                    Select a logo file path or choose one of the available assets in public folder.
-                  </p>
-                </div>
+/* ------------------------------------------------------------------ */
+/*  Reviews & FAQ                                                      */
+/* ------------------------------------------------------------------ */
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-emerald-200 mb-1.5">
-                      Logo Image Path
-                    </label>
-                    <input
-                      type="text"
-                      value={headerConfig.logo.src}
-                      onChange={(e) =>
-                        setHeaderConfig({
-                          ...headerConfig,
-                          logo: { ...headerConfig.logo, src: e.target.value },
-                        })
-                      }
-                      className="w-full bg-[#051712] border border-emerald-900/80 focus:border-emerald-400 rounded-xl px-4 py-2.5 text-xs text-white outline-none transition-colors"
-                      placeholder="/vape-mart-text-logo-white.png"
-                    />
-                    <div className="flex gap-2 mt-2">
-                      <button
-                        onClick={() =>
-                          setHeaderConfig({
-                            ...headerConfig,
-                            logo: { ...headerConfig.logo, src: "/vape-mart-text-logo-white.png" },
-                          })
-                        }
-                        className="text-[10px] px-2.5 py-1 rounded bg-white/5 hover:bg-white/10 text-emerald-300 border border-emerald-800/40"
-                      >
-                        White Text Logo
-                      </button>
-                      <button
-                        onClick={() =>
-                          setHeaderConfig({
-                            ...headerConfig,
-                            logo: { ...headerConfig.logo, src: "/vape-mart-text-logo.png" },
-                          })
-                        }
-                        className="text-[10px] px-2.5 py-1 rounded bg-white/5 hover:bg-white/10 text-emerald-300 border border-emerald-800/40"
-                      >
-                        Color Text Logo
-                      </button>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-emerald-200 mb-1.5">
-                      Logo Alt Attribute (SEO)
-                    </label>
-                    <input
-                      type="text"
-                      value={headerConfig.logo.alt}
-                      onChange={(e) =>
-                        setHeaderConfig({
-                          ...headerConfig,
-                          logo: { ...headerConfig.logo, alt: e.target.value },
-                        })
-                      }
-                      className="w-full bg-[#051712] border border-emerald-900/80 focus:border-emerald-400 rounded-xl px-4 py-2.5 text-xs text-white outline-none transition-colors"
-                      placeholder="Vape Mart Dubai Logo"
-                    />
-                  </div>
-                </div>
-
-                {/* Logo Preview box */}
-                <div className="p-4 rounded-xl bg-[#064e3b] border border-emerald-700/50 flex items-center justify-between">
-                  <div className="text-xs text-emerald-100 font-semibold">Live Logo Rendering:</div>
-                  <div className="p-2 bg-black/20 rounded-lg">
-                    <Image
-                      src={headerConfig.logo.src || "/vape-mart-text-logo-white.png"}
-                      alt={headerConfig.logo.alt || "Logo"}
-                      width={160}
-                      height={36}
-                      className="h-8 w-auto object-contain"
-                      unoptimized
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Search Bar Settings */}
-              <div className="p-5 rounded-2xl bg-[#031d16] border border-emerald-900/60 shadow-xl space-y-4">
-                <div>
-                  <h3 className="text-sm font-bold text-white">Search Bar Settings</h3>
-                  <p className="text-xs text-neutral-400 mt-0.5">
-                    Customize the default search input placeholder for your customers.
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-emerald-200 mb-1.5">
-                    Search Input Placeholder Text
-                  </label>
-                  <div className="relative">
-                    <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-400/70" />
-                    <input
-                      type="text"
-                      value={headerConfig.search?.placeholder || ""}
-                      onChange={(e) =>
-                        setHeaderConfig({
-                          ...headerConfig,
-                          search: { placeholder: e.target.value },
-                        })
-                      }
-                      className="w-full bg-[#051712] border border-emerald-900/80 focus:border-emerald-400 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white outline-none transition-colors"
-                      placeholder="Search for vapes, e-liquids, brands..."
-                    />
-                  </div>
-                </div>
-              </div>
+function ReviewsTab({ data, save }: any) {
+  const [items, setItems] = useState<any[]>(data.testimonials || []);
+  useEffect(() => setItems(data.testimonials || []), [data]);
+  const upd = (i: number, k: string, v: any) => setItems(items.map((t, j) => (j === i ? { ...t, [k]: v } : t)));
+  return (
+    <div>
+      {items.map((t, i) => (
+        <Card
+          key={t.id || i}
+          title={t.name || "New review"}
+          right={t.id ? <DelBtn onClick={() => save("testimonial.delete", { id: t.id })} /> : undefined}
+        >
+          <div className="grid sm:grid-cols-3 gap-4 mb-3">
+            <div>
+              <Lbl>Name</Lbl>
+              <Inp value={t.name} onChange={(e) => upd(i, "name", e.target.value)} />
             </div>
-          )}
-
-          {/* TAB 4: LIVE PREVIEW */}
-          {activeTab === "preview" && (
-            <div className="space-y-6">
-              <div className="p-5 rounded-2xl bg-[#031d16] border border-emerald-900/60 shadow-xl space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                      <Eye size={16} className="text-emerald-400" />
-                      <span>Live Header Preview</span>
-                    </h3>
-                    <p className="text-xs text-neutral-400 mt-0.5">
-                      Visual simulation of how the header appears to visitors on desktop and tablet.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Simulated Header Container */}
-                <div className="rounded-2xl overflow-hidden border border-emerald-800 shadow-2xl bg-[#022c22]">
-                  {/* Top Bar Preview */}
-                  {headerConfig.topBar.enabled && (
-                    <div className="bg-[#022c22] text-white text-[11px] font-medium py-2 px-4 flex justify-between items-center border-b border-emerald-900/60">
-                      <div className="flex items-center gap-4 overflow-hidden">
-                        {headerConfig.topBar.announcements.slice(0, 2).map((item, idx) => (
-                          <span key={idx} className="flex items-center gap-1.5 opacity-90 text-[11px]">
-                            <Lock size={12} className="text-amber-400" /> {item}
-                          </span>
-                        ))}
-                      </div>
-                      <div className="flex items-center gap-4 text-[11px]">
-                        <span className="flex items-center gap-1 text-emerald-300">
-                          <Phone size={12} /> {headerConfig.topBar.phone}
-                        </span>
-                        {headerConfig.topBar.links.map((link, idx) => (
-                          <span key={idx} className="opacity-70 hover:opacity-100">
-                            {link.label}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Main Header Preview */}
-                  <div className="bg-[#064e3b] px-6 py-3 flex items-center justify-between gap-6 border-b border-emerald-800">
-                    <div className="flex items-center gap-3">
-                      <Image
-                        src={headerConfig.logo.src || "/vape-mart-text-logo-white.png"}
-                        alt={headerConfig.logo.alt || "Logo"}
-                        width={140}
-                        height={34}
-                        className="h-7 w-auto object-contain"
-                        unoptimized
-                      />
-                    </div>
-
-                    {/* Search preview */}
-                    <div className="flex-1 max-w-md relative">
-                      <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-100/60" />
-                      <input
-                        type="text"
-                        readOnly
-                        placeholder={headerConfig.search.placeholder}
-                        className="w-full h-9 bg-white/10 rounded-full pl-9 pr-4 text-xs text-white placeholder-emerald-100/60 outline-none"
-                      />
-                    </div>
-
-                    {/* Actions preview */}
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white">
-                        <Heart size={15} />
-                      </div>
-                      <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white">
-                        <User size={15} />
-                      </div>
-                      <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white relative">
-                        <ShoppingBag size={15} />
-                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-amber-400 text-black text-[9px] font-bold rounded-full flex items-center justify-center">
-                          0
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Navigation Bar Preview */}
-                  <nav className="bg-[#064e3b] px-6 py-2 border-t border-emerald-800/80">
-                    <ul className="flex items-center justify-center gap-6 text-[11px] font-bold tracking-wider text-white overflow-x-auto">
-                      {headerConfig.navItems.map((item, idx) => (
-                        <li key={idx} className="flex items-center gap-1 hover:text-amber-300 cursor-default whitespace-nowrap">
-                          <span className={idx === 0 ? "text-amber-400" : ""}>{item.label}</span>
-                          {item.badge && (
-                            <span className="text-[9px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 px-1.5 py-0.2 rounded-full">
-                              {item.badge}
-                            </span>
-                          )}
-                          {item.hasDropdown && <ChevronDown size={11} />}
-                        </li>
-                      ))}
-                    </ul>
-                  </nav>
-                </div>
-              </div>
+            <div>
+              <Lbl>Role</Lbl>
+              <Inp value={t.role} onChange={(e) => upd(i, "role", e.target.value)} />
             </div>
+            <div>
+              <Lbl>Position</Lbl>
+              <Inp type="number" value={t.position} onChange={(e) => upd(i, "position", e.target.value)} />
+            </div>
+            <div className="sm:col-span-3">
+              <Lbl>Review title</Lbl>
+              <Inp value={t.title} onChange={(e) => upd(i, "title", e.target.value)} />
+            </div>
+            <div className="sm:col-span-3">
+              <Lbl>Review text</Lbl>
+              <TA rows={3} value={t.review} onChange={(e) => upd(i, "review", e.target.value)} />
+            </div>
+          </div>
+          <SaveBtn
+            onClick={() =>
+              save("testimonial.save", {
+                id: t.id || undefined,
+                name: t.name,
+                role: t.role,
+                title: t.title,
+                review: t.review,
+                position: Number(t.position) || 0,
+              })
+            }
+          />
+        </Card>
+      ))}
+      <button
+        onClick={() => setItems([...items, { name: "", role: "Verified Buyer", title: "", review: "", position: items.length + 1 }])}
+        className="inline-flex items-center gap-1.5 rounded-lg bg-white/5 border border-white/15 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/10"
+      >
+        <Plus size={15} /> Add review
+      </button>
+    </div>
+  );
+}
+
+function FaqTab({ data, save }: any) {
+  const [items, setItems] = useState<any[]>(data.faqs || []);
+  useEffect(() => setItems(data.faqs || []), [data]);
+  const upd = (i: number, k: string, v: any) => setItems(items.map((t, j) => (j === i ? { ...t, [k]: v } : t)));
+  return (
+    <div>
+      {items.map((t, i) => (
+        <Card
+          key={t.id || i}
+          title={t.question || "New FAQ"}
+          right={t.id ? <DelBtn onClick={() => save("faq.delete", { id: t.id })} /> : undefined}
+        >
+          <div className="grid sm:grid-cols-4 gap-4 mb-3">
+            <div className="sm:col-span-3">
+              <Lbl>Question</Lbl>
+              <Inp value={t.question} onChange={(e) => upd(i, "question", e.target.value)} />
+            </div>
+            <div>
+              <Lbl>Position</Lbl>
+              <Inp type="number" value={t.position} onChange={(e) => upd(i, "position", e.target.value)} />
+            </div>
+            <div className="sm:col-span-4">
+              <Lbl>Answer</Lbl>
+              <TA rows={3} value={t.answer} onChange={(e) => upd(i, "answer", e.target.value)} />
+            </div>
+          </div>
+          <SaveBtn
+            onClick={() =>
+              save("faq.save", {
+                id: t.id || undefined,
+                question: t.question,
+                answer: t.answer,
+                position: Number(t.position) || 0,
+              })
+            }
+          />
+        </Card>
+      ))}
+      <button
+        onClick={() => setItems([...items, { question: "", answer: "", position: items.length + 1 }])}
+        className="inline-flex items-center gap-1.5 rounded-lg bg-white/5 border border-white/15 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/10"
+      >
+        <Plus size={15} /> Add FAQ
+      </button>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Blog                                                               */
+/* ------------------------------------------------------------------ */
+
+function BlogTab({ data, save }: any) {
+  const [sel, setSel] = useState<string>("new");
+  const [form, setForm] = useState<any>({
+    title: "", body: "", summary: "", tags: "", category: "", quickAnswer: "", productSlugs: "", imageUrl: "",
+  });
+  const loadPost = (id: string) => {
+    setSel(id);
+    if (id === "new") {
+      setForm({ title: "", body: "", summary: "", tags: "", category: "", quickAnswer: "", productSlugs: "", imageUrl: "" });
+    } else {
+      const p = (data.blogPosts || []).find((x: any) => x.id === id);
+      if (p) setForm({ ...p, imageUrl: "" });
+    }
+  };
+  const set = (k: string, v: any) => setForm({ ...form, [k]: v });
+
+  return (
+    <div>
+      <div className="flex gap-2 overflow-x-auto pb-2 mb-4">
+        <button
+          onClick={() => loadPost("new")}
+          className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold ${
+            sel === "new" ? "bg-emerald-500 text-white" : "bg-white/5 text-neutral-300"
+          }`}
+        >
+          + New post
+        </button>
+        {(data.blogPosts || []).map((p: any) => (
+          <button
+            key={p.id}
+            onClick={() => loadPost(p.id)}
+            className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold ${
+              sel === p.id ? "bg-emerald-500 text-white" : "bg-white/5 text-neutral-300"
+            }`}
+          >
+            {p.title}
+          </button>
+        ))}
+      </div>
+      <Card title={sel === "new" ? "New blog post" : `Edit: ${form.title}`}>
+        <div className="grid sm:grid-cols-2 gap-4 mb-3">
+          <div className="sm:col-span-2">
+            <Lbl>Title</Lbl>
+            <Inp value={form.title} onChange={(e) => set("title", e.target.value)} />
+          </div>
+          <div className="sm:col-span-2">
+            <Lbl>Body (HTML — &lt;p&gt;, &lt;h2&gt;, &lt;strong&gt; use kora jay)</Lbl>
+            <TA rows={12} value={form.body} onChange={(e) => set("body", e.target.value)} />
+          </div>
+          <div className="sm:col-span-2">
+            <Lbl>Summary (list page-er choto lekha)</Lbl>
+            <TA rows={2} value={form.summary} onChange={(e) => set("summary", e.target.value)} />
+          </div>
+          <div>
+            <Lbl>Category</Lbl>
+            <Inp value={form.category} onChange={(e) => set("category", e.target.value)} placeholder="Buying Guides / Safety / Education" />
+          </div>
+          <div>
+            <Lbl>Tags (comma diye)</Lbl>
+            <Inp value={form.tags} onChange={(e) => set("tags", e.target.value)} />
+          </div>
+          <div className="sm:col-span-2">
+            <Lbl>Quick Answer</Lbl>
+            <TA rows={2} value={form.quickAnswer} onChange={(e) => set("quickAnswer", e.target.value)} />
+          </div>
+          <div>
+            <Lbl>Related product slugs (comma diye)</Lbl>
+            <Inp value={form.productSlugs} onChange={(e) => set("productSlugs", e.target.value)} />
+          </div>
+          <div>
+            <Lbl>Featured image URL</Lbl>
+            <Inp value={form.imageUrl} onChange={(e) => set("imageUrl", e.target.value)} placeholder="https://…" />
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <SaveBtn
+            onClick={() =>
+              save("blog.save", {
+                id: sel === "new" ? undefined : sel,
+                title: form.title,
+                body: form.body,
+                summary: form.summary,
+                tags: form.tags,
+                category: form.category,
+                quickAnswer: form.quickAnswer,
+                productSlugs: form.productSlugs,
+                imageUrl: form.imageUrl || undefined,
+              })
+            }
+          >
+            {sel === "new" ? "Publish post" : "Save post"}
+          </SaveBtn>
+          {sel !== "new" && <DelBtn onClick={() => save("blog.delete", { id: sel })} />}
+        </div>
+        <p className="text-xs text-neutral-500 mt-3">
+          Post save korlei publish hoye jay ebong site-e 5–10 minute-er moddhe dekhabe.
+        </p>
+      </Card>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Pages                                                              */
+/* ------------------------------------------------------------------ */
+
+function PagesTab({ data, save }: any) {
+  const [sel, setSel] = useState<string>("");
+  const [body, setBody] = useState("");
+  const page = (data.pages || []).find((p: any) => p.id === sel) || (data.pages || [])[0];
+  useEffect(() => {
+    if (page) {
+      setSel(page.id);
+      setBody(page.body || "");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data]);
+
+  if (!page) return <p className="text-neutral-400">No pages found.</p>;
+  return (
+    <div>
+      <div className="flex gap-2 overflow-x-auto pb-2 mb-4">
+        {(data.pages || []).map((p: any) => (
+          <button
+            key={p.id}
+            onClick={() => {
+              setSel(p.id);
+              setBody(p.body || "");
+            }}
+            className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold ${
+              page.id === p.id ? "bg-emerald-500 text-white" : "bg-white/5 text-neutral-300"
+            }`}
+          >
+            {p.title} (/{p.handle})
+          </button>
+        ))}
+      </div>
+      <Card title={`${page.title} — body (HTML)`}>
+        <TA rows={16} value={body} onChange={(e) => setBody(e.target.value)} className={inputCls} />
+        <p className="text-xs text-neutral-500 my-3">
+          Privacy/Terms-e prottek section &lt;h2&gt; diye shuru koro. About-er body = story ongsho, Contact-er
+          body = form-er uporer intro.
+        </p>
+        <SaveBtn onClick={() => save("page.save", { id: page.id, title: page.title, body })} />
+      </Card>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Menu editor (3 levels)                                             */
+/* ------------------------------------------------------------------ */
+
+function MenuItems({ items, onChange, depth }: any) {
+  const upd = (i: number, patch: any) =>
+    onChange(items.map((it: any, j: number) => (j === i ? { ...it, ...patch } : it)));
+  const move = (i: number, dir: number) => {
+    const arr = [...items];
+    const j = i + dir;
+    if (j < 0 || j >= arr.length) return;
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+    onChange(arr);
+  };
+  return (
+    <div className={depth > 0 ? "ml-5 border-l border-white/10 pl-3" : ""}>
+      {items.map((it: any, i: number) => (
+        <div key={i} className="mb-2">
+          <div className="flex gap-2 items-center">
+            <input
+              className={`${inputCls} max-w-[220px]`}
+              value={it.title}
+              placeholder="Menu name"
+              onChange={(e) => upd(i, { title: e.target.value })}
+            />
+            <input
+              className={`${inputCls} max-w-[260px]`}
+              value={it.url}
+              placeholder="/link"
+              onChange={(e) => upd(i, { url: e.target.value })}
+            />
+            <button onClick={() => move(i, -1)} className="px-2 py-2 rounded-lg border border-white/10 text-neutral-300 hover:bg-white/5">↑</button>
+            <button onClick={() => move(i, 1)} className="px-2 py-2 rounded-lg border border-white/10 text-neutral-300 hover:bg-white/5">↓</button>
+            <button
+              onClick={() => onChange(items.filter((_: any, j: number) => j !== i))}
+              className="px-2 py-2 rounded-lg border border-red-400/30 text-red-300 hover:bg-red-500/10"
+            >
+              <Trash2 size={14} />
+            </button>
+            {depth < 2 && (
+              <button
+                onClick={() => upd(i, { children: [...(it.children || []), { title: "", url: "/", children: [] }] })}
+                className="px-2.5 py-2 rounded-lg border border-white/15 text-xs text-neutral-200 hover:bg-white/5 whitespace-nowrap"
+              >
+                + Sub-item
+              </button>
+            )}
+          </div>
+          {(it.children || []).length > 0 && (
+            <MenuItems items={it.children} depth={depth + 1} onChange={(ch: any) => upd(i, { children: ch })} />
           )}
         </div>
-      </main>
+      ))}
+      <button
+        onClick={() => onChange([...items, { title: "", url: "/", children: [] }])}
+        className="inline-flex items-center gap-1 rounded-lg border border-white/15 px-3 py-1.5 text-xs text-neutral-200 hover:bg-white/5 mt-1"
+      >
+        <Plus size={13} /> Add item
+      </button>
+    </div>
+  );
+}
+
+function MenuTab({ data, save }: any) {
+  const [menu, setMenu] = useState<any>(data.menu);
+  useEffect(() => setMenu(data.menu), [data]);
+  if (!menu) return <p className="text-neutral-400">Menu not found.</p>;
+  return (
+    <Card title={`Menu: ${menu.title}`}>
+      <p className="text-sm text-neutral-400 mb-4">
+        Header navigation. Uporer item gulo main menu; sub-item diye dropdown/column banao.
+      </p>
+      <MenuItems items={menu.items || []} depth={0} onChange={(items: any) => setMenu({ ...menu, items })} />
+      <div className="mt-4">
+        <SaveBtn onClick={() => save("menu.save", { id: menu.id, title: menu.title, handle: menu.handle, items: menu.items })} />
+      </div>
+    </Card>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Products (price / compare price / stock / status)                */
+/* ------------------------------------------------------------------ */
+
+function ProductsTab({ data, save }: any) {
+  const [q, setQ] = useState("");
+  const [rows, setRows] = useState<any[]>(data.products || []);
+  useEffect(() => setRows(data.products || []), [data]);
+  const upd = (id: string, k: string, v: any) =>
+    setRows(rows.map((r) => (r.id === id ? { ...r, [k]: v } : r)));
+  const shown = rows.filter((r) => !q || r.title.toLowerCase().includes(q.toLowerCase())).slice(0, 60);
+
+  return (
+    <div>
+      <div className="relative mb-4 max-w-md">
+        <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
+        <input className={`${inputCls} pl-9`} placeholder="Product search…" value={q} onChange={(e) => setQ(e.target.value)} />
+      </div>
+      <p className="text-xs text-neutral-500 mb-3">
+        Prothom 60 ta product dekhacche. Price/stock first variant-er upor apply hoy.
+      </p>
+      {shown.map((r) => (
+        <div key={r.id} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 mb-3">
+          <div className="flex items-center gap-3 mb-3">
+            {r.image && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={r.image} alt="" className="h-11 w-11 rounded-lg object-cover border border-white/10" />
+            )}
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-white truncate">{r.title}</p>
+              <p className="text-xs text-neutral-500">
+                /{r.handle} · {r.status}
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 items-end">
+            <div>
+              <Lbl>Price (AED)</Lbl>
+              <Inp value={r.price} onChange={(e) => upd(r.id, "price", e.target.value)} />
+            </div>
+            <div>
+              <Lbl>Compare price</Lbl>
+              <Inp value={r.compareAtPrice} onChange={(e) => upd(r.id, "compareAtPrice", e.target.value)} />
+            </div>
+            <div>
+              <Lbl>Stock</Lbl>
+              <Inp type="number" value={r.inventoryQuantity} onChange={(e) => upd(r.id, "inventoryQuantity", e.target.value)} />
+            </div>
+            <div>
+              <Lbl>Status</Lbl>
+              <select
+                className={inputCls}
+                value={r.status}
+                onChange={(e) => upd(r.id, "status", e.target.value)}
+              >
+                <option value="ACTIVE">ACTIVE</option>
+                <option value="DRAFT">DRAFT</option>
+              </select>
+            </div>
+            <SaveBtn
+              onClick={() =>
+                save("product.save", {
+                  id: r.id,
+                  variantId: r.variantId,
+                  price: r.price,
+                  compareAtPrice: r.compareAtPrice,
+                  status: r.status,
+                  inventoryItemId: r.inventoryItemId,
+                  locationId: data.locationId,
+                  inventoryQuantity: r.inventoryQuantity,
+                })
+              }
+            />
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
