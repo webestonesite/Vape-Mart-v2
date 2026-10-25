@@ -255,9 +255,9 @@ export function CartDrawer({
                           <h4 className="font-bold text-xs sm:text-sm text-neutral-900 truncate mt-0.5">
                             {item.title}
                           </h4>
-                          {(item.flavor || item.nicotine) && (
+                          {(item.flavor || item.nicotine || item.variantLabel) && (
                             <p className="text-[11px] text-neutral-500 truncate font-medium">
-                              {item.flavor} {item.nicotine && `• ${item.nicotine}`}
+                              {item.variantLabel || (<>{item.flavor} {item.nicotine && `• ${item.nicotine}`}</>)}
                             </p>
                           )}
                           <div className="flex items-center justify-between mt-2">
@@ -335,7 +335,7 @@ export function CartDrawer({
                       <a
                         href={`https://wa.me/${waPhone}?text=${encodeURIComponent(
                           `Hello Vape Mart UAE, I would like to order: ${items
-                            .map((i) => `${i.title} (${i.flavor || "Standard"}) x${i.quantity}`)
+                            .map((i) => `${i.title} (${i.variantLabel || i.flavor || "Standard"}) x${i.quantity}`)
                             .join(", ")} - Total: AED ${grandTotal.toFixed(2)}`
                         )}`}
                         target="_blank"

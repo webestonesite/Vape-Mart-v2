@@ -154,7 +154,10 @@ interface ShopifyImage { url: string; altText: string | null }
 interface ShopifyVariant {
   id: string; sku: string | null; price: string;
   compareAtPrice: string | null; inventoryQuantity: number | null;
+  title?: string;
+  selectedOptions?: { name: string; value: string }[];
 }
+interface ShopifyOption { name: string; values: string[] }
 interface ShopifyCollectionRef { id: string; title: string; handle: string }
 interface ShopifyProductNode {
   id: string; title: string; handle: string; status: string;
@@ -163,6 +166,7 @@ interface ShopifyProductNode {
   seo?: { title?: string | null; description?: string | null };
   priceRangeV2: { minVariantPrice: { amount: string } };
   images: { nodes: ShopifyImage[] };
+  options?: ShopifyOption[];
   variants: { nodes: ShopifyVariant[] };
   collections: { nodes: ShopifyCollectionRef[] };
   metafields: { nodes: MetafieldNode[] } | null;
@@ -178,7 +182,8 @@ const PRODUCT_FRAGMENT = `
   seo { title description }
   priceRangeV2 { minVariantPrice { amount } }
   images(first: 8) { nodes { url altText } }
-  variants(first: 3) { nodes { id sku price compareAtPrice inventoryQuantity } }
+  options { name values }
+  variants(first: 100) { nodes { id title sku price compareAtPrice inventoryQuantity selectedOptions { name value } } }
   collections(first: 6) { nodes { id title handle } }
   metafields(first: 40, namespace: "vape") {
     nodes { namespace key type value }
@@ -235,6 +240,22 @@ function toProductItem(node: ShopifyProductNode, flavorObjects: FlavorMetaobject
   if (mf["vape.coil_type"]) specs.push({ label: "Coil", value: mf["vape.coil_type"] });
   if (mf["vape.activation"]) specs.push({ label: "Activation", value: mf["vape.activation"] });
   if (mf["vape.vg_pg_ratio"]) specs.push({ label: "VG/PG", value: mf["vape.vg_pg_ratio"] });
+  // Per-product spec rows from the panel (vape.custom_specs JSON). These are
+  // the specs that differ per product — anything not covered by the fixed
+  // fields above. Duplicates of a fixed label are skipped.
+  try {
+    const custom = JSON.parse(mf["vape.custom_specs"] || "[]");
+    if (Array.isArray(custom)) {
+      const seen = new Set(specs.map((x) => x.label.toLowerCase()));
+      for (const row of custom) {
+        const label = String(row?.name || "").trim();
+        const value = String(row?.value || "").trim();
+        if (!label || !value || seen.has(label.toLowerCase())) continue;
+        seen.add(label.toLowerCase());
+        specs.push({ label, value });
+      }
+    }
+  } catch { /* malformed custom specs render nothing */ }
 
   const num = (v: string | undefined, dflt: number) => {
     const n = parseInt(v || "", 10);
@@ -277,6 +298,16 @@ function toProductItem(node: ShopifyProductNode, flavorObjects: FlavorMetaobject
     coilType: mf["vape.coil_type"] || undefined,
     activation: mf["vape.activation"] || undefined,
     flavors,
+    variantOptions: (node.options ?? []).map((o) => ({ name: o.name, values: o.values ?? [] })),
+    productVariants: node.variants.nodes.map((v) => ({
+      id: v.id,
+      title: v.title || "Default",
+      options: (v.selectedOptions ?? []).map((o) => ({ name: o.name, value: o.value })),
+      price: parseFloat(v.price || "0") || 0,
+      compareAtPrice: parseFloat(v.compareAtPrice || "0") || 0,
+      stock: v.inventoryQuantity ?? 0,
+      sku: v.sku || "",
+    })),
     flavorFamily: (["fruit_ice", "menthol", "tobacco", "dessert"].includes(mf["vape.flavor_family"] || "")
       ? mf["vape.flavor_family"]
       : "") as "fruit_ice" | "menthol" | "tobacco" | "dessert" | "",
