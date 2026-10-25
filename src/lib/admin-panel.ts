@@ -1085,6 +1085,51 @@ async function bulkUpdateVariants(productId: string, variants: any[]): Promise<v
   if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
 }
 
+// Bulk variant input shape, verified live against Shopify (2026-10 schema;
+// the same ProductVariantsBulkInput type exists since 2024-07):
+// optionValues [{optionName, name}], price, compareAtPrice,
+// inventoryItem {sku}, barcodes [{value}], inventoryQuantities.
+// NOTE: bulkCreate does NOT create missing option NAMES ("Option does not
+// exist") — create them first via productOptionsCreate. New option VALUES
+// are added automatically by bulkCreate.
+function comboToBulkInput(v: any, locationId: string | undefined): Record<string, unknown> {
+  const out: Record<string, unknown> = { price: String(v.price || "0") };
+  if (Array.isArray(v.optionValues) && v.optionValues.length) out.optionValues = v.optionValues;
+  if (v.compareAtPrice) out.compareAtPrice = String(v.compareAtPrice);
+  if (v.sku) out.inventoryItem = { sku: String(v.sku) };
+  if (v.barcode) out.barcodes = [{ value: String(v.barcode) }];
+  if (locationId && v.inventoryQuantity !== undefined && v.inventoryQuantity !== "")
+    out.inventoryQuantities = [{ availableQuantity: parseInt(String(v.inventoryQuantity), 10) || 0, locationId }];
+  return out;
+}
+
+async function createProductOptions(productId: string, options: any[]): Promise<void> {
+  const clean = (options || [])
+    .filter((o: any) => o.name && Array.isArray(o.values) && o.values.length)
+    .map((o: any) => ({ name: o.name, values: o.values.map((v: string) => ({ name: v })) }));
+  if (!clean.length) return;
+  const d = await gql<any>(
+    `mutation OptCreate($productId: ID!, $options: [ProductOptionInput!]!) {
+       productOptionsCreate(productId: $productId, options: $options) { product { id } userErrors { message } }
+     }`,
+    { productId, options: clean }
+  );
+  const errs = d.productOptionsCreate?.userErrors ?? [];
+  if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
+}
+
+async function bulkCreateVariants(productId: string, variants: any[], locationId: string | undefined, removeStandalone: boolean): Promise<void> {
+  if (!variants.length) return;
+  const d = await gql<any>(
+    `mutation VarCreate($productId: ID!, $variants: [ProductVariantsBulkInput!]!, $strategy: ProductVariantsBulkCreateStrategy) {
+       productVariantsBulkCreate(productId: $productId, variants: $variants, strategy: $strategy) { productVariants { id } userErrors { message } }
+     }`,
+    { productId, variants: variants.map((v: any) => comboToBulkInput(v, locationId)), strategy: removeStandalone ? "REMOVE_STANDALONE_VARIANT" : "DEFAULT" }
+  );
+  const errs = d.productVariantsBulkCreate?.userErrors ?? [];
+  if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
+}
+
 export async function createProduct(p: any): Promise<SaveResult> {
   const baseInput: Record<string, unknown> = {
     title: p.title,
@@ -1102,79 +1147,25 @@ export async function createProduct(p: any): Promise<SaveResult> {
   if (p.barcode) first.barcode = String(p.barcode);
   if (p.locationId && p.inventoryQuantity !== undefined && p.inventoryQuantity !== "")
     first.inventoryQuantities = [{ availableQuantity: parseInt(String(p.inventoryQuantity), 10) || 0, locationId: p.locationId }];
-  if (Array.isArray(p.optionValues) && p.optionValues.length) first.options = p.optionValues;
-  // Shopify-style variants: one entry per option combination, each with its
-  // own price / compare-at / SKU / stock. When present, these replace the
-  // legacy single first-variant path.
-  const comboVariants: Record<string, unknown>[] | null =
-    Array.isArray(p.variants) && p.variants.length
-      ? p.variants.map((v: any) => {
-          const out: Record<string, unknown> = { price: String(v.price || p.price || "0") };
-          if (Array.isArray(v.options) && v.options.length) out.options = v.options;
-          if (v.compareAtPrice) out.compareAtPrice = String(v.compareAtPrice);
-          if (v.sku) out.sku = String(v.sku);
-          if (v.barcode) out.barcode = String(v.barcode);
-          if (p.locationId && v.inventoryQuantity !== undefined && v.inventoryQuantity !== "")
-            out.inventoryQuantities = [{ availableQuantity: parseInt(String(v.inventoryQuantity), 10) || 0, locationId: p.locationId }];
-          return out;
-        })
-      : null;
-  let id: string;
-  try {
-    const input = { ...baseInput, variants: comboVariants || [first] };
-    if (Array.isArray(p.options) && p.options.length)
-      (input as any).options = p.options.map((o: any) => ({ name: o.name, values: (o.values || []).map((v: string) => ({ name: v })) }));
-    const d = await gql<any>(
-      `mutation ProductCreate($input: ProductInput!) {
-         productCreate(input: $input) { product { id handle } userErrors { message } }
-       }`,
-      { input }
-    );
-    const errs = d.productCreate?.userErrors ?? [];
-    if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
-    id = d.productCreate.product.id as string;
-  } catch {
-    // Newer API versions dropped ProductInput.variants: create bare, then
-    // price/stock the auto-created default variant.
-    const d = await gql<any>(
-      `mutation ProductCreate($input: ProductInput!) {
-         productCreate(input: $input) { product { id handle } userErrors { message } }
-       }`,
-      { input: baseInput }
-    );
-    const errs = d.productCreate?.userErrors ?? [];
-    if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
-    id = d.productCreate.product.id as string;
+  // Proven create flow (verified live): bare create -> productOptionsCreate
+  // -> bulkCreate combos with REMOVE_STANDALONE_VARIANT. ProductInput.variants
+  // is version-fragile, so it is deliberately not used.
+  const d = await gql<any>(
+    `mutation ProductCreate($input: ProductInput!) {
+       productCreate(input: $input) { product { id handle } userErrors { message } }
+     }`,
+    { input: baseInput }
+  );
+  const errs = d.productCreate?.userErrors ?? [];
+  if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
+  const id = d.productCreate.product.id as string;
+  if (Array.isArray(p.options) && p.options.length) await createProductOptions(id, p.options);
+  if (Array.isArray(p.variants) && p.variants.length) {
+    await bulkCreateVariants(id, p.variants, p.locationId, true);
+  } else {
     const detail = await getProductDetail(id);
     const dv = detail.variants[0];
-    if (comboVariants) {
-      // Bare create made one default variant; replace it with the combos.
-      const created = (comboVariants as any[]).map((v: any) => {
-        const out: Record<string, unknown> = { price: String(v.price || "0") };
-        if (v.options) out.options = v.options;
-        if (v.compareAtPrice) out.compareAtPrice = v.compareAtPrice;
-        if (v.sku) out.sku = v.sku;
-        if (v.barcode) out.barcode = v.barcode;
-        if (v.inventoryQuantities) out.inventoryQuantities = v.inventoryQuantities;
-        return out;
-      });
-      if (created.length) {
-        const d3 = await gql<any>(
-          `mutation VarCreate2($productId: ID!, $variants: [ProductVariantCreateInput!]!) {
-             productVariantsBulkCreate(productId: $productId, variants: $variants) { productVariants { id } userErrors { message } }
-           }`,
-          { productId: id, variants: created }
-        );
-        const errs3 = d3.productVariantsBulkCreate?.userErrors ?? [];
-        if (errs3.length) throw new Error(errs3.map((e: any) => e.message).join("; "));
-        if (dv) {
-          await gql<any>(
-            `mutation VarDel2($id: ID!) { productVariantDelete(id: $id) { deletedProductVariantId userErrors { message } } }`,
-            { id: dv.id }
-          );
-        }
-      }
-    } else if (dv) {
+    if (dv) {
       await bulkUpdateVariants(id, [{ id: dv.id, price: first.price, compareAtPrice: first.compareAtPrice }]);
       if (p.locationId && p.inventoryQuantity !== undefined && p.inventoryQuantity !== "" && dv.inventoryItemId)
         await setInventory(dv.inventoryItemId, p.locationId, parseInt(String(p.inventoryQuantity), 10) || 0);
@@ -1238,24 +1229,20 @@ export async function updateProduct(p: any): Promise<SaveResult> {
     }
   }
   if (Array.isArray(p.newVariants) && p.newVariants.length) {
-    const variants = p.newVariants.map((v: any) => {
-      const out: Record<string, unknown> = { price: String(v.price || "0") };
-      if (v.compareAtPrice) out.compareAtPrice = String(v.compareAtPrice);
-      if (v.sku) out.sku = String(v.sku);
-      if (v.barcode) out.barcode = String(v.barcode);
-      if (v.options) out.options = v.options;
-      if (p.locationId && v.inventoryQuantity !== undefined && v.inventoryQuantity !== "")
-        out.inventoryQuantities = [{ availableQuantity: parseInt(String(v.inventoryQuantity), 10) || 0, locationId: p.locationId }];
-      return out;
-    });
-    const d3 = await gql<any>(
-      `mutation VarCreate($productId: ID!, $variants: [ProductVariantCreateInput!]!) {
-         productVariantsBulkCreate(productId: $productId, variants: $variants) { productVariants { id } userErrors { message } }
-       }`,
-      { productId: p.id, variants }
-    );
-    const errs3 = d3.productVariantsBulkCreate?.userErrors ?? [];
-    if (errs3.length) throw new Error(errs3.map((e: any) => e.message).join("; "));
+    // bulkCreate needs the option NAMES to exist first; new values are added
+    // automatically. coll (fetched above) carries the current options.
+    const existingNames = new Set((coll.options || []).map((o: any) => o.name));
+    const wanted = new Map<string, string[]>();
+    for (const v of p.newVariants)
+      for (const ov of v.optionValues || []) {
+        if (!wanted.has(ov.optionName)) wanted.set(ov.optionName, []);
+        if (!wanted.get(ov.optionName)!.includes(ov.name)) wanted.get(ov.optionName)!.push(ov.name);
+      }
+    const missing = [...wanted.entries()]
+      .filter(([name]) => !existingNames.has(name))
+      .map(([name, values]) => ({ name, values }));
+    if (missing.length) await createProductOptions(p.id, missing);
+    await bulkCreateVariants(p.id, p.newVariants, p.locationId, false);
   }
   if (Array.isArray(p.deleteVariantIds) && p.deleteVariantIds.length) {
     for (const vid of p.deleteVariantIds) {
