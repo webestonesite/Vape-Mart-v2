@@ -298,7 +298,7 @@ function toProductItem(node: ShopifyProductNode, flavorObjects: FlavorMetaobject
     coilType: mf["vape.coil_type"] || undefined,
     activation: mf["vape.activation"] || undefined,
     flavors,
-    variantOptions: (node.options ?? []).map((o) => ({ name: o.name, values: o.values ?? [] })),
+    variantOptions: (node.options ?? []).map((o) => ({ name: o.name, values: o.values ?? [] })).filter((o) => o.values.length > 0),
     productVariants: node.variants.nodes.map((v) => ({
       id: v.id,
       title: v.title || "Default",

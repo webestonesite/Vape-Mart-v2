@@ -418,10 +418,11 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
         options: cleanOptions,
       };
       if (cleanOptions.length) {
+        const toOptionValues = (t: string[]) => t.map((val: string, i: number) => ({ optionName: cleanOptions[i].name, name: val }));
         payload.variants = comboList.map((t) => {
           const nv = newVariantFor(t);
           return {
-            options: t,
+            optionValues: toOptionValues(t),
             price: nv?.price ?? form.price,
             compareAtPrice: nv?.compareAtPrice ?? form.compareAtPrice,
             sku: nv?.sku ?? "",
@@ -444,6 +445,8 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
       }
       const kept = variants.filter((v: any) => matchedIds.has(v.id));
       const orphans = variants.filter((v: any) => !matchedIds.has(v.id));
+      const toOptionValues = (t: string[]) => t.map((val: string, i: number) => ({ optionName: liveOptions[i]?.name || "", name: val })).filter((x: any) => x.optionName);
+      const newWithValues = newFromCombos.map((nv: any) => ({ ...nv, optionValues: toOptionValues(nv.options || []) }));
       // Options bodle gele purano variant gulo orphan hoy — segulo delete hobe,
       // notun combination gulo toiri hobe. Kintu shob variant ekbare delete noy:
       if (kept.length === 0 && newFromCombos.length === 0) {
@@ -459,7 +462,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
             id: v.id, price: v.price, compareAtPrice: v.compareAtPrice, sku: v.sku, barcode: v.barcode,
           })),
           inventoryUpdates: kept.map((v: any) => ({ inventoryItemId: v.inventoryItemId, quantity: v.inventoryQuantity })),
-          newVariants: newFromCombos, deleteVariantIds: [...deleteVariantIds, ...orphans.map((v: any) => v.id)], deleteMediaIds,
+          newVariants: newWithValues, deleteVariantIds: [...deleteVariantIds, ...orphans.map((v: any) => v.id)], deleteMediaIds,
         },
       });
     }
