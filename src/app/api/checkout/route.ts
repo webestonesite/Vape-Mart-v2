@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
       city: String(city),
       notes: `${notes || ""}\nPayment: ${paymentMethod === "card_on_delivery" ? "Card on delivery" : "Cash on delivery"}`.trim(),
       items: items.map((i: any) => ({
-        title: `${String(i.title)}${i.flavor ? ` (${String(i.flavor)})` : ""}${i.nicotine ? ` - ${String(i.nicotine)}` : ""}`,
+        title: `${String(i.title)}${i.variantLabel ? ` (${String(i.variantLabel)})` : ""}${i.flavor ? ` (${String(i.flavor)})` : ""}${i.nicotine ? ` - ${String(i.nicotine)}` : ""}`,
         quantity: Math.max(1, parseInt(i.quantity, 10) || 1),
         price: parseFloat(i.price) || 0,
       })),

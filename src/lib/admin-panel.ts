@@ -1002,6 +1002,8 @@ function vapeMetafieldEntries(productId: string, vape: Record<string, any>): any
   put("review_count", "number_integer", vape.review_count);
   if (Array.isArray(vape.nicotine_options))
     out.push({ ownerId: productId, namespace: "vape", key: "nicotine_options", type: "list.single_line_text_field", value: JSON.stringify(vape.nicotine_options) });
+  if (Array.isArray(vape.custom_specs))
+    out.push({ ownerId: productId, namespace: "vape", key: "custom_specs", type: "json", value: JSON.stringify(vape.custom_specs) });
   if (Array.isArray(vape.flavors))
     out.push({ ownerId: productId, namespace: "vape", key: "flavors", type: "list.metaobject_reference", value: JSON.stringify(vape.flavors) });
   return out;
@@ -1016,6 +1018,18 @@ async function setProductMetafields(productId: string, entries: any[]): Promise<
     { metafields: entries }
   );
   const errs = d.metafieldsSet?.userErrors ?? [];
+  if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
+}
+
+async function deleteProductMetafields(productId: string, keys: string[]): Promise<void> {
+  if (!keys.length) return;
+  const d = await gql<any>(
+    `mutation MfDel($metafields: [MetafieldIdentifierInput!]!) {
+       metafieldsDelete(metafields: $metafields) { deletedMetafields { key namespace } userErrors { message } }
+     }`,
+    { metafields: keys.map((key) => ({ ownerId: productId, namespace: "vape", key })) }
+  );
+  const errs = d.metafieldsDelete?.userErrors ?? [];
   if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
 }
 
@@ -1089,9 +1103,25 @@ export async function createProduct(p: any): Promise<SaveResult> {
   if (p.locationId && p.inventoryQuantity !== undefined && p.inventoryQuantity !== "")
     first.inventoryQuantities = [{ availableQuantity: parseInt(String(p.inventoryQuantity), 10) || 0, locationId: p.locationId }];
   if (Array.isArray(p.optionValues) && p.optionValues.length) first.options = p.optionValues;
+  // Shopify-style variants: one entry per option combination, each with its
+  // own price / compare-at / SKU / stock. When present, these replace the
+  // legacy single first-variant path.
+  const comboVariants: Record<string, unknown>[] | null =
+    Array.isArray(p.variants) && p.variants.length
+      ? p.variants.map((v: any) => {
+          const out: Record<string, unknown> = { price: String(v.price || p.price || "0") };
+          if (Array.isArray(v.options) && v.options.length) out.options = v.options;
+          if (v.compareAtPrice) out.compareAtPrice = String(v.compareAtPrice);
+          if (v.sku) out.sku = String(v.sku);
+          if (v.barcode) out.barcode = String(v.barcode);
+          if (p.locationId && v.inventoryQuantity !== undefined && v.inventoryQuantity !== "")
+            out.inventoryQuantities = [{ availableQuantity: parseInt(String(v.inventoryQuantity), 10) || 0, locationId: p.locationId }];
+          return out;
+        })
+      : null;
   let id: string;
   try {
-    const input = { ...baseInput, variants: [first] };
+    const input = { ...baseInput, variants: comboVariants || [first] };
     if (Array.isArray(p.options) && p.options.length)
       (input as any).options = p.options.map((o: any) => ({ name: o.name, values: (o.values || []).map((v: string) => ({ name: v })) }));
     const d = await gql<any>(
@@ -1117,7 +1147,34 @@ export async function createProduct(p: any): Promise<SaveResult> {
     id = d.productCreate.product.id as string;
     const detail = await getProductDetail(id);
     const dv = detail.variants[0];
-    if (dv) {
+    if (comboVariants) {
+      // Bare create made one default variant; replace it with the combos.
+      const created = (comboVariants as any[]).map((v: any) => {
+        const out: Record<string, unknown> = { price: String(v.price || "0") };
+        if (v.options) out.options = v.options;
+        if (v.compareAtPrice) out.compareAtPrice = v.compareAtPrice;
+        if (v.sku) out.sku = v.sku;
+        if (v.barcode) out.barcode = v.barcode;
+        if (v.inventoryQuantities) out.inventoryQuantities = v.inventoryQuantities;
+        return out;
+      });
+      if (created.length) {
+        const d3 = await gql<any>(
+          `mutation VarCreate2($productId: ID!, $variants: [ProductVariantCreateInput!]!) {
+             productVariantsBulkCreate(productId: $productId, variants: $variants) { productVariants { id } userErrors { message } }
+           }`,
+          { productId: id, variants: created }
+        );
+        const errs3 = d3.productVariantsBulkCreate?.userErrors ?? [];
+        if (errs3.length) throw new Error(errs3.map((e: any) => e.message).join("; "));
+        if (dv) {
+          await gql<any>(
+            `mutation VarDel2($id: ID!) { productVariantDelete(id: $id) { deletedProductVariantId userErrors { message } } }`,
+            { id: dv.id }
+          );
+        }
+      }
+    } else if (dv) {
       await bulkUpdateVariants(id, [{ id: dv.id, price: first.price, compareAtPrice: first.compareAtPrice }]);
       if (p.locationId && p.inventoryQuantity !== undefined && p.inventoryQuantity !== "" && dv.inventoryItemId)
         await setInventory(dv.inventoryItemId, p.locationId, parseInt(String(p.inventoryQuantity), 10) || 0);
@@ -1225,6 +1282,8 @@ export async function updateProduct(p: any): Promise<SaveResult> {
       await setInventory(u.inventoryItemId, p.locationId, parseInt(String(u.quantity), 10) || 0);
     }
   }
+  if (Array.isArray(p.vapeDeleteKeys) && p.vapeDeleteKeys.length)
+    await deleteProductMetafields(p.id, p.vapeDeleteKeys);
   if (p.vape) await setProductMetafields(p.id, vapeMetafieldEntries(p.id, p.vape));
   return { message: "Product updated." };
 }

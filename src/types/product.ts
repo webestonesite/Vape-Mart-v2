@@ -92,6 +92,9 @@ export interface ProductItem {
   activation?: string;
   flavors: ProductFlavor[];
   flavorFamily: "fruit_ice" | "menthol" | "tobacco" | "dessert" | "";
+  /** Shopify variant options (e.g. Flavor, Color, Pack Size) + every variant. Empty for single-variant products. */
+  variantOptions?: { name: string; values: string[] }[];
+  productVariants?: { id: string; title: string; options: { name: string; value: string }[]; price: number; compareAtPrice: number; stock: number; sku: string }[];
   sensoryProfile: SensoryProfile;
   highlights: ProductHighlight[];
   specifications: ProductSpecification[];
@@ -135,6 +138,8 @@ export interface CartItem {
   quantity: number;
   flavor?: string;
   nicotine?: string;
+  /** e.g. "Mango Ice / 10 pcs" for variant-driven products. */
+  variantLabel?: string;
   image: string;
 }
 

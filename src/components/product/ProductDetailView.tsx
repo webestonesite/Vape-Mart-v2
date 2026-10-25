@@ -113,6 +113,19 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
   const [wished, setWished] = useState(false);
   const [flavorDropOpen, setFlavorDropOpen] = useState(false);
   const [nicotineDropOpen, setNicotineDropOpen] = useState(false);
+  // Shopify-style variant selection. When the product has real variant
+  // options, these dropdowns REPLACE the metafield flavour/nicotine ones
+  // and the price + stock follow the matched variant.
+  const variantOptions = product.variantOptions ?? [];
+  const productVariants = product.productVariants ?? [];
+  const hasVariants = variantOptions.length > 0 && productVariants.length > 0;
+  const [selOptions, setSelOptions] = useState<Record<string, string>>(() => {
+    const init: Record<string, string> = {};
+    for (const o of variantOptions) if (o.values.length === 1) init[o.name] = o.values[0];
+    return init;
+  });
+  const [openOpt, setOpenOpt] = useState<string | null>(null);
+  const variantBlockRef = useRef<HTMLDivElement>(null);
   const [showAllFlavors, setShowAllFlavors] = useState(false);
   const [relatedWished, setRelatedWished] = useState<Set<string>>(new Set());
   const flavorDropRef = useRef<HTMLDivElement>(null);
@@ -123,6 +136,7 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
     const close = (e: MouseEvent) => {
       if (flavorDropRef.current && !flavorDropRef.current.contains(e.target as Node)) setFlavorDropOpen(false);
       if (nicotineDropRef.current && !nicotineDropRef.current.contains(e.target as Node)) setNicotineDropOpen(false);
+      if (variantBlockRef.current && !variantBlockRef.current.contains(e.target as Node)) setOpenOpt(null);
     };
     document.addEventListener("mousedown", close);
     return () => document.removeEventListener("mousedown", close);
@@ -144,25 +158,39 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
   }, [isCartOpen]);
 
   const discount = product.originalPrice > product.price ? Math.round((1 - product.price / product.originalPrice) * 100) : 0;
-  const total = product.price * qty;
+  const matchedVariant = hasVariants && variantOptions.every((o) => selOptions[o.name])
+    ? productVariants.find((v) => variantOptions.every((o) => v.options.find((x) => x.name === o.name)?.value === selOptions[o.name]))
+    : undefined;
+  const displayPrice = matchedVariant ? matchedVariant.price : product.price;
+  const displayCompare = matchedVariant ? matchedVariant.compareAtPrice : product.originalPrice;
+  const displayInStock = hasVariants ? (matchedVariant ? matchedVariant.stock > 0 : product.inStock) : product.inStock;
+  const variantLabel = matchedVariant ? matchedVariant.options.map((o) => o.value).join(" / ") : undefined;
+  const total = displayPrice * qty;
 
   const seoSections = useMemo(() => buildSeoSections(product), [product]);
   const allFaqs = useMemo(() => buildProductFaqs(product), [product]);
 
   const addToCart = (openDrawer = true) => {
-    if (product.flavors.length > 0 && !flavorId) { setFlavorDropOpen(true); setNicotineDropOpen(false); flavorDropRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); return; }
-    if (product.nicotineOptions.length > 1 && !nicotine) { setNicotineDropOpen(true); setFlavorDropOpen(false); nicotineDropRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); return; }
+    if (hasVariants) {
+      const missing = variantOptions.find((o) => !selOptions[o.name]);
+      if (missing) { setOpenOpt(missing.name); variantBlockRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); return; }
+      if (matchedVariant && matchedVariant.stock <= 0) return;
+    } else {
+      if (product.flavors.length > 0 && !flavorId) { setFlavorDropOpen(true); setNicotineDropOpen(false); flavorDropRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); return; }
+      if (product.nicotineOptions.length > 1 && !nicotine) { setNicotineDropOpen(true); setFlavorDropOpen(false); nicotineDropRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); return; }
+    }
     const flavorName = product.flavors.find((f) => f.id === flavorId)?.name;
     const newItem: CartItem = {
-      id: `${product.id}-${flavorId || "std"}-${nicotine || "std"}`,
+      id: hasVariants && matchedVariant ? `${product.id}-var-${String(matchedVariant.id).split("/").pop()}` : `${product.id}-${flavorId || "std"}-${nicotine || "std"}`,
       productId: product.id,
       title: product.title,
       brand: product.brand,
-      price: product.price,
+      price: displayPrice,
       image: product.primaryImage,
       quantity: qty,
-      flavor: flavorName,
-      nicotine: nicotine || undefined,
+      flavor: hasVariants ? undefined : flavorName,
+      nicotine: hasVariants ? undefined : (nicotine || undefined),
+      variantLabel,
     };
     setCartItems((prev) => {
       const i = prev.findIndex((x) => x.id === newItem.id);
@@ -173,8 +201,14 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
   };
 
   const buyNow = () => {
-    if (product.flavors.length > 0 && !flavorId) { setFlavorDropOpen(true); flavorDropRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); return; }
-    if (product.nicotineOptions.length > 1 && !nicotine) { setNicotineDropOpen(true); nicotineDropRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); return; }
+    if (hasVariants) {
+      const missing = variantOptions.find((o) => !selOptions[o.name]);
+      if (missing) { setOpenOpt(missing.name); variantBlockRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); return; }
+      if (matchedVariant && matchedVariant.stock <= 0) return;
+    } else {
+      if (product.flavors.length > 0 && !flavorId) { setFlavorDropOpen(true); flavorDropRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); return; }
+      if (product.nicotineOptions.length > 1 && !nicotine) { setNicotineDropOpen(true); nicotineDropRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); return; }
+    }
     addToCart(true);
   };
 
@@ -187,13 +221,13 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
   const keySpecs = useMemo(() => [
     { label: "BRAND", value: product.brand },
     { label: "PUFF COUNT", value: product.puffs ? `${product.puffs.toLocaleString()} Puffs` : product.puffRange ? `${product.puffRange} Puffs` : "—" },
-    { label: "NICOTINE", value: nicotine || product.nicotineStrength },
+    { label: "NICOTINE", value: variantOptions.map((o) => (o.name.toLowerCase() === "nicotine" ? selOptions[o.name] : undefined)).find(Boolean) || nicotine || product.nicotineStrength },
     { label: "E-LIQUID", value: product.eLiquidCapacity || "—" },
     { label: "BATTERY", value: product.batteryCapacity || "—" },
     { label: "CHARGING", value: product.chargingType || "—" },
     { label: "COIL", value: product.coilType || "—" },
     { label: "ACTIVATION", value: product.activation || "—" },
-  ], [product, nicotine]);
+  ], [product, nicotine, selOptions, variantOptions]);
 
   const ratingBars = useMemo(() => {
     const counts = [0, 0, 0, 0, 0];
@@ -309,11 +343,11 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
             {/* price */}
             <p className="mt-5 text-[11px] font-extrabold tracking-[0.18em] text-neutral-400">PRICE:</p>
             <div className="mt-1 flex items-baseline gap-3 flex-wrap">
-              <span className="text-3xl sm:text-[40px] xl:text-[52px] font-extrabold text-emerald-900">{formatAED(product.price)}</span>
-              {product.originalPrice > product.price && (
+              <span className="text-3xl sm:text-[40px] xl:text-[52px] font-extrabold text-emerald-900">{formatAED(displayPrice)}</span>
+              {displayCompare > displayPrice && (
                 <>
-                  <span className="text-lg text-neutral-400 line-through">{formatAED(product.originalPrice)}</span>
-                  <span className="rounded-full bg-emerald-100 text-emerald-800 text-xs font-extrabold px-2.5 py-1">SAVE {formatAED(product.originalPrice - product.price)}</span>
+                  <span className="text-lg text-neutral-400 line-through">{formatAED(displayCompare)}</span>
+                  <span className="rounded-full bg-emerald-100 text-emerald-800 text-xs font-extrabold px-2.5 py-1">SAVE {formatAED(displayCompare - displayPrice)}</span>
                 </>
               )}
             </div>
@@ -334,8 +368,75 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
               </div>
             </div>
 
-            {/* flavors — premium dropdown */}
-            {product.flavors.length > 0 && (
+            {/* variant options — Shopify-style, replaces flavour/nicotine dropdowns when present */}
+            {hasVariants && (
+              <div className="mt-5 space-y-3" ref={variantBlockRef}>
+                {variantOptions.map((o) => {
+                  const open = openOpt === o.name;
+                  const val = selOptions[o.name] || "";
+                  return (
+                    <div key={o.name} className="relative">
+                      <p className="text-xs font-extrabold tracking-wider text-emerald-950 mb-2">{o.name.toUpperCase()}:</p>
+                      <button
+                        onClick={() => setOpenOpt(open ? null : o.name)}
+                        className={`w-full h-12 xl:h-14 rounded-xl border-2 bg-white px-3.5 flex items-center gap-2.5 text-left transition-all ${open ? "border-amber-500 shadow-[0_8px_24px_-8px_rgba(245,158,11,0.4)]" : "border-emerald-900/15 hover:border-emerald-700"}`}
+                      >
+                        <span className={`flex-1 text-sm font-bold truncate ${val ? "text-emerald-950" : "text-neutral-400"}`}>
+                          {val || `Select ${o.name.toLowerCase()}`}
+                        </span>
+                        <ChevronDown size={17} className={`shrink-0 text-amber-600 transition-transform duration-300 ${open ? "rotate-180" : ""}`} />
+                      </button>
+                      <AnimatePresence>
+                        {open && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -6, scale: 0.99 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.99 }}
+                            transition={{ duration: 0.18 }}
+                            className="absolute z-30 left-0 right-0 mt-2 rounded-2xl border border-emerald-900/10 bg-white shadow-[0_24px_50px_-12px_rgba(6,78,59,0.35)] overflow-hidden max-h-[280px] overflow-y-auto"
+                          >
+                            {o.values.map((v) => {
+                              const inStock = productVariants.some((pv) =>
+                                pv.options.find((x) => x.name === o.name)?.value === v && pv.stock > 0 &&
+                                variantOptions.every((oo) => oo.name === o.name || !selOptions[oo.name] || pv.options.find((x) => x.name === oo.name)?.value === selOptions[oo.name])
+                              );
+                              return (
+                                <button
+                                  key={v}
+                                  disabled={!inStock}
+                                  onClick={() => {
+                                    if (!inStock) return;
+                                    setSelOptions({ ...selOptions, [o.name]: v });
+                                    setOpenOpt(null);
+                                    if (o.name.toLowerCase() === "flavor" || o.name.toLowerCase() === "flavour") {
+                                      const f = product.flavors.find((fl) => fl.name === v);
+                                      if (f) {
+                                        setFlavorId(f.id);
+                                        const fi = product.flavors.findIndex((x) => x.id === f.id);
+                                        if (galleryImages[fi]) setImgIdx(fi);
+                                      }
+                                    }
+                                  }}
+                                  className={`w-full px-3.5 py-3 flex items-center gap-3 text-left transition-colors ${val === v ? "bg-amber-50" : "hover:bg-emerald-50/60"} ${!inStock ? "opacity-40 cursor-not-allowed" : ""}`}
+                                >
+                                  <span className={`flex-1 text-sm font-semibold ${val === v ? "text-emerald-950" : "text-neutral-700"}`}>{v}</span>
+                                  {!inStock && <span className="text-[10px] font-bold text-neutral-400">OUT OF STOCK</span>}
+                                  {val === v && <Check size={16} className="text-amber-600 shrink-0" />}
+                                </button>
+                              );
+                            })}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                })}
+                {matchedVariant && matchedVariant.stock <= 0 && (
+                  <p className="text-xs font-bold text-red-600">Ei combination-ta ekhon out of stock.</p>
+                )}
+              </div>
+            )}
+
+            {/* flavors — premium dropdown (only when no variant options exist) */}
+            {!hasVariants && product.flavors.length > 0 && (
               <div className="mt-5 relative" ref={flavorDropRef}>
                 <p className="text-xs font-extrabold tracking-wider text-emerald-950 mb-2">FLAVORS OPTION:</p>
                 <button
@@ -380,8 +481,8 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
               </div>
             )}
 
-            {/* nicotine — premium dropdown */}
-            {product.nicotineOptions.length > 1 && (
+            {/* nicotine — premium dropdown (only when no variant options exist) */}
+            {!hasVariants && product.nicotineOptions.length > 1 && (
               <div className="mt-3 relative" ref={nicotineDropRef}>
                 <p className="text-xs font-extrabold tracking-wider text-emerald-950 mb-2">NICOTINE STRENGTH:</p>
                 <button
@@ -447,21 +548,21 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
             <div className="mt-4 grid sm:grid-cols-2 gap-2.5">
               <button
                 onClick={() => addToCart(true)}
-                disabled={!product.inStock}
+                disabled={!displayInStock}
                 className="h-[56px] xl:h-[68px] rounded-2xl border-2 border-emerald-800 text-emerald-900 font-extrabold text-[15px] tracking-wide hover:bg-emerald-50 active:scale-[0.99] transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
               >
                 <ShoppingBag size={18} /> ADD TO CART
               </button>
               <button
                 onClick={buyNow}
-                disabled={!product.inStock}
+                disabled={!displayInStock}
                 className="h-[56px] xl:h-[68px] rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 text-emerald-950 font-extrabold text-[15px] tracking-wide hover:brightness-105 active:scale-[0.99] transition-all shadow-[0_10px_30px_-10px_rgba(245,158,11,0.6)] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
               >
                 <Zap size={18} /> BUY NOW
               </button>
             </div>
             <a
-              href={`https://wa.me/971551688299?text=${encodeURIComponent(`Hi Vape Mart! I want to order: ${product.title} (${formatAED(product.price)})`)}`}
+              href={`https://wa.me/971551688299?text=${encodeURIComponent(`Hi Vape Mart! I want to order: ${product.title}${variantLabel ? ` (${variantLabel})` : ""} (${formatAED(displayPrice)})`)}`}
               target="_blank" rel="noopener noreferrer"
               className="mt-2.5 h-[52px] xl:h-[60px] rounded-2xl bg-[#25D366] text-white font-bold text-sm tracking-wide hover:brightness-110 active:scale-[0.99] transition-all flex items-center justify-center gap-2"
             >
@@ -918,11 +1019,11 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[13px] font-bold text-white truncate">{product.title}</p>
-                <p className="text-sm font-extrabold text-amber-400">{formatAED(product.price)}</p>
+                <p className="text-sm font-extrabold text-amber-400">{formatAED(displayPrice)}</p>
               </div>
               <button
                 onClick={() => addToCart(true)}
-                disabled={!product.inStock}
+                disabled={!displayInStock}
                 className="shrink-0 h-[52px] px-4 sm:px-7 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-emerald-950 font-extrabold text-[13px] sm:text-sm tracking-wide hover:brightness-105 active:scale-[0.98] transition-all disabled:opacity-40 flex items-center gap-2 whitespace-nowrap"
               >
                 <ShoppingBag size={16} /> ADD TO CART

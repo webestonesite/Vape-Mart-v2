@@ -49,7 +49,7 @@ function PrimaryBtn({ onClick, children }: { onClick: () => void; children: Reac
 /*  Products: list + full create/edit form                             */
 /* ------------------------------------------------------------------ */
 
-const VAPE_FIELDS: { key: string; label: string; type?: string }[] = [
+const KNOWN_SPECS: { key: string; label: string; type?: string }[] = [
   { key: "badge", label: "Badge (BEST SELLER / NEW)" },
   { key: "subtitle", label: "Subtitle" },
   { key: "short_description", label: "Short description" },
@@ -63,15 +63,29 @@ const VAPE_FIELDS: { key: string; label: string; type?: string }[] = [
   { key: "activation", label: "Activation" },
   { key: "vg_pg_ratio", label: "VG/PG ratio" },
   { key: "flavor_family", label: "Flavor family (fruit_ice / menthol / tobacco / dessert)" },
-  { key: "sweetness", label: "Sweetness (1–5)", type: "number" },
-  { key: "cooling", label: "Cooling (1–5)", type: "number" },
-  { key: "throat_hit", label: "Throat hit (1–5)", type: "number" },
+  { key: "sweetness", label: "Sweetness (1-5)", type: "number" },
+  { key: "cooling", label: "Cooling (1-5)", type: "number" },
+  { key: "throat_hit", label: "Throat hit (1-5)", type: "number" },
   { key: "top_note", label: "Top note" },
   { key: "heart_note", label: "Heart note" },
   { key: "base_note", label: "Base note" },
-  { key: "rating", label: "Rating (4.8)" },
-  { key: "review_count", label: "Review count", type: "number" },
 ];
+// NOTE: vape.rating / vape.review_count are deliberately NOT editable rows:
+// reviews now come from the vm_product_review metaobjects (PR47).
+
+function cartesian(lists: string[][]): string[][] {
+  if (!lists.length) return [[]];
+  let out: string[][] = [[]];
+  for (const list of lists) {
+    const next: string[][] = [];
+    for (const prefix of out) for (const v of list) next.push([...prefix, v]);
+    out = next;
+  }
+  return out;
+}
+
+const tupleKey = (t: string[]): string => JSON.stringify(t);
+const tupleLabel = (t: string[]): string => (t.length ? t.join(" / ") : "Default");
 
 function parseJsonList(v: any): string[] {
   if (!v) return [];
@@ -203,7 +217,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
   const [form, setForm] = useState<any>({
     title: "", handle: "", descriptionHtml: "", vendor: "", productType: "", tags: "", status: "DRAFT",
     price: "", compareAtPrice: "", sku: "", barcode: "", inventoryQuantity: "",
-    optionName: "", optionValues: "", seoTitle: "", seoDescription: "",
+    seoTitle: "", seoDescription: "",
   });
   const [variants, setVariants] = useState<any[]>([]);
   const [newVariants, setNewVariants] = useState<any[]>([]);
@@ -212,7 +226,13 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
   const [newMedia, setNewMedia] = useState<any[]>([]);
   const [deleteMediaIds, setDeleteMediaIds] = useState<string[]>([]);
   const [collectionIds, setCollectionIds] = useState<string[]>([]);
-  const [vape, setVape] = useState<any>({});
+  // Shopify-style variant options (max 3): [{ name: "Flavor", values: ["Mango Ice", "Mint"] }]
+  const [options, setOptions] = useState<any[]>([]);
+  // Spec rows: known vape.* keys + free-form custom rows (key null).
+  const [specRows, setSpecRows] = useState<any[]>([]);
+  const [origSpecKeys, setOrigSpecKeys] = useState<string[]>([]);
+  // Tuples the owner deleted this session (hidden until save).
+  const [hiddenTuples, setHiddenTuples] = useState<string[]>([]);
   const [nicOpts, setNicOpts] = useState("");
   const [selFlavors, setSelFlavors] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -232,13 +252,29 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
         title: d.title, handle: d.handle, descriptionHtml: d.descriptionHtml, vendor: d.vendor,
         productType: d.productType, tags: d.tags, status: d.status,
         price: "", compareAtPrice: "", sku: "", barcode: "", inventoryQuantity: "",
-        optionName: d.options?.[0]?.name || "", optionValues: (d.options?.[0]?.values || []).join(", "),
         seoTitle: d.seoTitle || "", seoDescription: d.seoDescription || "",
       });
       setVariants(d.variants);
       setMedia(d.media);
       setCollectionIds(d.collections);
-      setVape(d.vape || {});
+      setOptions((d.options || []).map((o: any) => ({ name: o.name, values: [...(o.values || [])] })));
+      const rows: any[] = [];
+      const presentKeys: string[] = [];
+      for (const f of KNOWN_SPECS) {
+        const v = d.vape?.[f.key];
+        if (v !== undefined && v !== null && String(v) !== "") {
+          rows.push({ key: f.key, label: f.label, value: String(v) });
+          presentKeys.push(f.key);
+        }
+      }
+      try {
+        const custom = JSON.parse(d.vape?.custom_specs || "[]");
+        if (Array.isArray(custom))
+          for (const r of custom)
+            if (r?.name && r?.value) rows.push({ key: null, label: String(r.name), value: String(r.value) });
+      } catch { /* ignore malformed custom specs */ }
+      setSpecRows(rows);
+      setOrigSpecKeys(presentKeys);
       setNicOpts(parseJsonList(d.vape?.nicotine_options).join(", "));
       setSelFlavors(parseJsonList(d.vape?.flavors));
       setLoading(false);
@@ -266,6 +302,67 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
   const setSimpleCompare = (v: string) => (isNew ? set("compareAtPrice", v) : setFirstVariant("compareAtPrice", v));
   const setSimpleStock = (v: string) => (isNew ? set("inventoryQuantity", v) : setFirstVariant("inventoryQuantity", v));
 
+  // ---- Variant helpers (Shopify-style) ----
+  const liveOptions = options
+    .map((o: any) => ({ name: String(o.name || "").trim(), values: (o.values || []).map((v: string) => String(v).trim()).filter(Boolean) }))
+    .filter((o: any) => o.name && o.values.length);
+  const combos = (): string[][] => {
+    if (!liveOptions.length) return [[]];
+    return cartesian(liveOptions.map((o: any) => o.values));
+  };
+  const visibleCombos = (): string[][] => combos().filter((t) => !hiddenTuples.includes(tupleKey(t)));
+  const matchVariant = (tuple: string[]) =>
+    variants.find((v: any) => {
+      const sel = (v.selectedOptions || []).map((o: any) => o.value);
+      return sel.length === tuple.length && sel.every((val: string, i: number) => val === tuple[i]);
+    });
+  const newVariantFor = (tuple: string[]) =>
+    newVariants.find((nv: any) => tupleKey(nv.options || []) === tupleKey(tuple));
+  const basePrice = isNew ? form.price : (variants[0]?.price ?? "");
+  const baseStock = isNew ? form.inventoryQuantity : (variants[0]?.inventoryQuantity ?? "");
+  // Row values for one combination: existing variant, edited new row, or defaults.
+  const rowFor = (tuple: string[]) => {
+    const m = matchVariant(tuple);
+    if (m) return { kind: "existing" as const, v: m };
+    const nv = newVariantFor(tuple);
+    if (nv) return { kind: "new" as const, v: nv };
+    return {
+      kind: "fresh" as const,
+      v: { options: tuple, price: basePrice, compareAtPrice: isNew ? form.compareAtPrice : "", sku: "", barcode: "", inventoryQuantity: baseStock },
+    };
+  };
+  const setRowField = (tuple: string[], field: string, value: string) => {
+    const row = rowFor(tuple);
+    if (row.kind === "existing") {
+      setVariants(variants.map((x: any) => (x.id === row.v.id ? { ...x, [field]: value } : x)));
+    } else if (row.kind === "new") {
+      setNewVariants(newVariants.map((x: any) => (tupleKey(x.options || []) === tupleKey(tuple) ? { ...x, [field]: value } : x)));
+    } else {
+      setNewVariants([...newVariants, { ...row.v, [field]: value }]);
+    }
+  };
+  const deleteTuple = (tuple: string[]) => {
+    if (visibleCombos().length <= 1 && tuple.length === 0) {
+      notify("Ekta variant ontoto rakhte hobe — shob delete kora jabe na.");
+      return;
+    }
+    const m = matchVariant(tuple);
+    if (m) {
+      setDeleteVariantIds([...deleteVariantIds, m.id]);
+      setVariants(variants.filter((x: any) => x.id !== m.id));
+    } else {
+      setNewVariants(newVariants.filter((x: any) => tupleKey(x.options || []) !== tupleKey(tuple)));
+    }
+    setHiddenTuples([...hiddenTuples, tupleKey(tuple)]);
+  };
+  // ---- Spec-row helpers ----
+  const specValue = (key: string) => specRows.find((r: any) => r.key === key)?.value ?? "";
+  const setSpec = (key: string, value: string, label: string) => {
+    const i = specRows.findIndex((r: any) => r.key === key);
+    if (i > -1) setSpecRows(specRows.map((r: any, j: number) => (j === i ? { ...r, value } : r)));
+    else setSpecRows([...specRows, { key, label, value }]);
+  };
+
   const onUpload = async (files: FileList | null) => {
     if (!files || !files.length) return;
     setUploading(true);
@@ -288,40 +385,81 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
       return;
     }
     setSaving(true);
-    const vapePayload: any = { ...vape };
-    vapePayload.nicotine_options = nicOpts.split(",").map((s) => s.trim()).filter(Boolean);
+    // Specs: known keys write back to their vape.* metafields, free rows go
+    // to vape.custom_specs JSON, removed known keys get deleted from Shopify.
+    const vapePayload: any = {};
+    const customSpecs: any[] = [];
+    for (const r of specRows) {
+      if (!r.value || String(r.value).trim() === "") continue;
+      if (r.key) vapePayload[r.key] = r.value;
+      else if (r.label && String(r.label).trim() !== "") customSpecs.push({ name: r.label.trim(), value: r.value });
+    }
+    vapePayload.custom_specs = customSpecs;
+    vapePayload.nicotine_options = nicOpts.split(",").map((x: string) => x.trim()).filter(Boolean);
     vapePayload.flavors = selFlavors;
+    const vapeDeleteKeys = origSpecKeys.filter(
+      (k) => !specRows.some((r: any) => r.key === k && r.value && String(r.value).trim() !== "")
+    );
     const base = {
       title: form.title, handle: form.handle || undefined, descriptionHtml: form.descriptionHtml,
       vendor: form.vendor, productType: form.productType, tags: form.tags, status: form.status,
       seoTitle: form.seoTitle, seoDescription: form.seoDescription,
-      collectionIds, vape: vapePayload, locationId: data.locationId,
+      collectionIds, vape: vapePayload, vapeDeleteKeys, locationId: data.locationId,
       mediaSources: [...newMedia.map((m) => m.source), ...(imgUrl.trim() ? [imgUrl.trim()] : [])],
     };
     let r: any;
     if (isNew) {
-      const optionName = form.optionName.trim();
-      const values = form.optionValues.split(",").map((s: string) => s.trim()).filter(Boolean);
-      r = await api({
-        action: "product.create",
-        payload: {
-          ...base,
-          price: form.price, compareAtPrice: form.compareAtPrice, sku: form.sku, barcode: form.barcode,
-          inventoryQuantity: form.inventoryQuantity,
-          options: optionName && values.length ? [{ name: optionName, values }] : [],
-          optionValues: optionName && values.length ? [values[0]] : undefined,
-        },
-      });
+      const cleanOptions = liveOptions.map((o: any) => ({ name: o.name, values: o.values }));
+      const comboList = visibleCombos();
+      const payload: any = {
+        ...base,
+        price: form.price, compareAtPrice: form.compareAtPrice, sku: form.sku, barcode: form.barcode,
+        inventoryQuantity: form.inventoryQuantity,
+        options: cleanOptions,
+      };
+      if (cleanOptions.length) {
+        payload.variants = comboList.map((t) => {
+          const nv = newVariantFor(t);
+          return {
+            options: t,
+            price: nv?.price ?? form.price,
+            compareAtPrice: nv?.compareAtPrice ?? form.compareAtPrice,
+            sku: nv?.sku ?? "",
+            barcode: nv?.barcode ?? "",
+            inventoryQuantity: nv?.inventoryQuantity ?? form.inventoryQuantity,
+          };
+        });
+      }
+      r = await api({ action: "product.create", payload });
     } else {
+      const comboList = visibleCombos();
+      const matchedIds = new Set<string>();
+      const newFromCombos: any[] = [];
+      for (const t of comboList) {
+        const m = matchVariant(t);
+        if (m) { matchedIds.add(m.id); continue; }
+        const nv = newVariantFor(t);
+        if (nv) { if (nv.price !== "") newFromCombos.push(nv); continue; }
+        newFromCombos.push({ options: t, price: variants[0]?.price || "0", compareAtPrice: "", sku: "", barcode: "", inventoryQuantity: variants[0]?.inventoryQuantity ?? "" });
+      }
+      const kept = variants.filter((v: any) => matchedIds.has(v.id));
+      const orphans = variants.filter((v: any) => !matchedIds.has(v.id));
+      // Options bodle gele purano variant gulo orphan hoy — segulo delete hobe,
+      // notun combination gulo toiri hobe. Kintu shob variant ekbare delete noy:
+      if (kept.length === 0 && newFromCombos.length === 0) {
+        setSaving(false);
+        notify("Ekta variant ontoto rakhte hobe — age ekta combination-er dam dao.");
+        return;
+      }
       r = await api({
         action: "product.update",
         payload: {
           ...base, id: productId,
-          variantUpdates: variants.map((v: any) => ({
+          variantUpdates: kept.map((v: any) => ({
             id: v.id, price: v.price, compareAtPrice: v.compareAtPrice, sku: v.sku, barcode: v.barcode,
           })),
-          inventoryUpdates: variants.map((v: any) => ({ inventoryItemId: v.inventoryItemId, quantity: v.inventoryQuantity })),
-          newVariants, deleteVariantIds, deleteMediaIds,
+          inventoryUpdates: kept.map((v: any) => ({ inventoryItemId: v.inventoryItemId, quantity: v.inventoryQuantity })),
+          newVariants: newFromCombos, deleteVariantIds: [...deleteVariantIds, ...orphans.map((v: any) => v.id)], deleteMediaIds,
         },
       });
     }
@@ -468,14 +606,33 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
           <div className="grid sm:grid-cols-2 gap-3">
             <div>
               <Lbl>Puff kotota (shudhu number)</Lbl>
-              <Inp type="number" value={vape.puffs ?? ""} onChange={(e) => setVape({ ...vape, puffs: e.target.value })} placeholder="15000" />
+              <Inp type="number" value={specValue("puffs")} onChange={(e) => setSpec("puffs", e.target.value, "Puff count")} placeholder="15000" />
             </div>
             <div>
               <Lbl>Nicotine (jemon 20mg)</Lbl>
-              <Inp value={vape.nicotine_strength ?? ""} onChange={(e) => setVape({ ...vape, nicotine_strength: e.target.value })} placeholder="20mg" />
+              <Inp value={specValue("nicotine_strength")} onChange={(e) => setSpec("nicotine_strength", e.target.value, "Nicotine strength (20mg)")} placeholder="20mg" />
             </div>
           </div>
         </div>
+
+        {!isNew && options.length > 0 && (
+        <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+          <h2 className="font-bold text-neutral-900 mb-3">Variant-er dam/stock</h2>
+          <p className="text-xs text-neutral-500 mb-3">Prottek flavour/pack-er dam ar stock ekhan theke bodlano jabe.</p>
+          <div className="space-y-2">
+            {visibleCombos().map((t) => {
+              const v = rowFor(t).v;
+              return (
+                <div key={tupleKey(t)} className="grid grid-cols-[1fr_90px_80px] gap-2 items-center">
+                  <span className="text-sm font-semibold text-neutral-700 truncate">{tupleLabel(t)}</span>
+                  <Inp type="number" value={v.price ?? ""} onChange={(e) => setRowField(t, "price", e.target.value)} placeholder="Dam" />
+                  <Inp type="number" value={v.inventoryQuantity ?? ""} onChange={(e) => setRowField(t, "inventoryQuantity", e.target.value)} placeholder="Stock" />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        )}
 
         <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
           <h2 className="font-bold text-neutral-900 mb-3">8. Flavour — konta konta ache?</h2>
@@ -504,7 +661,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
         <PrimaryBtn onClick={doSave}>
           <Save size={15} /> {saving ? "Saving…" : "Save product"}
         </PrimaryBtn>
-        <p className="text-xs text-neutral-500">Baki shob kichu (battery, coil, SKU, SEO, barcode) Advanced-e ache — na bodleleo cholbe.</p>
+        <p className="text-xs text-neutral-500">Baki shob kichu (variant option, spec, SEO, barcode) Advanced-e ache — na bodleleo cholbe.</p>
       </div>
       ) : (
       <div className="grid lg:grid-cols-3 gap-4 items-start">
@@ -602,9 +759,10 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
             </div>
           </div>
 
-          {isNew ? (
+          {isNew && (
             <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
-              <h2 className="font-bold text-neutral-900 mb-3">Pricing & inventory (first variant)</h2>
+              <h2 className="font-bold text-neutral-900 mb-3">Base price & stock</h2>
+              <p className="text-xs text-neutral-500 mb-3">Variant thakle prottek variant-er dam Variants card-e alada kore bosbe; ekhane ja diba seta notun variant-er default hobe.</p>
               <div className="grid sm:grid-cols-3 gap-3">
                 <div>
                   <Lbl>Price (AED)</Lbl>
@@ -627,43 +785,29 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
                   <Inp value={form.barcode} onChange={(e) => set("barcode", e.target.value)} />
                 </div>
               </div>
-              <div className="grid sm:grid-cols-2 gap-3 mt-3">
-                <div>
-                  <Lbl>Variant option name (optional, e.g. Flavor)</Lbl>
-                  <Inp value={form.optionName} onChange={(e) => set("optionName", e.target.value)} placeholder="Flavor" />
-                </div>
-                <div>
-                  <Lbl>Option values (comma separated)</Lbl>
-                  <Inp value={form.optionValues} onChange={(e) => set("optionValues", e.target.value)} placeholder="Mango Ice, Mint" />
-                </div>
-              </div>
             </div>
-          ) : (
-            <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
-              <h2 className="font-bold text-neutral-900 mb-3">Variants</h2>
-              {variants.map((v: any, i: number) => (
-                <div key={v.id} className="grid grid-cols-2 sm:grid-cols-6 gap-2 mb-2 items-end">
-                  <div className="col-span-2">
-                    <Lbl>{v.title}</Lbl>
-                    <Inp value={v.price} onChange={(e) => setVariants(variants.map((x: any, j: number) => (j === i ? { ...x, price: e.target.value } : x)))} />
-                  </div>
-                  <div>
-                    <Lbl>Compare</Lbl>
-                    <Inp value={v.compareAtPrice} onChange={(e) => setVariants(variants.map((x: any, j: number) => (j === i ? { ...x, compareAtPrice: e.target.value } : x)))} />
-                  </div>
-                  <div>
-                    <Lbl>SKU</Lbl>
-                    <Inp value={v.sku} onChange={(e) => setVariants(variants.map((x: any, j: number) => (j === i ? { ...x, sku: e.target.value } : x)))} />
-                  </div>
-                  <div>
-                    <Lbl>Stock</Lbl>
-                    <Inp type="number" value={v.inventoryQuantity} onChange={(e) => setVariants(variants.map((x: any, j: number) => (j === i ? { ...x, inventoryQuantity: e.target.value } : x)))} />
-                  </div>
+          )}
+
+          <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+            <h2 className="font-bold text-neutral-900 mb-3">Variants — Shopify-er moto</h2>
+              <p className="text-xs text-neutral-500 mb-3">
+                Option add koro (Flavor, Color, Pack Size — ja khushi, sorbochcho 3-ta), value gulo comma diye dao.
+                Prottek combination-er nijer dam, ager dam, SKU ar stock hobe — jemon Mango Ice-er dam ek, 10 pcs box-er dam arek.
+              </p>
+              {options.map((o: any, oi: number) => (
+                <div key={oi} className="grid sm:grid-cols-[160px_1fr_auto] gap-2 mb-2">
+                  <Inp
+                    value={o.name}
+                    placeholder="Option nam (Flavor)"
+                    onChange={(e) => setOptions(options.map((x: any, j: number) => (j === oi ? { ...x, name: e.target.value } : x)))}
+                  />
+                  <Inp
+                    value={(o.values || []).join(", ")}
+                    placeholder="Value gulo (Mango Ice, Mint)"
+                    onChange={(e) => setOptions(options.map((x: any, j: number) => (j === oi ? { ...x, values: e.target.value.split(",").map((v: string) => v.trim()).filter(Boolean) } : x)))}
+                  />
                   <button
-                    onClick={() => {
-                      setDeleteVariantIds([...deleteVariantIds, v.id]);
-                      setVariants(variants.filter((_: any, j: number) => j !== i));
-                    }}
+                    onClick={() => setOptions(options.filter((_: any, j: number) => j !== oi))}
                     className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-red-700 hover:bg-red-100"
                   >
                     <Trash2 size={15} />
@@ -671,48 +815,100 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
                 </div>
               ))}
               <button
-                onClick={() => setNewVariants([...newVariants, { price: "", sku: "", inventoryQuantity: "" }])}
-                className="inline-flex items-center gap-1.5 rounded-md border border-neutral-300 px-3 py-2 text-sm font-semibold text-neutral-800 hover:bg-neutral-50 mt-1"
+                onClick={() => options.length < 3 && setOptions([...options, { name: "", values: [] }])}
+                disabled={options.length >= 3}
+                className="inline-flex items-center gap-1.5 rounded-md border border-neutral-300 px-3 py-2 text-sm font-semibold text-neutral-800 hover:bg-neutral-50 disabled:opacity-40 mt-1"
               >
-                <Plus size={14} /> Add variant
+                <Plus size={14} /> Add option {options.length >= 3 ? "(sorbochcho 3-ta)" : ""}
               </button>
-              {newVariants.map((v: any, i: number) => (
-                <div key={i} className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2">
-                  <Inp placeholder="Price" value={v.price} onChange={(e) => setNewVariants(newVariants.map((x: any, j: number) => (j === i ? { ...x, price: e.target.value } : x)))} />
-                  <Inp placeholder="SKU" value={v.sku} onChange={(e) => setNewVariants(newVariants.map((x: any, j: number) => (j === i ? { ...x, sku: e.target.value } : x)))} />
-                  <Inp placeholder="Stock" type="number" value={v.inventoryQuantity} onChange={(e) => setNewVariants(newVariants.map((x: any, j: number) => (j === i ? { ...x, inventoryQuantity: e.target.value } : x)))} />
+
+              <div className="mt-4 space-y-2">
+                {visibleCombos().map((t) => {
+                  const row = rowFor(t);
+                  const v = row.v;
+                  return (
+                    <div key={tupleKey(t)} className="grid grid-cols-2 sm:grid-cols-[1fr_90px_90px_110px_80px_40px] gap-2 items-end">
+                      <div>
+                        <Lbl>{tupleLabel(t)}</Lbl>
+                        <span className="block text-xs font-semibold text-neutral-700 truncate">{tupleLabel(t)}</span>
+                      </div>
+                      <div>
+                        <Lbl>Dam</Lbl>
+                        <Inp type="number" value={v.price ?? ""} onChange={(e) => setRowField(t, "price", e.target.value)} />
+                      </div>
+                      <div>
+                        <Lbl>Ager dam</Lbl>
+                        <Inp type="number" value={v.compareAtPrice ?? ""} onChange={(e) => setRowField(t, "compareAtPrice", e.target.value)} />
+                      </div>
+                      <div>
+                        <Lbl>SKU</Lbl>
+                        <Inp value={v.sku ?? ""} onChange={(e) => setRowField(t, "sku", e.target.value)} />
+                      </div>
+                      <div>
+                        <Lbl>Stock</Lbl>
+                        <Inp type="number" value={v.inventoryQuantity ?? ""} onChange={(e) => setRowField(t, "inventoryQuantity", e.target.value)} />
+                      </div>
+                      <button
+                        onClick={() => deleteTuple(t)}
+                        className="rounded-md border border-red-200 bg-red-50 px-2 py-2 text-red-700 hover:bg-red-100"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  );
+                })}
+                {!visibleCombos().length && (
+                  <p className="text-xs text-neutral-500">Option-e value dao — tarpor ekhane prottek combination-er dam/stock bosate parba.</p>
+                )}
+              </div>
+              <p className="text-xs text-neutral-500 mt-2">
+                Option nam/value bodle purano variant delete hoye notun combination toiri hobe. Notun combination-er dam khali thakle
+                (age theke edit kora na thakle) base price bosbe.
+              </p>
+            </div>
+
+          <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+            <h2 className="font-bold text-neutral-900 mb-3">Specs — prottek product-e ja dorkar sudhu tai</h2>
+            <p className="text-xs text-neutral-500 mb-3">
+              Shob product-er spec same na — tai fixed form uthiye dilam. Ja dorkar sudhu tai rakho, baki delete koro,
+              notun spec lagle Add spec-e nam + value likho. Egulo product page-er spec table-e dekhabe.
+            </p>
+            <div className="space-y-2">
+              {specRows.map((r: any, i: number) => (
+                <div key={i} className="grid grid-cols-[1fr_1fr_40px] gap-2">
+                  {r.key ? (
+                    <span className="flex items-center text-sm font-semibold text-neutral-700">{r.label}</span>
+                  ) : (
+                    <Inp
+                      value={r.label}
+                      placeholder="Spec nam (jemon: Coil)"
+                      onChange={(e) => setSpecRows(specRows.map((x: any, j: number) => (j === i ? { ...x, label: e.target.value } : x)))}
+                    />
+                  )}
+                  <Inp
+                    type={KNOWN_SPECS.find((f) => f.key === r.key)?.type === "number" ? "number" : "text"}
+                    value={r.value}
+                    placeholder="Value"
+                    onChange={(e) => setSpecRows(specRows.map((x: any, j: number) => (j === i ? { ...x, value: e.target.value } : x)))}
+                  />
                   <button
-                    onClick={() => setNewVariants(newVariants.filter((_: any, j: number) => j !== i))}
-                    className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-red-700 hover:bg-red-100"
+                    onClick={() => setSpecRows(specRows.filter((_: any, j: number) => j !== i))}
+                    className="rounded-md border border-red-200 bg-red-50 px-2 py-2 text-red-700 hover:bg-red-100"
                   >
-                    <Trash2 size={15} />
+                    <Trash2 size={14} />
                   </button>
                 </div>
               ))}
-              <p className="text-xs text-neutral-500 mt-2">
-                Option structure (e.g. Flavor values) Shopify thekei ashe — notun option structure add korte hole
-                product-ta Shopify-te ekbar khule option set koro, tarpor ekhane variant edit korte parba.
-              </p>
             </div>
-          )}
-
-          <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
-            <h2 className="font-bold text-neutral-900 mb-3">Vape specs (product page-er spec table)</h2>
-            <div className="grid sm:grid-cols-3 gap-3">
-              {VAPE_FIELDS.map((f) => (
-                <div key={f.key}>
-                  <Lbl>{f.label}</Lbl>
-                  <Inp
-                    type={f.type === "number" ? "number" : "text"}
-                    value={vape[f.key] ?? ""}
-                    onChange={(e) => setVape({ ...vape, [f.key]: e.target.value })}
-                  />
-                </div>
-              ))}
-              <div className="sm:col-span-2">
-                <Lbl>Nicotine options (comma separated)</Lbl>
-                <Inp value={nicOpts} onChange={(e) => setNicOpts(e.target.value)} placeholder="18mg, 20mg, 50mg" />
-              </div>
+            <button
+              onClick={() => setSpecRows([...specRows, { key: null, label: "", value: "" }])}
+              className="inline-flex items-center gap-1.5 rounded-md border border-neutral-300 px-3 py-2 text-sm font-semibold text-neutral-800 hover:bg-neutral-50 mt-2"
+            >
+              <Plus size={14} /> Add spec
+            </button>
+            <div className="mt-3">
+              <Lbl>Nicotine dropdown options (comma separated) — sudhu jokhon kono variant option nai</Lbl>
+              <Inp value={nicOpts} onChange={(e) => setNicOpts(e.target.value)} placeholder="18mg, 20mg, 50mg" />
             </div>
             <div className="mt-3">
               <Lbl>Flavours (tap to select)</Lbl>
