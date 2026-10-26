@@ -217,7 +217,7 @@ const PANEL_QUERY = `
       nodes { id name createdAt displayFulfillmentStatus totalPriceSet { shopMoney { amount currencyCode } } customer { displayName email } }
     }
     draftOrders(first: 25) {
-      nodes { id name createdAt status totalPrice { amount currencyCode } customer { displayName email } }
+      nodes { id name createdAt status totalPriceSet { shopMoney { amount currencyCode } } customer { displayName email } }
     }
     customers(first: 25, sortKey: CREATED_AT, reverse: true) {
       nodes { id displayName email phone numberOfOrders amountSpent { amount currencyCode } }
@@ -375,7 +375,7 @@ export async function getPanelData() {
   const draftOrders = (d.draftOrders?.nodes ?? []).map((o: any) => ({
     id: o.id as string, name: o.name as string, status: o.status || "",
     customer: o.customer?.displayName || o.customer?.email || "—",
-    total: o.totalPrice?.amount || "", currency: o.totalPrice?.currencyCode || "AED", createdAt: o.createdAt || "",
+    total: o.totalPriceSet?.shopMoney?.amount || "", currency: o.totalPriceSet?.shopMoney?.currencyCode || "AED", createdAt: o.createdAt || "",
   }));
   const customers = (d.customers?.nodes ?? []).map((c: any) => ({
     id: c.id as string, name: c.displayName || "", email: c.email || "", phone: c.phone || "",
