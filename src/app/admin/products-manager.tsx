@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Search, Plus, Trash2, Save, X, Upload } from "lucide-react";
+import { Search, Plus, Trash2, Save, X, Upload, Table } from "lucide-react";
+import { BulkSheet } from "./bulk-sheet";
 
 async function api(body: any): Promise<any> {
   const res = await fetch("/api/admin-panel", {
@@ -105,6 +106,10 @@ export function ProductsManager({ data, notify, reload, initialQuery }: any) {
     .filter((p: any) => (status === "ALL" || p.status === status) && (!q || p.title.toLowerCase().includes(q.toLowerCase())))
     .slice(0, 100);
 
+  if (view.name === "bulk") {
+    return <BulkSheet notify={notify} back={() => setView({ name: "list" })} />;
+  }
+
   if (view.name === "edit" || view.name === "new") {
     return (
       <ProductEditor
@@ -122,9 +127,17 @@ export function ProductsManager({ data, notify, reload, initialQuery }: any) {
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <h1 className="text-xl font-bold text-neutral-900">Products</h1>
-        <PrimaryBtn onClick={() => setView({ name: "new" })}>
-          <Plus size={15} /> Add product
-        </PrimaryBtn>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setView({ name: "bulk" })}
+            className="inline-flex items-center gap-1.5 rounded-md border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-800 hover:bg-neutral-50"
+          >
+            <Table size={15} /> Bulk Edit
+          </button>
+          <PrimaryBtn onClick={() => setView({ name: "new" })}>
+            <Plus size={15} /> Add product
+          </PrimaryBtn>
+        </div>
       </div>
       <div className="flex flex-wrap gap-3 mb-4">
         <div className="relative flex-1 min-w-[220px] max-w-md">
