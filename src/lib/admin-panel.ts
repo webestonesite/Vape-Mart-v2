@@ -720,6 +720,8 @@ export async function saveAction(action: string, p: any): Promise<SaveResult> {
         { namespace: "theme", key: "footer_links", type: "json", value: JSON.stringify(p.footerLinks ?? []) },
         { namespace: "theme", key: "newsletter_text", type: "single_line_text_field", value: String(p.newsletterText || "") },
         { namespace: "theme", key: "mega_banner", type: "json", value: JSON.stringify(p.megaBanner ?? {}) },
+        { namespace: "theme", key: "colors", type: "json", value: JSON.stringify(p.colors ?? { preset: "emerald" }) },
+        { namespace: "theme", key: "fonts", type: "json", value: JSON.stringify(p.fonts ?? { heading: "playfair", body: "system" }) },
       ];
       if (p.logoUrl) {
         const fileId = await fileFromUrl(String(p.logoUrl), "Store logo");
@@ -736,6 +738,7 @@ export async function saveAction(action: string, p: any): Promise<SaveResult> {
         { namespace: "home", key: "features", type: "json", value: JSON.stringify(p.features ?? []) },
         { namespace: "home", key: "trust_stats", type: "json", value: JSON.stringify(p.trustStats ?? {}) },
         { namespace: "home", key: "section_visibility", type: "json", value: JSON.stringify(p.sectionVisibility ?? {}) },
+        { namespace: "home", key: "section_order", type: "list.single_line_text_field", value: JSON.stringify(p.sectionOrder ?? []) },
       ]);
       return { message: "Home page settings saved." };
     }
@@ -1031,6 +1034,136 @@ async function deleteProductMetafields(productId: string, keys: string[]): Promi
   );
   const errs = d.metafieldsDelete?.userErrors ?? [];
   if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
+}
+
+/* ------------------------------------------------------------------ */
+/*  Bulk metafield sheet (Excel-style editing)                         */
+/* ------------------------------------------------------------------ */
+
+// The vape.* keys the bulk sheet edits, with their Shopify types.
+// Deliberately the same editable set as the product editor: rating /
+// review_count are NOT here (reviews now live in vm_product_review
+// metaobjects, PR #47), and flavours stay in the flavour picker.
+const BULK_FIELD_TYPES: Record<string, string> = {
+  puffs: "number_integer",
+  puff_range: "single_line_text_field",
+  nicotine_strength: "single_line_text_field",
+  battery_capacity: "single_line_text_field",
+  coil_type: "single_line_text_field",
+  charging_type: "single_line_text_field",
+  e_liquid_capacity: "single_line_text_field",
+  activation: "single_line_text_field",
+  vg_pg_ratio: "single_line_text_field",
+  flavor_family: "single_line_text_field",
+  sweetness: "number_integer",
+  cooling: "number_integer",
+  throat_hit: "number_integer",
+  top_note: "single_line_text_field",
+  heart_note: "single_line_text_field",
+  base_note: "single_line_text_field",
+  nicotine_options: "list.single_line_text_field",
+  badge: "single_line_text_field",
+  subtitle: "single_line_text_field",
+  short_description: "multi_line_text_field",
+};
+
+export const BULK_PAGE_SIZE = 25;
+
+function sanitizeBulkSearch(raw: string): string | null {
+  const s = (raw || "").replace(/["\\]/g, "").trim().slice(0, 100);
+  return s ? s : null;
+}
+
+export async function listBulkProducts(opts: { cursor?: string | null; search?: string; status?: string }) {
+  const args: string[] = [`first: ${BULK_PAGE_SIZE}`];
+  const varDefs: string[] = [];
+  const vars: Record<string, string> = {};
+  if (opts.cursor) {
+    args.push("after: $after");
+    varDefs.push("$after: String");
+    vars.after = opts.cursor;
+  }
+  const parts: string[] = [];
+  if (opts.status === "ACTIVE" || opts.status === "DRAFT") parts.push(`status:${opts.status}`);
+  const term = sanitizeBulkSearch(opts.search || "");
+  if (term) parts.push(term);
+  if (parts.length) {
+    args.push("query: $query");
+    varDefs.push("$query: String");
+    vars.query = parts.join(" ");
+  }
+  const d = await gql<any>(
+    `query BulkList${varDefs.length ? `(${varDefs.join(", ")})` : ""} {
+       products(${args.join(", ")}) {
+         pageInfo { hasNextPage endCursor }
+         nodes {
+           id title status
+           metafields(first: 30, namespace: "vape") { nodes { key value } }
+         }
+       }
+     }`,
+    vars
+  );
+  const nodes = d.products?.nodes ?? [];
+  return {
+    products: nodes.map((p: any) => {
+      const vape: Record<string, string> = {};
+      for (const m of p.metafields?.nodes ?? []) {
+        if (m.key in BULK_FIELD_TYPES) vape[m.key] = m.value ?? "";
+      }
+      return { id: p.id as string, title: p.title as string, status: p.status as string, vape };
+    }),
+    pageInfo: {
+      hasNextPage: !!d.products?.pageInfo?.hasNextPage,
+      endCursor: (d.products?.pageInfo?.endCursor as string) || null,
+    },
+  };
+}
+
+export async function saveBulkMetafields(
+  changes: { id: string; title?: string; values: Record<string, string> }[]
+): Promise<{ updated: number }> {
+  let updated = 0;
+  // Small batches: fast enough, gentle on the Admin API.
+  for (let i = 0; i < changes.length; i += 5) {
+    const batch = changes.slice(i, i + 5);
+    await Promise.all(
+      batch.map(async (c) => {
+        const sets: any[] = [];
+        const dels: string[] = [];
+        for (const [key, raw] of Object.entries(c.values || {})) {
+          const type = BULK_FIELD_TYPES[key];
+          if (!type) continue; // never write an unknown key
+          const value = (raw ?? "").trim();
+          if (value === "") {
+            dels.push(key);
+            continue;
+          }
+          if (type === "number_integer" || type === "number_decimal") {
+            if (!/^-?\d+(\.\d+)?$/.test(value))
+              throw new Error(`"${key}" must be a number (product: ${c.title || c.id}).`);
+          }
+          if (key === "nicotine_options") {
+            const list = value
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean);
+            if (!list.length) {
+              dels.push(key);
+              continue;
+            }
+            sets.push({ ownerId: c.id, namespace: "vape", key, type, value: JSON.stringify(list) });
+          } else {
+            sets.push({ ownerId: c.id, namespace: "vape", key, type, value });
+          }
+        }
+        if (sets.length) await setProductMetafields(c.id, sets);
+        if (dels.length) await deleteProductMetafields(c.id, dels);
+      })
+    );
+    updated += batch.length;
+  }
+  return { updated };
 }
 
 async function addMedia(productId: string, sources: string[]): Promise<void> {
