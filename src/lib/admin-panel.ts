@@ -930,6 +930,7 @@ export async function getProductDetail(id: string) {
              id title price compareAtPrice sku barcode inventoryQuantity
              inventoryItem { id }
              selectedOptions { name value }
+             media(first: 5) { nodes { ... on MediaImage { id image { url } } } }
            }
          }
          media(first: 30) {
@@ -937,6 +938,7 @@ export async function getProductDetail(id: string) {
          }
          collections(first: 30) { nodes { id title handle } }
          metafields(first: 50, namespace: "vape") { nodes { key type value } }
+         relMf: metafields(first: 10, namespace: "${RELATED_NAMESPACE}") { nodes { key value } }
        }
      }`,
     { id }
@@ -945,6 +947,59 @@ export async function getProductDetail(id: string) {
   if (!p) throw new Error("Product not found.");
   const mf: Record<string, string> = {};
   for (const m of p.metafields?.nodes ?? []) mf[m.key] = m.value;
+  // Product FAQs + reviews live in metaobjects linked by product GID;
+  // related products live in Shopify's discovery metafield (product GIDs).
+  const faqIds: string[] = (() => {
+    try {
+      const v = JSON.parse(mf["product_faqs"] || "[]");
+      return Array.isArray(v) ? v.map(String) : [];
+    } catch {
+      return [];
+    }
+  })();
+  const relIds: string[] = (() => {
+    const rel = (p.relMf?.nodes ?? []).find((m: any) => m.key === RELATED_KEY);
+    try {
+      const v = JSON.parse(rel?.value || "[]");
+      return Array.isArray(v) ? v.map(String) : [];
+    } catch {
+      return [];
+    }
+  })();
+  const [faqNodes, reviewNodes, relInfo] = await Promise.all([
+    gql<any>(`query PfFaqs { faqs: metaobjects(type: "vm_product_faq", first: 100) { nodes { id fields { key value } } } }`, {}),
+    gql<any>(`query PfReviews { reviews: metaobjects(type: "vm_product_review", first: 100) { nodes { id fields { key value } } } }`, {}),
+    infoByIds(relIds),
+  ]);
+  const fieldsOf = (n: any) => {
+    const f: Record<string, string> = {};
+    for (const fld of n.fields ?? []) if (fld.value != null) f[fld.key] = fld.value;
+    return f;
+  };
+  const faqs = (faqNodes.faqs?.nodes ?? [])
+    .filter((n: any) => faqIds.includes(n.id))
+    .map((n: any) => {
+      const f = fieldsOf(n);
+      return { id: n.id, question: f.question || "", answer: f.answer || "", position: parseInt(f.position || "0", 10) || 0 };
+    })
+    .sort((a: any, b: any) => a.position - b.position);
+  const reviews = (reviewNodes.reviews?.nodes ?? [])
+    .map((n: any) => ({ id: n.id, f: fieldsOf(n) }))
+    .filter((x: any) => x.f.product === id)
+    .map((x: any) => ({
+      id: x.id,
+      author: x.f.author || "",
+      rating: parseInt(x.f.rating || "5", 10) || 5,
+      title: x.f.title || "",
+      body: x.f.body || "",
+      verified: x.f.verified !== "false",
+      position: parseInt(x.f.position || "0", 10) || 0,
+    }))
+    .sort((a: any, b: any) => a.position - b.position);
+  const related = relIds
+    .map((rid: string) => relInfo[rid])
+    .filter(Boolean)
+    .map((r: any) => ({ handle: r.handle, title: r.title }));
   return {
     id: p.id as string,
     title: p.title as string,
@@ -967,12 +1022,18 @@ export async function getProductDetail(id: string) {
       inventoryQuantity: typeof v.inventoryQuantity === "number" ? v.inventoryQuantity : 0,
       inventoryItemId: v.inventoryItem?.id || "",
       selectedOptions: (v.selectedOptions ?? []).map((s: any) => ({ name: s.name, value: s.value })),
+      media: (v.media?.nodes ?? [])
+        .filter((m: any) => m.image?.url)
+        .map((m: any) => ({ id: m.id as string, url: m.image.url as string })),
     })),
     media: (p.media?.nodes ?? [])
       .filter((m: any) => m.image?.url)
       .map((m: any) => ({ id: m.id as string, url: m.image.url as string, altText: m.image.altText || "" })),
     collections: (p.collections?.nodes ?? []).map((c: any) => c.id as string),
     vape: mf,
+    faqs,
+    reviews,
+    related,
   };
 }
 
@@ -1024,13 +1085,13 @@ async function setProductMetafields(productId: string, entries: any[]): Promise<
   if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
 }
 
-async function deleteProductMetafields(productId: string, keys: string[]): Promise<void> {
+async function deleteProductMetafields(productId: string, keys: string[], namespace = "vape"): Promise<void> {
   if (!keys.length) return;
   const d = await gql<any>(
     `mutation MfDel($metafields: [MetafieldIdentifierInput!]!) {
        metafieldsDelete(metafields: $metafields) { deletedMetafields { key namespace } userErrors { message } }
      }`,
-    { metafields: keys.map((key) => ({ ownerId: productId, namespace: "vape", key })) }
+    { metafields: keys.map((key) => ({ ownerId: productId, namespace, key })) }
   );
   const errs = d.metafieldsDelete?.userErrors ?? [];
   if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
@@ -1065,7 +1126,16 @@ const BULK_FIELD_TYPES: Record<string, string> = {
   badge: "single_line_text_field",
   subtitle: "single_line_text_field",
   short_description: "multi_line_text_field",
+  rating: "number_decimal",
+  review_count: "number_integer",
+  flavors: "list.metaobject_reference",
 };
+
+// Related products lives outside the vape namespace (Shopify's own
+// product-recommendation namespace), so the sheet reads/writes it
+// separately from the vape.* keys above.
+const RELATED_NAMESPACE = "shopify--discovery--product_recommendation";
+const RELATED_KEY = "related_products";
 
 export const BULK_PAGE_SIZE = 25;
 
@@ -1098,26 +1168,92 @@ export async function listBulkProducts(opts: { cursor?: string | null; search?: 
          pageInfo { hasNextPage endCursor }
          nodes {
            id title status
-           metafields(first: 30, namespace: "vape") { nodes { key value } }
+           vapeMf: metafields(first: 30, namespace: "vape") { nodes { key value } }
+           relMf: metafields(first: 10, namespace: "${RELATED_NAMESPACE}") { nodes { key value } }
          }
        }
      }`,
     vars
   );
   const nodes = d.products?.nodes ?? [];
+  // Resolve related-product IDs to handles in one nodes query, so the
+  // sheet shows (and accepts) plain link names, not GIDs.
+  const relatedIds = new Set<string>();
+  const relatedByProduct: Record<string, string[]> = {};
+  for (const p of nodes) {
+    const rel = (p.relMf?.nodes ?? []).find((m: any) => m.key === RELATED_KEY);
+    let ids: string[] = [];
+    try {
+      const v = JSON.parse(rel?.value || "[]");
+      if (Array.isArray(v)) ids = v.map(String);
+    } catch {
+      ids = [];
+    }
+    relatedByProduct[p.id] = ids;
+    for (const id of ids) relatedIds.add(id);
+  }
+  const infoById = await infoByIds([...relatedIds]);
   return {
     products: nodes.map((p: any) => {
       const vape: Record<string, string> = {};
-      for (const m of p.metafields?.nodes ?? []) {
+      for (const m of p.vapeMf?.nodes ?? []) {
         if (m.key in BULK_FIELD_TYPES) vape[m.key] = m.value ?? "";
       }
-      return { id: p.id as string, title: p.title as string, status: p.status as string, vape };
+      return {
+        id: p.id as string,
+        title: p.title as string,
+        status: p.status as string,
+        vape,
+        related: (relatedByProduct[p.id] || []).map((id) => ({
+          handle: infoById[id]?.handle || id,
+          title: infoById[id]?.title || id,
+        })),
+      };
     }),
     pageInfo: {
       hasNextPage: !!d.products?.pageInfo?.hasNextPage,
       endCursor: (d.products?.pageInfo?.endCursor as string) || null,
     },
   };
+}
+
+export async function searchBulkProducts(term: string) {
+  const q = sanitizeBulkSearch(term);
+  if (!q) return { products: [] };
+  const d = await gql<any>(
+    `query BulkSearch($query: String) {
+       products(first: 10, query: $query) { nodes { id title handle } }
+     }`,
+    { query: q }
+  );
+  return {
+    products: (d.products?.nodes ?? []).map((p: any) => ({
+      id: p.id as string,
+      title: p.title as string,
+      handle: p.handle as string,
+    })),
+  };
+}
+
+async function infoByIds(ids: string[]): Promise<Record<string, { handle: string; title: string }>> {
+  if (!ids.length) return {};
+  const d = await gql<any>(
+    `query NodesById($ids: [ID!]!) { nodes(ids: $ids) { ... on Product { id handle title } } }`,
+    { ids }
+  );
+  const out: Record<string, { handle: string; title: string }> = {};
+  for (const n of d.nodes ?? []) if (n?.id && n?.handle) out[n.id] = { handle: n.handle, title: n.title || n.handle };
+  return out;
+}
+
+async function productIdByHandle(handle: string): Promise<string | null> {
+  const d = await gql<any>(
+    `query ByHandle($identifier: ProductIdentifierInput!) {
+       productByIdentifier(identifier: $identifier) { id }
+     }`,
+    { identifier: { handle } }
+  );
+  return d.productByIdentifier?.id || null;
 }
 
 export async function saveBulkMetafields(
@@ -1131,7 +1267,38 @@ export async function saveBulkMetafields(
       batch.map(async (c) => {
         const sets: any[] = [];
         const dels: string[] = [];
+        let relatedSet: string[] | null = null;
+        let relatedDel = false;
         for (const [key, raw] of Object.entries(c.values || {})) {
+          if (key === "related") {
+            const rawVal = (raw ?? "").trim();
+            let handles: string[] = [];
+            if (rawVal.startsWith("[")) {
+              try {
+                const arr = JSON.parse(rawVal);
+                if (Array.isArray(arr)) handles = arr.map(String);
+              } catch {
+                handles = [];
+              }
+            } else {
+              handles = rawVal
+                .split(",")
+                .map((s) => s.trim())
+                .filter(Boolean);
+            }
+            if (!handles.length) {
+              relatedDel = true;
+              continue;
+            }
+            const ids: string[] = [];
+            for (const h of handles) {
+              const id = await productIdByHandle(h);
+              if (!id) throw new Error(`Unknown product link name "${h}" (product: ${c.title || c.id}).`);
+              ids.push(id);
+            }
+            relatedSet = ids;
+            continue;
+          }
           const type = BULK_FIELD_TYPES[key];
           if (!type) continue; // never write an unknown key
           const value = (raw ?? "").trim();
@@ -1144,11 +1311,34 @@ export async function saveBulkMetafields(
               throw new Error(`"${key}" must be a number (product: ${c.title || c.id}).`);
           }
           if (key === "nicotine_options") {
-            const list = value
-              .split(",")
-              .map((s) => s.trim())
-              .filter(Boolean);
+            let list: string[];
+            if (value.startsWith("[")) {
+              try {
+                const arr = JSON.parse(value);
+                list = Array.isArray(arr) ? arr.map(String) : [];
+              } catch {
+                list = [];
+              }
+            } else {
+              list = value
+                .split(",")
+                .map((s) => s.trim())
+                .filter(Boolean);
+            }
             if (!list.length) {
+              dels.push(key);
+              continue;
+            }
+            sets.push({ ownerId: c.id, namespace: "vape", key, type, value: JSON.stringify(list) });
+          } else if (key === "flavors") {
+            // Client sends the flavour metaobject IDs as a JSON list.
+            let list: unknown;
+            try {
+              list = JSON.parse(value);
+            } catch {
+              throw new Error(`Bad flavour data (product: ${c.title || c.id}).`);
+            }
+            if (!Array.isArray(list) || !list.length) {
               dels.push(key);
               continue;
             }
@@ -1159,6 +1349,12 @@ export async function saveBulkMetafields(
         }
         if (sets.length) await setProductMetafields(c.id, sets);
         if (dels.length) await deleteProductMetafields(c.id, dels);
+        if (relatedSet) {
+          await setProductMetafields(c.id, [
+            { ownerId: c.id, namespace: RELATED_NAMESPACE, key: RELATED_KEY, type: "list.product_reference", value: JSON.stringify(relatedSet) },
+          ]);
+        }
+        if (relatedDel) await deleteProductMetafields(c.id, [RELATED_KEY], RELATED_NAMESPACE);
       })
     );
     updated += batch.length;
@@ -1166,9 +1362,9 @@ export async function saveBulkMetafields(
   return { updated };
 }
 
-async function addMedia(productId: string, sources: string[]): Promise<void> {
+async function addMedia(productId: string, sources: string[]): Promise<string[]> {
   const media = sources.filter(Boolean).map((originalSource) => ({ originalSource, mediaContentType: "IMAGE" }));
-  if (!media.length) return;
+  if (!media.length) return [];
   const d = await gql<any>(
     `mutation MediaAdd($productId: ID!, $media: [CreateMediaInput!]!) {
        productCreateMedia(productId: $productId, media: $media) { media { id } mediaUserErrors { message } }
@@ -1177,6 +1373,141 @@ async function addMedia(productId: string, sources: string[]): Promise<void> {
   );
   const errs = d.productCreateMedia?.mediaUserErrors ?? [];
   if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
+  // Media come back in request order, so the caller can match alts by index.
+  return (d.productCreateMedia?.media ?? []).map((m: any) => m.id as string).filter(Boolean);
+}
+
+/* Alt text for product images. fileUpdate is the current (non-deprecated)
+   path on both the site's 2025-07 API and the 2026-10 schema, unlike
+   productCreateMedia which the connector refuses as deprecated. */
+async function setMediaAlts(alts: { id: string; alt: string }[]): Promise<void> {
+  const files = (alts || []).filter((a) => a.id && a.alt !== undefined && a.alt !== null);
+  if (!files.length) return;
+  const d = await gql<any>(
+    `mutation AltSet($files: [FileUpdateInput!]!) {
+       fileUpdate(files: $files) { files { id } userErrors { message } }
+     }`,
+    { files: files.map((f) => ({ id: f.id, alt: f.alt })) }
+  );
+  const errs = d.fileUpdate?.userErrors ?? [];
+  if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
+}
+
+/* Variant images: wanted entries carry a variantId (existing variant) or an
+   options tuple (newly created variant, resolved by the caller into IDs).
+   current maps variantId -> attached media IDs. Detach-then-append keeps
+   exactly one image per variant. */
+async function applyVariantMedia(
+  productId: string,
+  wanted: { variantId: string; mediaId: string | null }[],
+  current: Record<string, string[]>
+): Promise<void> {
+  for (const w of wanted || []) {
+    if (!w.variantId) continue;
+    const cur = current[w.variantId] || [];
+    const want = w.mediaId ? [w.mediaId] : [];
+    if (cur.length === want.length && cur.every((m, i) => m === want[i])) continue;
+    if (cur.length) {
+      const d = await gql<any>(
+        `mutation VarMediaDetach($productId: ID!, $variantMedia: [ProductVariantDetachMediaInput!]!) {
+           productVariantDetachMedia(productId: $productId, variantMedia: $variantMedia) { userErrors { message } }
+         }`,
+        { productId, variantMedia: [{ variantId: w.variantId, mediaIds: cur }] }
+      );
+      const errs = d.productVariantDetachMedia?.userErrors ?? [];
+      if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
+    }
+    if (want.length) {
+      const d = await gql<any>(
+        `mutation VarMediaAppend($productId: ID!, $variantMedia: [ProductVariantAppendMediaInput!]!) {
+           productVariantAppendMedia(productId: $productId, variantMedia: $variantMedia) { userErrors { message } }
+         }`,
+        { productId, variantMedia: [{ variantId: w.variantId, mediaIds: want }] }
+      );
+      const errs = d.productVariantAppendMedia?.userErrors ?? [];
+      if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
+    }
+  }
+}
+
+/* Product FAQs (vm_product_faq entries linked from vape.product_faqs).
+   The panel sends the desired end-state list; this diffs against existing
+   entries, creates/updates/deletes, then rewrites the link metafield. */
+async function saveProductFaqs(
+  productId: string,
+  wanted: { id?: string; question: string; answer: string; position: number }[],
+  existing: { id: string }[]
+): Promise<void> {
+  const list = (wanted || []).filter((f) => (f.question || "").trim() !== "");
+  const wantedIds = new Set(list.map((f) => f.id).filter(Boolean) as string[]);
+  for (const ex of existing || []) {
+    if (!wantedIds.has(ex.id)) await moDelete(ex.id);
+  }
+  const ids: string[] = [];
+  for (let i = 0; i < list.length; i++) {
+    const f = list[i];
+    const fields: FieldObj = { product: productId, question: f.question.trim(), answer: f.answer || "", position: String(f.position ?? i) };
+    if (f.id) {
+      await moUpdate(f.id, fields);
+      ids.push(f.id);
+    } else {
+      ids.push(await moCreate("vm_product_faq", fields));
+    }
+  }
+  if (ids.length) {
+    await setProductMetafields(productId, [
+      { ownerId: productId, namespace: "vape", key: "product_faqs", type: "list.metaobject_reference", value: JSON.stringify(ids) },
+    ]);
+  } else {
+    await deleteProductMetafields(productId, ["product_faqs"]);
+  }
+}
+
+/* Product reviews on the entry page use the same vm_product_review entries
+   as the Reviews tab; the panel sends the desired end-state list. */
+async function saveProductReviews(
+  productId: string,
+  wanted: { id?: string; author: string; rating: number; title: string; body: string; verified: boolean; position: number }[],
+  existing: { id: string }[]
+): Promise<void> {
+  const list = (wanted || []).filter((r) => (r.body || "").trim() !== "" || (r.title || "").trim() !== "");
+  const wantedIds = new Set(list.map((r) => r.id).filter(Boolean) as string[]);
+  for (const ex of existing || []) {
+    if (!wantedIds.has(ex.id)) await moDelete(ex.id);
+  }
+  for (let i = 0; i < list.length; i++) {
+    const r = list[i];
+    const fields: FieldObj = {
+      product: productId,
+      author: r.author || "Customer",
+      rating: String(r.rating || 5),
+      title: r.title || "",
+      body: r.body || "",
+      verified: r.verified === false ? "false" : "true",
+      position: String(r.position ?? i),
+    };
+    if (r.id) await moUpdate(r.id, fields);
+    else await moCreate("vm_product_review", fields);
+  }
+}
+
+/* Related products (Shopify's discovery namespace). Handles resolve to
+   product GIDs; unknown handles fail loudly, never silently skipped. */
+async function saveRelatedHandles(productId: string, handles: string[]): Promise<void> {
+  const list = (handles || []).map((h) => String(h).trim()).filter(Boolean);
+  if (!list.length) {
+    await deleteProductMetafields(productId, [RELATED_KEY], RELATED_NAMESPACE);
+    return;
+  }
+  const ids: string[] = [];
+  for (const h of list) {
+    const id = await productIdByHandle(h);
+    if (!id) throw new Error(`Unknown related product "${h}".`);
+    ids.push(id);
+  }
+  await setProductMetafields(productId, [
+    { ownerId: productId, namespace: RELATED_NAMESPACE, key: RELATED_KEY, type: "list.product_reference", value: JSON.stringify(ids) },
+  ]);
 }
 
 async function setInventory(itemId: string, locationId: string, quantity: number): Promise<void> {
@@ -1251,16 +1582,43 @@ async function createProductOptions(productId: string, options: any[]): Promise<
   if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
 }
 
-async function bulkCreateVariants(productId: string, variants: any[], locationId: string | undefined, removeStandalone: boolean): Promise<void> {
-  if (!variants.length) return;
+async function bulkCreateVariants(productId: string, variants: any[], locationId: string | undefined, removeStandalone: boolean): Promise<{ id: string; selectedOptions: { name: string; value: string }[] }[]> {
+  if (!variants.length) return [];
   const d = await gql<any>(
     `mutation VarCreate($productId: ID!, $variants: [ProductVariantsBulkInput!]!, $strategy: ProductVariantsBulkCreateStrategy) {
-       productVariantsBulkCreate(productId: $productId, variants: $variants, strategy: $strategy) { productVariants { id } userErrors { message } }
+       productVariantsBulkCreate(productId: $productId, variants: $variants, strategy: $strategy) { productVariants { id selectedOptions { name value } } userErrors { message } }
      }`,
     { productId, variants: variants.map((v: any) => comboToBulkInput(v, locationId)), strategy: removeStandalone ? "REMOVE_STANDALONE_VARIANT" : "DEFAULT" }
   );
   const errs = d.productVariantsBulkCreate?.userErrors ?? [];
   if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
+  return (d.productVariantsBulkCreate?.productVariants ?? []).map((v: any) => ({
+    id: v.id as string,
+    selectedOptions: (v.selectedOptions ?? []).map((s: any) => ({ name: s.name, value: s.value })),
+  }));
+}
+
+/* Resolve entry-page variant-media entries to variant IDs. Entries carry a
+   variantId (existing variant) or an options tuple (new variant, matched
+   against created/existing variants by selected options). */
+function resolveVariantMedia(
+  entries: { variantId?: string; options?: string[]; mediaId: string | null }[],
+  variants: { id: string; selectedOptions: { name: string; value: string }[] }[]
+): { variantId: string; mediaId: string | null }[] {
+  const out: { variantId: string; mediaId: string | null }[] = [];
+  for (const e of entries || []) {
+    if (e.variantId) {
+      out.push({ variantId: e.variantId, mediaId: e.mediaId ?? null });
+      continue;
+    }
+    const tuple = e.options || [];
+    const match = variants.find((v) => {
+      const sel = v.selectedOptions.map((s) => s.value);
+      return sel.length === tuple.length && sel.every((val, i) => val === tuple[i]);
+    });
+    if (match) out.push({ variantId: match.id, mediaId: e.mediaId ?? null });
+  }
+  return out;
 }
 
 export async function createProduct(p: any): Promise<SaveResult> {
@@ -1292,19 +1650,22 @@ export async function createProduct(p: any): Promise<SaveResult> {
   const errs = d.productCreate?.userErrors ?? [];
   if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
   const id = d.productCreate.product.id as string;
+  let createdVariants: { id: string; selectedOptions: { name: string; value: string }[] }[] = [];
   if (Array.isArray(p.options) && p.options.length) await createProductOptions(id, p.options);
   if (Array.isArray(p.variants) && p.variants.length) {
-    await bulkCreateVariants(id, p.variants, p.locationId, true);
+    createdVariants = await bulkCreateVariants(id, p.variants, p.locationId, true);
   } else {
     const detail = await getProductDetail(id);
     const dv = detail.variants[0];
     if (dv) {
+      createdVariants = [{ id: dv.id, selectedOptions: (dv.selectedOptions || []).map((s: any) => ({ name: s.name, value: s.value })) }];
       await bulkUpdateVariants(id, [{ id: dv.id, price: first.price, compareAtPrice: first.compareAtPrice }]);
       if (p.locationId && p.inventoryQuantity !== undefined && p.inventoryQuantity !== "" && dv.inventoryItemId)
         await setInventory(dv.inventoryItemId, p.locationId, parseInt(String(p.inventoryQuantity), 10) || 0);
     }
   }
-  if (Array.isArray(p.mediaSources) && p.mediaSources.length) await addMedia(id, p.mediaSources);
+  let newMediaIds: string[] = [];
+  if (Array.isArray(p.mediaSources) && p.mediaSources.length) newMediaIds = await addMedia(id, p.mediaSources);
   if (Array.isArray(p.collectionIds) && p.collectionIds.length) {
     await gql<any>(
       `mutation ProdColl($id: ID!, $product: ProductUpdateInput!) {
@@ -1314,6 +1675,24 @@ export async function createProduct(p: any): Promise<SaveResult> {
     );
   }
   if (p.vape) await setProductMetafields(id, vapeMetafieldEntries(id, p.vape));
+  // Unified entry page extras (all optional; absent keys mean "not edited").
+  const newAlts = newMediaIds.map((mid, i) => ({ id: mid, alt: (p.mediaAlts || [])[i] || "" })).filter((a) => a.alt !== "");
+  if (newAlts.length || (p.mediaAltUpdates || []).length)
+    await setMediaAlts([...newAlts, ...(p.mediaAltUpdates || [])]);
+  if (Array.isArray(p.variantMedia) && p.variantMedia.length) {
+    // New-upload images have no ID yet on the panel; map source -> created ID.
+    const translated = p.variantMedia.map((e: any) => {
+      if (e.mediaSource) {
+        const idx = (p.mediaSources || []).indexOf(e.mediaSource);
+        if (idx >= 0 && newMediaIds[idx]) return { ...e, mediaId: newMediaIds[idx] };
+      }
+      return e;
+    });
+    await applyVariantMedia(id, resolveVariantMedia(translated, createdVariants), {});
+  }
+  if (Array.isArray(p.faqs)) await saveProductFaqs(id, p.faqs, []);
+  if (Array.isArray(p.reviews)) await saveProductReviews(id, p.reviews, []);
+  if (Array.isArray(p.relatedHandles)) await saveRelatedHandles(id, p.relatedHandles);
   return { message: "Product created." };
 }
 
@@ -1330,6 +1709,7 @@ export async function updateProduct(p: any): Promise<SaveResult> {
   if (p.seoTitle !== undefined || p.seoDescription !== undefined)
     input.seo = { title: p.seoTitle || "", description: p.seoDescription || "" };
   const coll = await getProductDetail(p.id);
+  let createdVariants: { id: string; selectedOptions: { name: string; value: string }[] }[] = [];
   const join = (p.collectionIds || []).filter((x: string) => !coll.collections.includes(x));
   const leave = coll.collections.filter((x: string) => !(p.collectionIds || []).includes(x));
   if (join.length) input.collectionsToJoin = join;
@@ -1375,7 +1755,7 @@ export async function updateProduct(p: any): Promise<SaveResult> {
       .filter(([name]) => !existingNames.has(name))
       .map(([name, values]) => ({ name, values }));
     if (missing.length) await createProductOptions(p.id, missing);
-    await bulkCreateVariants(p.id, p.newVariants, p.locationId, false);
+    createdVariants = await bulkCreateVariants(p.id, p.newVariants, p.locationId, false);
   }
   if (Array.isArray(p.deleteVariantIds) && p.deleteVariantIds.length) {
     for (const vid of p.deleteVariantIds) {
@@ -1395,7 +1775,8 @@ export async function updateProduct(p: any): Promise<SaveResult> {
     const errs4 = d4.productDeleteMedia?.mediaUserErrors ?? [];
     if (errs4.length) throw new Error(errs4.map((e: any) => e.message).join("; "));
   }
-  if (Array.isArray(p.mediaSources) && p.mediaSources.length) await addMedia(p.id, p.mediaSources);
+  let newMediaIds: string[] = [];
+  if (Array.isArray(p.mediaSources) && p.mediaSources.length) newMediaIds = await addMedia(p.id, p.mediaSources);
   if (Array.isArray(p.inventoryUpdates) && p.inventoryUpdates.length && p.locationId) {
     for (const u of p.inventoryUpdates) {
       if (!u.inventoryItemId) continue;
@@ -1405,6 +1786,30 @@ export async function updateProduct(p: any): Promise<SaveResult> {
   if (Array.isArray(p.vapeDeleteKeys) && p.vapeDeleteKeys.length)
     await deleteProductMetafields(p.id, p.vapeDeleteKeys);
   if (p.vape) await setProductMetafields(p.id, vapeMetafieldEntries(p.id, p.vape));
+  // Unified entry page extras (absent keys mean "not edited").
+  const newAlts = newMediaIds.map((mid, i) => ({ id: mid, alt: (p.mediaAlts || [])[i] || "" })).filter((a) => a.alt !== "");
+  if (newAlts.length || (p.mediaAltUpdates || []).length)
+    await setMediaAlts([...newAlts, ...(p.mediaAltUpdates || [])]);
+  if (Array.isArray(p.variantMedia) && p.variantMedia.length) {
+    const allVariants = [
+      ...(coll.variants || []).map((v: any) => ({ id: v.id, selectedOptions: v.selectedOptions || [] })),
+      ...createdVariants,
+    ];
+    const current: Record<string, string[]> = {};
+    for (const v of coll.variants || []) current[v.id] = (v.media || []).map((m: any) => m.id);
+    // New-upload images have no ID yet on the panel; map source -> created ID.
+    const translated = p.variantMedia.map((e: any) => {
+      if (e.mediaSource) {
+        const idx = (p.mediaSources || []).indexOf(e.mediaSource);
+        if (idx >= 0 && newMediaIds[idx]) return { ...e, mediaId: newMediaIds[idx] };
+      }
+      return e;
+    });
+    await applyVariantMedia(p.id, resolveVariantMedia(translated, allVariants), current);
+  }
+  if (Array.isArray(p.faqs)) await saveProductFaqs(p.id, p.faqs, coll.faqs || []);
+  if (Array.isArray(p.reviews)) await saveProductReviews(p.id, p.reviews, coll.reviews || []);
+  if (Array.isArray(p.relatedHandles)) await saveRelatedHandles(p.id, p.relatedHandles);
   return { message: "Product updated." };
 }
 

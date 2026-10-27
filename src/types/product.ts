@@ -41,6 +41,9 @@ export interface ProductReview {
 export interface ProductFAQ {
   q: string;
   a: string;
+  /** True when the answer is owner-entered HTML (panel RichText) and must
+      render as HTML; plain-text answers render as text. */
+  html?: boolean;
 }
 
 export interface BundleItem {
@@ -94,7 +97,7 @@ export interface ProductItem {
   flavorFamily: "fruit_ice" | "menthol" | "tobacco" | "dessert" | "";
   /** Shopify variant options (e.g. Flavor, Color, Pack Size) + every variant. Empty for single-variant products. */
   variantOptions?: { name: string; values: string[] }[];
-  productVariants?: { id: string; title: string; options: { name: string; value: string }[]; price: number; compareAtPrice: number; stock: number; sku: string }[];
+  productVariants?: { id: string; title: string; options: { name: string; value: string }[]; price: number; compareAtPrice: number; stock: number; sku: string; imageUrl?: string }[];
   sensoryProfile: SensoryProfile;
   highlights: ProductHighlight[];
   specifications: ProductSpecification[];
