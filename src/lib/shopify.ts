@@ -156,6 +156,7 @@ interface ShopifyVariant {
   compareAtPrice: string | null; inventoryQuantity: number | null;
   title?: string;
   selectedOptions?: { name: string; value: string }[];
+  media?: { nodes: { image?: { url: string } }[] };
 }
 interface ShopifyOption { name: string; values: string[] }
 interface ShopifyCollectionRef { id: string; title: string; handle: string }
@@ -170,6 +171,7 @@ interface ShopifyProductNode {
   variants: { nodes: ShopifyVariant[] };
   collections: { nodes: ShopifyCollectionRef[] };
   metafields: { nodes: MetafieldNode[] } | null;
+  relMf?: { nodes: { key: string; value: string }[] } | null;
 }
 
 interface FlavorMetaobject {
@@ -183,10 +185,13 @@ const PRODUCT_FRAGMENT = `
   priceRangeV2 { minVariantPrice { amount } }
   images(first: 8) { nodes { url altText } }
   options { name values }
-  variants(first: 100) { nodes { id title sku price compareAtPrice inventoryQuantity selectedOptions { name value } } }
+  variants(first: 100) { nodes { id title sku price compareAtPrice inventoryQuantity selectedOptions { name value } media(first: 3) { nodes { ... on MediaImage { image { url } } } } } }
   collections(first: 6) { nodes { id title handle } }
   metafields(first: 40, namespace: "vape") {
     nodes { namespace key type value }
+  }
+  relMf: metafields(first: 10, namespace: "shopify--discovery--product_recommendation") {
+    nodes { key value }
   }
 `;
 
@@ -208,7 +213,7 @@ function fallbackImageFor(handle: string): string {
   return "/images/prod_disposable.png";
 }
 
-function toProductItem(node: ShopifyProductNode, flavorObjects: FlavorMetaobject[] = []): ProductItem {
+function toProductItem(node: ShopifyProductNode, flavorObjects: FlavorMetaobject[] = [], relatedById: Record<string, string> = {}): ProductItem {
   const mf = mfMap(node.metafields?.nodes);
   const images = node.images.nodes.map((i) => i.url);
   const firstVariant = node.variants.nodes[0];
@@ -286,7 +291,7 @@ function toProductItem(node: ShopifyProductNode, flavorObjects: FlavorMetaobject
     sku: firstVariant?.sku || node.handle,
     images: images.length ? images : [fallbackImage],
     primaryImage: images[0] || fallbackImage,
-    shortDescription: mf["vape.short_description"] || desc.slice(0, 180),
+    shortDescription: stripHtml(mf["vape.short_description"] || desc.slice(0, 180)),
     fullDescription: node.descriptionHtml || "",
     puffs: puffsNum,
     puffRange: mf["vape.puff_range"] || undefined,
@@ -307,6 +312,7 @@ function toProductItem(node: ShopifyProductNode, flavorObjects: FlavorMetaobject
       compareAtPrice: parseFloat(v.compareAtPrice || "0") || 0,
       stock: v.inventoryQuantity ?? 0,
       sku: v.sku || "",
+      imageUrl: v.media?.nodes?.[0]?.image?.url || undefined,
     })),
     flavorFamily: (["fruit_ice", "menthol", "tobacco", "dessert"].includes(mf["vape.flavor_family"] || "")
       ? mf["vape.flavor_family"]
@@ -324,7 +330,18 @@ function toProductItem(node: ShopifyProductNode, flavorObjects: FlavorMetaobject
     specifications: specs,
     reviews: [],
     faqs: [],
-    relatedSlugs: [],
+    // Related products picked in the panel (discovery metafield) resolve
+    // GIDs -> handles through relatedById; unresolved entries drop out.
+    relatedSlugs: (() => {
+      const rel = (node.relMf?.nodes ?? []).find((m) => m.key === "related_products");
+      try {
+        const ids = JSON.parse(rel?.value || "[]");
+        if (!Array.isArray(ids)) return [];
+        return ids.map((id: string) => relatedById[id]).filter(Boolean);
+      } catch {
+        return [];
+      }
+    })(),
   };
 }
 
@@ -342,7 +359,7 @@ const LIST_QUERY = `
 `;
 
 export async function fetchAllShopifyProducts(): Promise<ProductItem[]> {
-  const out: ProductItem[] = [];
+  const nodes: ShopifyProductNode[] = [];
   let after: string | null = null;
   for (let page = 0; page < 6; page++) {
     const data: { products: { pageInfo: { hasNextPage: boolean; endCursor: string | null }; nodes: ShopifyProductNode[] } } =
@@ -351,15 +368,31 @@ export async function fetchAllShopifyProducts(): Promise<ProductItem[]> {
       );
     // Only ACTIVE products are live on the site; drafts stay hidden
     // (the Admin API returns drafts too, unlike the storefront).
-    out.push(
-      ...data.products.nodes
-        .filter((n: ShopifyProductNode) => n.status === "ACTIVE")
-        .map((n: ShopifyProductNode) => toProductItem(n))
-    );
+    nodes.push(...data.products.nodes.filter((n: ShopifyProductNode) => n.status === "ACTIVE"));
     if (!data.products.pageInfo.hasNextPage) break;
     after = data.products.pageInfo.endCursor;
   }
-  return out;
+  // Resolve panel-picked related products (discovery GIDs -> handles) in one
+  // nodes query, so the storefront prefers them over same-category picks.
+  const relatedIds = new Set<string>();
+  for (const n of nodes) {
+    const rel = (n.relMf?.nodes ?? []).find((m) => m.key === "related_products");
+    try {
+      const ids = JSON.parse(rel?.value || "[]");
+      if (Array.isArray(ids)) for (const id of ids) relatedIds.add(String(id));
+    } catch { /* ignore malformed related metafield */ }
+  }
+  const relatedById: Record<string, string> = {};
+  if (relatedIds.size) {
+    try {
+      const d = await shopifyAdmin<{ nodes: ({ id: string; handle: string } | null)[] }>(
+        `query RelHandles($ids: [ID!]!) { nodes(ids: $ids) { ... on Product { id handle } } }`,
+        { ids: [...relatedIds] }
+      );
+      for (const n of d.nodes ?? []) if (n?.id && n?.handle) relatedById[n.id] = n.handle;
+    } catch { /* related handles optional — same-category fallback covers it */ }
+  }
+  return nodes.map((n: ShopifyProductNode) => toProductItem(n, [], relatedById));
 }
 
 const DETAIL_QUERY = `
@@ -387,7 +420,19 @@ export async function fetchShopifyProductByHandle(handle: string): Promise<Produ
   const node = data.productByHandle;
   if (!node || node.status !== "ACTIVE") return null;
   const flavors = node.flavorRefs?.references?.nodes ?? [];
-  return toProductItem(node, flavors);
+  const relatedById: Record<string, string> = {};
+  const rel = (node.relMf?.nodes ?? []).find((m) => m.key === "related_products");
+  try {
+    const ids = JSON.parse(rel?.value || "[]");
+    if (Array.isArray(ids) && ids.length) {
+      const d = await shopifyAdmin<{ nodes: ({ id: string; handle: string } | null)[] }>(
+        `query RelHandles($ids: [ID!]!) { nodes(ids: $ids) { ... on Product { id handle } } }`,
+        { ids }
+      );
+      for (const n of d.nodes ?? []) if (n?.id && n?.handle) relatedById[n.id] = n.handle;
+    }
+  } catch { /* related handles optional */ }
+  return toProductItem(node, flavors, relatedById);
 }
 
 /* ------------------------------------------------------------------ */
@@ -420,6 +465,33 @@ export async function fetchProductReviews(productNumericId: string): Promise<Pro
         location: "UAE",
         position: parseInt(f.position || "0", 10) || 0,
       });
+    }
+    return out.sort((a, b) => a.position - b.position).map(({ position: _p, ...r }) => r);
+  } catch {
+    return [];
+  }
+}
+
+/* Product FAQs from the panel entry page (vm_product_faq entries linked by
+   product GID). Answers are owner-entered RichText HTML, so they carry
+   html: true and the product page renders them as HTML. */
+export async function fetchProductFaqs(productNumericId: string): Promise<{ q: string; a: string; html: boolean }[]> {
+  try {
+    const gid = `gid://shopify/Product/${productNumericId}`;
+    const d = await shopifyAdmin<any>(
+      `query ProductFaqs {
+         faqs: metaobjects(type: "vm_product_faq", first: 100) { nodes { id fields { key value } } }
+       }`,
+      {},
+      120
+    );
+    const out: ({ q: string; a: string; html: boolean } & { position: number })[] = [];
+    for (const n of d.faqs?.nodes ?? []) {
+      const f: Record<string, string> = {};
+      for (const fld of n.fields ?? []) if (fld.value != null) f[fld.key] = fld.value;
+      if (f.product !== gid) continue;
+      if (!(f.question || "").trim()) continue;
+      out.push({ q: f.question, a: f.answer || "", html: true, position: parseInt(f.position || "0", 10) || 0 });
     }
     return out.sort((a, b) => a.position - b.position).map(({ position: _p, ...r }) => r);
   } catch {
@@ -569,6 +641,8 @@ export interface ThemeSettings {
   footerLinks: { title: string; links: { label: string; url: string }[] }[];
   newsletterText: string;
   megaBanner: { title: string; subtitle: string; badge: string; href: string };
+  colors: { preset: string };
+  fonts: { heading: string; body: string };
 }
 
 export interface HomeSettings {
@@ -577,6 +651,7 @@ export interface HomeSettings {
   features: any[];
   trustStats: { customers: number; reviews: number };
   sectionVisibility: Record<string, boolean>;
+  sectionOrder: string[];
 }
 
 export interface BlogSettings {
@@ -636,8 +711,8 @@ export async function fetchShopSettings(): Promise<ShopSettings> {
     checkout: { freeShippingThreshold: 0, deliveryFee: 0, vatNote: "", cityPromises: [], paymentLabels: [] },
     productPage: { trustBadges: [], shippingText: "", returnText: "", specOrder: [] },
     collectionPage: { itemsPerPage: 0, compareLimit: 0, sortOptions: [], puffBuckets: [], flavorFamilies: [], quizSteps: [], shopAllHero: { title: "", subtitle: "", image: "" } },
-    theme: { searchPlaceholder: "", topbarLinks: [], footerLinks: [], newsletterText: "", megaBanner: { title: "", subtitle: "", badge: "", href: "" } },
-    home: { promoBanners: [], categoryTiles: [], features: [], trustStats: { customers: 0, reviews: 0 }, sectionVisibility: {} },
+    theme: { searchPlaceholder: "", topbarLinks: [], footerLinks: [], newsletterText: "", megaBanner: { title: "", subtitle: "", badge: "", href: "" }, colors: { preset: "emerald" }, fonts: { heading: "playfair", body: "system" } },
+    home: { promoBanners: [], categoryTiles: [], features: [], trustStats: { customers: 0, reviews: 0 }, sectionVisibility: {}, sectionOrder: [] },
     blog: { categories: [], categoryColors: {} },
     pages: { aboutValues: [], aboutStats: [], contactCards: [], pageHeroSubtitles: {} },
   };
@@ -702,6 +777,8 @@ export async function fetchShopSettings(): Promise<ShopSettings> {
         footerLinks: parseJson(mf["theme.footer_links"], []),
         newsletterText: mf["theme.newsletter_text"] || "",
         megaBanner: parseJson(mf["theme.mega_banner"], { title: "", subtitle: "", badge: "", href: "" }),
+        colors: parseJson(mf["theme.colors"], { preset: "emerald" }),
+        fonts: parseJson(mf["theme.fonts"], { heading: "playfair", body: "system" }),
       },
       home: {
         promoBanners: parseJson(mf["home.promo_banners"], []),
@@ -709,6 +786,7 @@ export async function fetchShopSettings(): Promise<ShopSettings> {
         features: parseJson(mf["home.features"], []),
         trustStats: parseJson(mf["home.trust_stats"], { customers: 0, reviews: 0 }),
         sectionVisibility: parseJson(mf["home.section_visibility"], {}),
+        sectionOrder: parseList(mf["home.section_order"]),
       },
       blog: {
         categories: parseJson(mf["blog.categories"], []),

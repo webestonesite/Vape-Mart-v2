@@ -51,12 +51,16 @@ export async function fetchProductBySlug(slug: string): Promise<ProductItem | un
     if (p) {
       const normalized = withNormalizedCategories([p])[0];
       try {
-        const all = await fetchAllProducts();
-        const related = all
-          .filter((r) => r.slug !== slug && r.categorySlug === normalized.categorySlug)
-          .slice(0, 4)
-          .map((r) => r.slug);
-        normalized.relatedSlugs = related.length ? related : all.filter((r) => r.slug !== slug).slice(0, 4).map((r) => r.slug);
+        // Panel-picked related products (discovery metafield) win; only when
+        // the panel picked none do same-category products fill the row.
+        if (!normalized.relatedSlugs?.length) {
+          const all = await fetchAllProducts();
+          const related = all
+            .filter((r) => r.slug !== slug && r.categorySlug === normalized.categorySlug)
+            .slice(0, 4)
+            .map((r) => r.slug);
+          normalized.relatedSlugs = related.length ? related : all.filter((r) => r.slug !== slug).slice(0, 4).map((r) => r.slug);
+        }
       } catch { /* related optional */ }
       return normalized;
     }

@@ -101,7 +101,6 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
         { icon: Zap, t: "Fast Delivery", d: "UAE-wide in 24–48 hours" },
         { icon: Clock, t: "Same Day Delivery", d: "Within Dubai on most items" },
       ];
-  const galleryImages = product.images.length > 0 ? product.images : [product.primaryImage];
   const [imgIdx, setImgIdx] = useState(0);
   const [flavorId, setFlavorId] = useState("");
   const [nicotine, setNicotine] = useState("");
@@ -166,6 +165,23 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
   const displayInStock = hasVariants ? (matchedVariant ? matchedVariant.stock > 0 : product.inStock) : product.inStock;
   const variantLabel = matchedVariant ? matchedVariant.options.map((o) => o.value).join(" / ") : undefined;
   const total = displayPrice * qty;
+  // Gallery prefers the selected variant's image (set in the panel entry
+  // page); otherwise the product images in order.
+  const variantImg = matchedVariant?.imageUrl;
+  const galleryImages = variantImg
+    ? [variantImg, ...product.images.filter((i) => i !== variantImg)]
+    : product.images.length > 0
+      ? product.images
+      : [product.primaryImage];
+  // Owner-entered HTML (panel RichText / link builder) renders as HTML;
+  // plain text renders exactly as before. Only values with a real link tag
+  // take the HTML path, so old plain-text values never change appearance.
+  const rich = (text: string) =>
+    /<a[\s>]/.test(text) ? (
+      <span dangerouslySetInnerHTML={{ __html: text }} className="[&_a]:text-emerald-700 [&_a]:underline" />
+    ) : (
+      text
+    );
 
   const seoSections = useMemo(() => buildSeoSections(product), [product]);
   const allFaqs = useMemo(() => buildProductFaqs(product), [product]);
@@ -603,7 +619,14 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
             {tab === "desc" && (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="w-full">
                 <h2 className="font-luxury text-2xl sm:text-3xl xl:text-[40px] font-bold text-emerald-950">{product.title}</h2>
-                <p className="mt-4 text-[15px] xl:text-[17px] leading-relaxed text-neutral-600">{product.fullDescription}</p>
+                {/<[a-z][\s>]/.test(product.fullDescription) ? (
+                  <div
+                    className="mt-4 text-[15px] xl:text-[17px] leading-relaxed text-neutral-600 [&_a]:text-emerald-700 [&_a]:underline"
+                    dangerouslySetInnerHTML={{ __html: product.fullDescription }}
+                  />
+                ) : (
+                  <p className="mt-4 text-[15px] xl:text-[17px] leading-relaxed text-neutral-600">{product.fullDescription}</p>
+                )}
 
                 <SeoBlock section={seoSections[0]} />
 
@@ -659,7 +682,7 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
                     {orderedSpecs.slice(0, 8).map((s, i) => (
                       <li key={i} className="flex gap-3 px-5 py-3.5 items-start">
                         <Check size={16} className="text-amber-500 shrink-0 mt-1" strokeWidth={3} />
-                        <p className="text-[15px] text-neutral-600 leading-relaxed"><strong className="text-emerald-950 font-bold">{s.label}:</strong> {s.value}</p>
+                        <p className="text-[15px] text-neutral-600 leading-relaxed"><strong className="text-emerald-950 font-bold">{s.label}:</strong> {rich(s.value)}</p>
                       </li>
                     ))}
                   </ul>
@@ -790,7 +813,7 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
             {orderedSpecs.map((s, i) => (
               <div key={i} className={`grid grid-cols-2 px-5 py-3.5 text-sm ${i % 2 ? "bg-emerald-50/50" : "bg-white"}`}>
                 <span className="font-bold text-emerald-950">{s.label}</span>
-                <span className="text-neutral-600">{s.value}</span>
+                <span className="text-neutral-600">{rich(s.value)}</span>
               </div>
             ))}
           </div>
@@ -841,7 +864,7 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
                   <div key={r.id} className="snap-start shrink-0 w-[300px] sm:w-[340px] rounded-2xl bg-white border border-emerald-900/10 p-5 flex flex-col">
                     <Stars rating={r.rating} />
                     <p className="mt-2 text-sm font-bold text-emerald-950">{r.title}</p>
-                    <p className="mt-1.5 text-sm text-neutral-600 leading-relaxed flex-1">{r.comment}</p>
+                    <p className="mt-1.5 text-sm text-neutral-600 leading-relaxed flex-1">{rich(r.comment)}</p>
                     <div className="mt-3 flex items-center gap-2 text-xs text-neutral-500">
                       <span className="font-semibold text-emerald-900">{r.author}</span>
                       {r.verified && <span className="inline-flex items-center gap-1 text-emerald-700 font-semibold"><BadgeCheck size={13} /> Verified</span>}
@@ -956,7 +979,11 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
                       className="px-4 sm:px-6 pl-12 sm:pl-[72px] text-neutral-500 text-xs sm:text-sm leading-relaxed overflow-hidden transition-all duration-500 ease-in-out"
                       style={{ maxHeight: openFaq === idx ? "500px" : "0", opacity: openFaq === idx ? 1 : 0, paddingBottom: openFaq === idx ? "1.25rem" : "0" }}
                     >
-                      {faq.a}
+                      {faq.html ? (
+                        <span dangerouslySetInnerHTML={{ __html: faq.a }} className="[&_a]:text-emerald-700 [&_a]:underline" />
+                      ) : (
+                        faq.a
+                      )}
                     </div>
                   </div>
                 ))}
