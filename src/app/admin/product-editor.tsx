@@ -197,6 +197,64 @@ function FlavourPicker({ flavors, selected, onToggle }: any) {
   );
 }
 
+/* Tap-to-add chips — one value at a time, never a comma-joined text box.
+   Used for variant option values and tags, so a simple person never has
+   to type commas. The saved data is unchanged (arrays / comma string). */
+function ValueChips({
+  values,
+  onChange,
+  placeholder,
+  emptyText,
+}: {
+  values: string[];
+  onChange: (v: string[]) => void;
+  placeholder: string;
+  emptyText: string;
+}) {
+  const [draft, setDraft] = useState("");
+  const add = () => {
+    const v = draft.trim();
+    if (!v) return;
+    if (!(values || []).includes(v)) onChange([...(values || []), v]);
+    setDraft("");
+  };
+  return (
+    <div>
+      <div className="flex flex-wrap gap-1.5 mb-2">
+        {(values || []).map((v: string) => (
+          <span key={v} className="inline-flex items-center gap-1 rounded-full bg-neutral-900 text-white px-3 py-1.5 text-xs font-semibold">
+            {v}
+            <button type="button" onClick={() => onChange((values || []).filter((x: string) => x !== v))}>
+              <X size={12} />
+            </button>
+          </span>
+        ))}
+        {!(values || []).length && <span className="text-xs text-neutral-500">{emptyText}</span>}
+      </div>
+      <div className="flex gap-2">
+        <Inp
+          placeholder={placeholder}
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              add();
+            }
+          }}
+        />
+        <button
+          type="button"
+          onClick={add}
+          className="shrink-0 rounded-md border border-neutral-300 px-3 py-2 text-sm font-semibold text-neutral-800 hover:bg-neutral-50"
+        >
+          Add
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /*  Unified product entry page — every field on one page, in order.    */
 /*  Nothing here is demo: empty means empty, and every field really    */
@@ -535,20 +593,14 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
     ...liveMedia.map((m: any) => ({ key: `id:${m.id}`, label: m.altText || m.url.split("/").pop(), url: m.url })),
     ...newMedia.map((m: any) => ({ key: `src:${m.source}`, label: m.source.split("/").pop(), url: m.preview })),
   ];
-  const variantImageValue = (t: string[]) => {
+  // Key of the image picked for a variant combination ("id:…" / "src:…"),
+  // or "" when no image is picked. Used by the thumbnail picker grid.
+  const variantImageKey = (t: string[]) => {
     const p = variantImages[tupleKey(t)];
-    if (p === null) return "";
-    if (!p) return "__unset__";
+    if (!p) return "";
     if (p.mediaId) return `id:${p.mediaId}`;
     if (p.mediaSource) return `src:${p.mediaSource}`;
     return "";
-  };
-  const variantImageThumb = (t: string[]) => {
-    const p = variantImages[tupleKey(t)];
-    if (!p) return null;
-    if (p.mediaId) return liveMedia.find((m: any) => m.id === p.mediaId)?.url;
-    if (p.mediaSource) return newMedia.find((m: any) => m.source === p.mediaSource)?.preview;
-    return null;
   };
 
   return (
@@ -655,10 +707,11 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
                 placeholder="Option nam"
                 onChange={(e) => setOptions(options.map((x: any, j: number) => (j === oi ? { ...x, name: e.target.value } : x)))}
               />
-              <Inp
-                value={(o.values || []).join(", ")}
-                placeholder="Value gulo comma diye"
-                onChange={(e) => setOptions(options.map((x: any, j: number) => (j === oi ? { ...x, values: e.target.value.split(",").map((v: string) => v.trim()).filter(Boolean) } : x)))}
+              <ValueChips
+                values={o.values || []}
+                onChange={(next) => setOptions(options.map((x: any, j: number) => (j === oi ? { ...x, values: next } : x)))}
+                placeholder="Ekta value likho (jemon: Mango Ice)"
+                emptyText="Ekhono kono value nai — niche likhe Add chaple chip hobe."
               />
               <button
                 onClick={() => setOptions(options.filter((_: any, j: number) => j !== oi))}
@@ -679,7 +732,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
           <div className="mt-4 space-y-3">
             {visibleCombos().map((t) => {
               const v = rowFor(t).v;
-              const thumb = variantImageThumb(t);
+              const pickedKey = variantImageKey(t);
               return (
                 <div key={tupleKey(t)} className="rounded-lg border border-neutral-200 p-3">
                   <div className="flex items-center justify-between gap-2 mb-2">
@@ -709,30 +762,53 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
                       <Inp type="number" value={v.inventoryQuantity ?? ""} onChange={(e) => setRowField(t, "inventoryQuantity", e.target.value)} placeholder="Stock" />
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 mt-2">
-                    {thumb && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={thumb} alt="" className="h-10 w-10 rounded-md object-cover border border-neutral-200" />
-                    )}
-                    <div className="flex-1">
-                      <Lbl>Variant-er chhobi</Lbl>
-                      <Sel
-                        value={variantImageValue(t) === "__unset__" ? "" : variantImageValue(t)}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          if (val === "") setVariantImages({ ...variantImages, [tupleKey(t)]: null });
-                          else if (val.startsWith("id:")) setVariantImages({ ...variantImages, [tupleKey(t)]: { mediaId: val.slice(3) } });
-                          else if (val.startsWith("src:")) setVariantImages({ ...variantImages, [tupleKey(t)]: { mediaSource: val.slice(4) } });
-                        }}
+                  <div className="mt-2">
+                    <Lbl>Variant-er chhobi — chhobi dekhe tap koro</Lbl>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setVariantImages({ ...variantImages, [tupleKey(t)]: null })}
+                        className={`flex h-16 w-16 items-center justify-center rounded-lg border text-xs font-semibold ${
+                          pickedKey === ""
+                            ? "border-neutral-900 ring-2 ring-neutral-900 bg-neutral-50 text-neutral-900"
+                            : "border-dashed border-neutral-300 text-neutral-500"
+                        }`}
                       >
-                        <option value="">Chhobi nai</option>
-                        {imageOptions.map((o: any) => (
-                          <option key={o.key} value={o.key}>
-                            {o.label}
-                          </option>
-                        ))}
-                      </Sel>
+                        Chhobi nai
+                      </button>
+                      {imageOptions.map((o: any) => {
+                        const selected = pickedKey === o.key;
+                        return (
+                          <button
+                            key={o.key}
+                            type="button"
+                            title={o.label}
+                            onClick={() => {
+                              if (o.key.startsWith("id:"))
+                                setVariantImages({ ...variantImages, [tupleKey(t)]: { mediaId: o.key.slice(3) } });
+                              else if (o.key.startsWith("src:"))
+                                setVariantImages({ ...variantImages, [tupleKey(t)]: { mediaSource: o.key.slice(4) } });
+                            }}
+                            className={`relative h-16 w-16 overflow-hidden rounded-lg border ${
+                              selected ? "border-neutral-900 ring-2 ring-neutral-900" : "border-neutral-200"
+                            }`}
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={o.url} alt={o.label} className="h-full w-full object-cover" />
+                            {selected && (
+                              <span className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-neutral-900 text-white text-[11px] font-bold">
+                                ✓
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
                     </div>
+                    {!imageOptions.length && (
+                      <p className="text-xs text-neutral-500 mt-1">
+                        Age section 5-e chhobi add koro, tarpor ekhane chhobi dekhe pick korte parba.
+                      </p>
+                    )}
                   </div>
                 </div>
               );
@@ -826,8 +902,13 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
               <Inp value={form.productType} onChange={(e) => set("productType", e.target.value)} placeholder="Type" />
             </div>
             <div className="sm:col-span-2">
-              <Lbl>Tag (comma diye)</Lbl>
-              <Inp value={form.tags} onChange={(e) => set("tags", e.target.value)} placeholder="Tag comma diye" />
+              <Lbl>Tag</Lbl>
+              <ValueChips
+                values={form.tags.split(",").map((s: string) => s.trim()).filter(Boolean)}
+                onChange={(next) => set("tags", next.join(", "))}
+                placeholder="Ekta tag likho"
+                emptyText="Ekhono kono tag nai — niche likhe Add chaple chip hobe."
+              />
             </div>
           </div>
         </Section>
