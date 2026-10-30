@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { fetchShopSettings, fetchSiteContent } from "@/lib/shopify";
+import { fetchShopSettings, fetchSiteContent, fetchBlogPosts } from "@/lib/shopify";
 import type { ProductItem } from "@/types/product";
 
 /**
@@ -27,7 +27,10 @@ function cardProduct(p: ProductItem) {
 }
 
 export async function GET() {
-  const [settings, content] = await Promise.all([fetchShopSettings(), fetchSiteContent()]);
+  // Blog posts are best-effort: a Shopify hiccup must not 500 the whole
+  // site-content response (or fail a static prerender of this route).
+  const [settings, content, posts] = await Promise.all([fetchShopSettings(), fetchSiteContent(), fetchBlogPosts().catch(() => [])]);
+  const BADGE = ["bg-emerald-600 text-white", "bg-amber-600 text-white", "bg-blue-600 text-white", "bg-purple-600 text-white", "bg-rose-600 text-white"];
   return NextResponse.json({
     settings,
     heroSlides: content.heroSlides,
@@ -41,5 +44,17 @@ export async function GET() {
     testimonials: content.testimonials,
     faqs: content.faqs,
     showcaseCards: content.showcaseCards,
+    blogPosts: posts.map((p, i) => ({
+      id: i + 1,
+      handle: p.handle,
+      title: p.title,
+      category: (p.category || "Guides").toUpperCase(),
+      readTime: `${Math.max(1, Math.round(p.bodyHtml.replace(/<[^>]*>/g, " ").split(/\s+/).filter(Boolean).length / 200))} min read`,
+      date: p.publishedAt ? new Date(p.publishedAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : "",
+      excerpt: p.excerpt,
+      image: p.imageUrl || "/images/blog_1.png",
+      badgeBg: BADGE[i % BADGE.length],
+      author: "Vape Mart Team",
+    })),
   });
 }

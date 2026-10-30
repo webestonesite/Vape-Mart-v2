@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Outfit, Playfair_Display } from "next/font/google";
+import ThemeStyle from "@/components/ThemeStyle";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -33,6 +34,10 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
+// Panel-managed content (including the ThemeStyle brand/font override in
+// <head>) refreshes from Shopify on this cadence without a redeploy.
+export const revalidate = 600;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -47,6 +52,7 @@ export default function RootLayout({
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&display=swap"
         />
+        <ThemeStyle />
       </head>
       <body className={`${inter.variable} ${outfit.variable} ${playfair.variable}`}>
         {children}
