@@ -234,7 +234,7 @@ export function CollectionPageView({ category, allCategories, products, catalogP
   // ---- live counts computed from the ACTUAL products array (bug fix: no stale counts) ----
   const brandCounts = useMemo(() => {
     const c: Record<string, number> = {};
-    products.forEach((p) => { c[p.brand] = (c[p.brand] || 0) + 1; });
+    products.forEach((p) => { if (p.brand) c[p.brand] = (c[p.brand] || 0) + 1; });
     return c;
   }, [products]);
   const brands = useMemo(() => Object.keys(brandCounts).sort(), [brandCounts]);
@@ -242,7 +242,13 @@ export function CollectionPageView({ category, allCategories, products, catalogP
   // ---- discovery sections: catalog-wide counts (always full catalog) ----
   const catalogCategoryCounts = useMemo(() => {
     const c: Record<string, number> = {};
-    catalog.forEach((p) => { c[p.categorySlug] = (c[p.categorySlug] || 0) + 1; });
+    catalog.forEach((p) => {
+      // Count under every collection membership (like fetchCategories does),
+      // not just the primary categorySlug — otherwise sub/brand category
+      // tiles show 0 even though their pages list products.
+      const slugs = p.shopifyCollections?.length ? p.shopifyCollections.map((s) => s.slug) : [p.categorySlug];
+      slugs.forEach((s) => { if (s) c[s] = (c[s] || 0) + 1; });
+    });
     return c;
   }, []);
   const flavorFamilyCounts = useMemo(() => {
@@ -265,7 +271,7 @@ export function CollectionPageView({ category, allCategories, products, catalogP
 
   const nicotineCounts = useMemo(() => {
     const c: Record<string, number> = {};
-    products.forEach((p) => { c[p.nicotineStrength] = (c[p.nicotineStrength] || 0) + 1; });
+    products.forEach((p) => { if (p.nicotineStrength) c[p.nicotineStrength] = (c[p.nicotineStrength] || 0) + 1; });
     return c;
   }, [products]);
   const nicotines = useMemo(() => Object.keys(nicotineCounts).sort(), [nicotineCounts]);
@@ -718,7 +724,7 @@ export function CollectionPageView({ category, allCategories, products, catalogP
         {products[1] && (
           <motion.div
             aria-hidden
-            className="hidden lg:block absolute right-[24%] bottom-[8%] w-32 xl:w-40 pointer-events-none z-[5]"
+            className="hidden lg:block absolute right-[24%] bottom-[30%] w-32 xl:w-40 pointer-events-none z-[5]"
             animate={finePointer ? { x: heroTilt.x * -24, y: heroTilt.y * -18 } : {}}
             transition={{ type: "spring", stiffness: 60, damping: 18 }}
           >

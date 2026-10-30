@@ -13,8 +13,15 @@ export interface SeoSection {
  * page gets unique, data-driven copy totalling 1500+ words.
  */
 export function buildSeoSections(p: ProductItem): SeoSection[] {
+  // Empty-data guards: Shopify-mapped products can arrive without flavour,
+  // nicotine, spec or FAQ data — never crash, never print blanks.
+  const flavors = p.flavors ?? [];
+  const nicotineOptions = p.nicotineOptions ?? [];
+  const specifications = p.specifications ?? [];
+  const brand = p.brand || "Vape Mart";
+  const nicotineStrength = p.nicotineStrength || "";
   const puffsLabel = p.puffs ? `${p.puffs.toLocaleString()} puffs` : p.puffRange ? `${p.puffRange} puffs` : "a high puff count";
-  const flavourNames = p.flavors.filter((f) => f.inStock).map((f) => f.name);
+  const flavourNames = flavors.filter((f) => f.inStock).map((f) => f.name);
   const flavourListText =
     flavourNames.length > 0
       ? flavourNames.slice(0, 6).join(", ") + (flavourNames.length > 6 ? ` and ${flavourNames.length - 6} more` : "")
@@ -28,10 +35,10 @@ export function buildSeoSections(p: ProductItem): SeoSection[] {
       ],
     },
     {
-      heading: `Why vapers across the UAE choose the ${p.brand} ${puffsLabel} device`,
+      heading: `Why vapers across the UAE choose the ${brand} ${puffsLabel} device`,
       paragraphs: [
         `Longevity is the first thing regular vapers notice. With ${puffsLabel} on board, the ${p.title} comfortably outlasts smaller disposables that need replacing every few days. For a moderate vaper, a single device can cover several weeks of daily use, which means fewer orders, less packaging waste and a noticeably lower cost per day compared with low-capacity alternatives.`,
-        `The second reason is consistency. Many high-puff devices fade badly in their final third — flavour mutes, vapour thins and the draw goes harsh. The ${p.coilType ? p.coilType.split("(")[0].trim() : "advanced coil"} architecture inside this device is engineered to hold flavour fidelity from the first puff to the last, so the final sessions taste as clean as the opening ones. That reliability is exactly why ${p.brand} has built such a loyal following among Dubai and Abu Dhabi vapers.`,
+        `The second reason is consistency. Many high-puff devices fade badly in their final third — flavour mutes, vapour thins and the draw goes harsh. The ${p.coilType ? p.coilType.split("(")[0].trim() : "advanced coil"} architecture inside this device is engineered to hold flavour fidelity from the first puff to the last, so the final sessions taste as clean as the opening ones. That reliability is exactly why ${brand} has built such a loyal following among Dubai and Abu Dhabi vapers.`,
       ],
     },
     {
@@ -44,14 +51,14 @@ export function buildSeoSections(p: ProductItem): SeoSection[] {
     {
       heading: "Flavour collection: find your all-day vape",
       paragraphs: [
-        `The ${p.title} ships in ${p.flavors.length} signature flavours, including ${flavourListText}. Each blend is mixed for balance rather than shock value — sweetness, cooling and throat hit are tuned so the flavour stays enjoyable across hundreds of puffs a day, not just the first ten. The tasting notes above each flavour card describe exactly what to expect before you commit.`,
+        `${flavors.length ? `The ${p.title} ships in ${flavors.length} signature flavours, including ${flavourListText}.` : `The ${p.title} ships in a curated range of flavours.`} Each blend is mixed for balance rather than shock value — sweetness, cooling and throat hit are tuned so the flavour stays enjoyable across hundreds of puffs a day, not just the first ten. The tasting notes above each flavour card describe exactly what to expect before you commit.`,
         `Not sure where to start? Fruit-ice profiles like watermelon, berry and mango are the safest first pick for most vapers. If you enjoy a colder hit, reach for the mint and menthol-leaning options. Dessert and shisha-inspired blends suit evening vaping when you want something richer. Because every flavour runs on the same device and coil platform, switching between them never means relearning the draw.`,
       ],
     },
     {
       heading: "Nicotine strength guide",
       paragraphs: [
-        `This device is offered at ${p.nicotineStrength}${p.nicotineOptions.length > 1 ? `, with additional options including ${p.nicotineOptions.filter((n) => n !== p.nicotineStrength).join(", ")}` : ""}. Nicotine salt is used across the range, which delivers a smoother throat hit than traditional freebase nicotine at the same strength — important in a device designed for frequent, satisfying puffs.`,
+        `This device is offered at ${nicotineStrength ? nicotineStrength : "a range of nicotine strengths"}${nicotineOptions.length > 1 ? `, with additional options including ${nicotineOptions.filter((n) => n !== nicotineStrength).join(", ")}` : ""}. Nicotine salt is used across the range, which delivers a smoother throat hit than traditional freebase nicotine at the same strength — important in a device designed for frequent, satisfying puffs.`,
         `As a rule of thumb, adult smokers moving from a pack-a-day habit usually feel most comfortable at the higher end of the range, while lighter or social smokers often prefer the lower strengths. If you are new to vaping, start low: you can always step up, but too much nicotine too fast leads to dizziness and an unpleasant session. Vape Mart sells strictly to adults of legal smoking age in the UAE.`,
       ],
     },
@@ -59,7 +66,7 @@ export function buildSeoSections(p: ProductItem): SeoSection[] {
       heading: "Battery life and charging",
       paragraphs: [
         `${p.batteryCapacity ? `A ${p.batteryCapacity.toLowerCase()} rechargeable cell powers the ${p.title}` : `A rechargeable cell powers the ${p.title}`}, so the battery will comfortably outlast the e-liquid it ships with under normal use. ${p.chargingType ? `Charging is handled over ${p.chargingType.toLowerCase()}` : "Charging is handled over a modern USB port"}, which means the cable you already use for your phone probably works — no proprietary charger to hunt for.`,
-        `For the longest cell life, top the device up with a standard 5V wall adapter rather than a high-wattage fast charger, and avoid leaving it plugged in overnight. The built-in protections — ${p.specifications.find((s) => /safety|protection/i.test(s.label))?.value || "short-circuit, overcharge and overtime cut-off"} — guard against the common electrical faults, but sensible charging habits still make a real difference to how many weeks the device serves you.`,
+        `For the longest cell life, top the device up with a standard 5V wall adapter rather than a high-wattage fast charger, and avoid leaving it plugged in overnight. The built-in protections — ${specifications.find((s) => /safety|protection/i.test(s.label))?.value || "short-circuit, overcharge and overtime cut-off"} — guard against the common electrical faults, but sensible charging habits still make a real difference to how many weeks the device serves you.`,
       ],
     },
     {
@@ -114,6 +121,9 @@ function topicOf(q: string): string {
  * topics collapse; capped at 12.
  */
 export function buildProductFaqs(p: ProductItem): ProductFAQ[] {
+  const faqs = p.faqs ?? [];
+  const nicotineOptions = p.nicotineOptions ?? [];
+  const nicotineStrength = p.nicotineStrength || "";
   const puffsLabel = p.puffs ? `${p.puffs.toLocaleString()}` : p.puffRange || "high";
   const generated: ProductFAQ[] = [
     {
@@ -126,7 +136,7 @@ export function buildProductFaqs(p: ProductItem): ProductFAQ[] {
     },
     {
       q: "What nicotine strength is right for me?",
-      a: `The device is available at ${p.nicotineStrength}${p.nicotineOptions.length > 1 ? ` (${p.nicotineOptions.join(" / ")})` : ""}. Heavier adult smokers usually prefer the higher strengths for satisfaction, while light or social smokers are often happier lower down. When in doubt, start lower — you can always adjust on your next order.`,
+      a: `The device is available at ${nicotineStrength ? nicotineStrength : "a range of nicotine strengths"}${nicotineOptions.length > 1 ? ` (${nicotineOptions.join(" / ")})` : ""}. Heavier adult smokers usually prefer the higher strengths for satisfaction, while light or social smokers are often happier lower down. When in doubt, start lower — you can always adjust on your next order.`,
     },
     {
       q: "How do I charge the device, and how long does it take?",
@@ -158,8 +168,8 @@ export function buildProductFaqs(p: ProductItem): ProductFAQ[] {
     },
   ];
 
-  const seenTopics = new Set(p.faqs.map((f) => topicOf(f.q)));
-  const merged: ProductFAQ[] = [...p.faqs];
+  const seenTopics = new Set(faqs.map((f) => topicOf(f.q)));
+  const merged: ProductFAQ[] = [...faqs];
   for (const g of generated) {
     if (merged.length >= 12) break;
     const topic = topicOf(g.q);

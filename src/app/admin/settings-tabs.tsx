@@ -311,6 +311,15 @@ export function ThemeTab({ data, save }: any) {
   const [newsletter, setNewsletter] = useState(s.newsletterText || "");
   const [logoUrl, setLogoUrl] = useState("");
   const [mega, setMega] = useState<any>(s.megaBanner || { title: "", subtitle: "", badge: "", href: "" });
+  const [preset, setPreset] = useState(s.colors?.preset || "emerald");
+  const [headingFont, setHeadingFont] = useState(s.fonts?.heading || "playfair");
+  const [bodyFont, setBodyFont] = useState(s.fonts?.body || "system");
+
+  const PRESETS = [
+    { id: "emerald", label: "Emerald & Gold (akhonkar ta)", dot: "#064e3b" },
+    { id: "sapphire", label: "Sapphire Night (neel)", dot: "#1e3a8a" },
+    { id: "ruby", label: "Ruby Noir (laal)", dot: "#881337" },
+  ];
 
   // Footer groups editor keeps links as "Label|/url" pairs per line for simplicity.
   const groupsForSave = footerGroups.map((g) => ({
@@ -397,6 +406,43 @@ export function ThemeTab({ data, save }: any) {
         <Lbl>Newsletter section text</Lbl>
         <Inp value={newsletter} onChange={(e) => setNewsletter(e.target.value)} placeholder="e.g. Get 10% off your first order" />
       </Card>
+      <Card title="Site colour & fonts">
+        <p className="text-xs text-neutral-500 mb-3">Main colour bodlale header, button, dark section — sob jaiga bodle jabe. Gold accent sob theme-e eki thakbe. Save korar ~10 minute-er moddhe site-e dekhabe.</p>
+        <div className="grid gap-3">
+          <div>
+            <Lbl>Site-er main colour</Lbl>
+            <div className="flex flex-wrap gap-2">
+              {PRESETS.map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => setPreset(p.id)}
+                  className={`inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm ${preset === p.id ? "border-emerald-900 bg-emerald-50 font-semibold" : "border-neutral-300 bg-white"}`}
+                >
+                  <span className="inline-block h-4 w-4 rounded-full" style={{ backgroundColor: p.dot }} />
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <Lbl>Heading lekhar font</Lbl>
+            <select value={headingFont} onChange={(e) => setHeadingFont(e.target.value)} className="w-full rounded-md border border-neutral-300 bg-white px-2 py-2 text-sm">
+              <option value="playfair">Playfair Display (akhonkar ta)</option>
+              <option value="cinzel">Cinzel</option>
+              <option value="outfit">Outfit</option>
+            </select>
+          </div>
+          <div>
+            <Lbl>Body lekhar font</Lbl>
+            <select value={bodyFont} onChange={(e) => setBodyFont(e.target.value)} className="w-full rounded-md border border-neutral-300 bg-white px-2 py-2 text-sm">
+              <option value="system">System default (akhonkar ta)</option>
+              <option value="inter">Inter</option>
+              <option value="outfit">Outfit</option>
+              <option value="poppins">Poppins</option>
+            </select>
+          </div>
+        </div>
+      </Card>
       <Card title="Mega-menu promo banner (DISPOSABLE)">
         <p className="text-xs text-neutral-500 mb-3">DISPOSABLE menu khulle niche je promo banner dekhay — title khali rakhle banner dekhabe na.</p>
         <div className="grid gap-3">
@@ -421,6 +467,7 @@ export function ThemeTab({ data, save }: any) {
       <SaveBar onSave={() => save("theme.save", {
         searchPlaceholder: placeholder, topbarLinks: topbar, footerLinks: groupsForSave,
         newsletterText: newsletter, logoUrl: logoUrl.trim() || undefined, megaBanner: mega,
+        colors: { preset }, fonts: { heading: headingFont, body: bodyFont },
       })} />
     </div>
   );
@@ -439,6 +486,29 @@ export function HomeTab({ data, save }: any) {
   const [reviews, setReviews] = useState(String(s.trustStats?.reviews || ""));
   const [vis, setVis] = useState<any>(s.sectionVisibility || {});
   const toggle = (key: string) => setVis((v: any) => ({ ...v, [key]: !(v[key] !== false) }));
+  const HOME_SECTIONS = [
+    { id: "hero", label: "Hero" },
+    { id: "banners", label: "Promo banners" },
+    { id: "categories", label: "Shop by Category" },
+    { id: "features", label: "Features strip" },
+    { id: "brand", label: "Featured brand (TEREA / JUUL)" },
+    { id: "flavors", label: "Flavours (arc dial)" },
+    { id: "faq", label: "FAQ" },
+    { id: "trust", label: "Trust & Reviews Hub" },
+    { id: "blog", label: "Blog carousel" },
+  ];
+  const HOME_SECTION_IDS = HOME_SECTIONS.map((x) => x.id);
+  const [order, setOrder] = useState<string[]>(() => {
+    const saved = Array.isArray(s.sectionOrder) ? s.sectionOrder.filter((id: string) => HOME_SECTION_IDS.includes(id)) : [];
+    return [...saved, ...HOME_SECTION_IDS.filter((id) => !saved.includes(id))];
+  });
+  const moveSection = (i: number, dir: -1 | 1) => {
+    const j = i + dir;
+    if (j < 0 || j >= order.length) return;
+    const next = [...order];
+    [next[i], next[j]] = [next[j], next[i]];
+    setOrder(next);
+  };
 
   return (
     <div>
@@ -516,10 +586,26 @@ export function HomeTab({ data, save }: any) {
           ))}
         </div>
       </Card>
+      <Card title="Section order" sub="Upore-niche button diye home page-er section-gulor serial bodlan. Save korar ~10 minute-er moddhe site-e dekhabe. Design bodlabe na, shudhu serial bodlabe.">
+        <div className="space-y-2">
+          {order.map((id, i) => {
+            const label = HOME_SECTIONS.find((x) => x.id === id)?.label || id;
+            return (
+              <div key={id} className="flex items-center gap-2 rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm">
+                <span className="text-neutral-400 font-semibold w-6">{i + 1}.</span>
+                <span className="flex-1">{label}</span>
+                <button onClick={() => moveSection(i, -1)} disabled={i === 0} className="rounded border border-neutral-300 px-2 py-1 text-xs disabled:opacity-40">↑</button>
+                <button onClick={() => moveSection(i, 1)} disabled={i === order.length - 1} className="rounded border border-neutral-300 px-2 py-1 text-xs disabled:opacity-40">↓</button>
+              </div>
+            );
+          })}
+        </div>
+      </Card>
       <SaveBar onSave={() => save("home.save", {
         promoBanners: banners, categoryTiles: tiles, features,
         trustStats: { customers: parseInt(customers, 10) || 0, reviews: parseInt(reviews, 10) || 0 },
         sectionVisibility: vis,
+        sectionOrder: order,
       })} />
     </div>
   );

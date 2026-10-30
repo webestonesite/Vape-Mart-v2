@@ -16,6 +16,7 @@ import {
   deleteCollection,
   listBulkProducts,
   saveBulkMetafields,
+  searchBulkProducts,
   saveAction,
 } from "@/lib/admin-panel";
 
@@ -132,6 +133,11 @@ export async function POST(req: Request) {
 
     if (action === "bulk.save") {
       const result = await saveBulkMetafields(Array.isArray(body.changes) ? body.changes : []);
+      return NextResponse.json({ ok: true, ...result });
+    }
+
+    if (action === "bulk.search") {
+      const result = await searchBulkProducts(String(body.search || ""));
       return NextResponse.json({ ok: true, ...result });
     }
 

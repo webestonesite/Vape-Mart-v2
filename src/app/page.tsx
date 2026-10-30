@@ -768,6 +768,7 @@ const flavorsData: FlavorItem[] = [
 
 interface BlogPost {
   id: number;
+  handle: string;
   title: string;
   category: string;
   readTime: string;
@@ -781,6 +782,7 @@ interface BlogPost {
 const blogPostsData: BlogPost[] = [
   {
     id: 1,
+    handle: "disposable-vs-pod-system-which-is-right-for-you",
     title: "Disposable vs Pod System: Which Is Right for You?",
     category: "BUYING GUIDES",
     readTime: "6 min read",
@@ -792,6 +794,7 @@ const blogPostsData: BlogPost[] = [
   },
   {
     id: 2,
+    handle: "best-disposable-vapes-uae-2026",
     title: "Best Disposable Vapes in UAE 2026: Top Picks and Buying Guide",
     category: "BUYING GUIDES",
     readTime: "8 min read",
@@ -803,6 +806,7 @@ const blogPostsData: BlogPost[] = [
   },
   {
     id: 3,
+    handle: "how-to-spot-fake-vapes-in-uae",
     title: "How to Spot Fake Vapes in the UAE (5 Checks)",
     category: "SAFETY",
     readTime: "5 min read",
@@ -814,6 +818,7 @@ const blogPostsData: BlogPost[] = [
   },
   {
     id: 4,
+    handle: "nicotine-strength-guide-uae-vapers",
     title: "Nicotine Strength Guide: 20mg vs 50mg Explained",
     category: "EDUCATION",
     readTime: "7 min read",
@@ -825,6 +830,7 @@ const blogPostsData: BlogPost[] = [
   },
   {
     id: 5,
+    handle: "uae-vape-laws-2026-what-you-need-to-know",
     title: "UAE Vape Laws in 2026: What Every Vaper Must Know",
     category: "REGULATIONS",
     readTime: "8 min read",
@@ -887,11 +893,11 @@ export default function Home() {
   };
   // Home page settings from the panel (shop metafields, namespace "home").
   const homeSettings: any = cms?.settings?.home || {};
-  const homeBanners: any[] = Array.isArray(homeSettings.promo_banners) && homeSettings.promo_banners.length ? homeSettings.promo_banners : [];
+  const homeBanners: any[] = Array.isArray(homeSettings.promoBanners ?? homeSettings.promo_banners) && (homeSettings.promoBanners ?? homeSettings.promo_banners).length ? (homeSettings.promoBanners ?? homeSettings.promo_banners) : [];
   const banner1 = homeBanners[0] || {};
   const banner2 = homeBanners[1] || {};
-  const categoryTiles: { title: string; subtitle: string; num: string; img: string; color: string; tag: string }[] = Array.isArray(homeSettings.category_tiles) && homeSettings.category_tiles.length
-    ? homeSettings.category_tiles.map((t: any, i: number) => ({ title: t.title || "", subtitle: t.subtitle || "", num: String(i + 1).padStart(2, "0"), img: t.img || "/images/cat_disposables.png", color: t.color || "from-emerald-900/80 to-black/90", tag: t.tag || "" }))
+  const categoryTiles: { title: string; subtitle: string; num: string; img: string; color: string; tag: string }[] = Array.isArray(homeSettings.categoryTiles ?? homeSettings.category_tiles) && (homeSettings.categoryTiles ?? homeSettings.category_tiles).length
+    ? (homeSettings.categoryTiles ?? homeSettings.category_tiles).map((t: any, i: number) => ({ title: t.title || "", subtitle: t.subtitle || "", num: String(i + 1).padStart(2, "0"), img: t.img || "/images/cat_disposables.png", color: t.color || "from-emerald-900/80 to-black/90", tag: t.tag || "" }))
     : [
         { title: "JUUL", subtitle: "PODS & DEVICES", num: "01", img: "/images/juul_product.jpg", color: "from-blue-900/80 to-black/90", tag: "POPULAR" },
         { title: "Disposables", subtitle: "NEW ARRIVALS", num: "02", img: "/images/cat_disposables.png", color: "from-emerald-900/80 to-black/90", tag: "TRENDING" },
@@ -909,8 +915,20 @@ export default function Home() {
         { icon: RotateCcw, title: "1 Week Return", desc: "Your Satisfaction is Our Priority: Return Any Product Within 1 week" },
         { icon: CreditCard, title: "Secure Payment", desc: "Seamless Shopping Backed by Safe and Secure Payment Options" },
       ];
-  const homeTrust = homeSettings.trust_stats || {};
-  const homeVisible = (key: string) => homeSettings.section_visibility?.[key] !== false;
+  const homeTrust = homeSettings.trustStats ?? homeSettings.trust_stats ?? {};
+  const homeVisible = (key: string) => (homeSettings.sectionVisibility ?? homeSettings.section_visibility)?.[key] !== false;
+  // Home section order from the panel (home.section_order). Unknown or
+  // missing ids fall back to the default order, so a partial list can
+  // never drop a section. .main-layout is already flex-column, so the
+  // order property reorders sections with no layout change.
+  const HOME_SECTION_ORDER = ["hero", "banners", "categories", "features", "brand", "flavors", "faq", "trust", "blog"];
+  const savedHomeOrder = Array.isArray(homeSettings.sectionOrder ?? homeSettings.section_order) ? (homeSettings.sectionOrder ?? homeSettings.section_order).filter((id: string) => HOME_SECTION_ORDER.includes(id)) : [];
+  const orderedHomeSections = [...savedHomeOrder, ...HOME_SECTION_ORDER.filter((id) => !savedHomeOrder.includes(id))];
+  const homeSecOrder = (id: string) => orderedHomeSections.indexOf(id) + 1;
+  // Blog carousel: live Shopify blog posts when the API has them, local
+  // fallback (the same real articles) while it loads or on failure.
+  const shopifyBlogPosts: BlogPost[] = Array.isArray(cms?.blogPosts) ? cms.blogPosts : [];
+  const blogPosts = shopifyBlogPosts.length ? shopifyBlogPosts : blogPostsData;
 
   const initialsOf = (name: string) =>
     name
@@ -1085,18 +1103,18 @@ export default function Home() {
     if (!isBlogAutoplay) return;
     const timer = setInterval(() => {
       if (!isBlogHovered.current) {
-        setActiveBlogIdx((prev) => (prev + 1) % blogPostsData.length);
+        setActiveBlogIdx((prev) => (prev + 1) % blogPosts.length);
       }
     }, 4500);
     return () => clearInterval(timer);
   }, [isBlogAutoplay]);
 
   const nextBlog = useCallback(() => {
-    setActiveBlogIdx((prev) => (prev + 1) % blogPostsData.length);
+    setActiveBlogIdx((prev) => (prev + 1) % blogPosts.length);
   }, []);
 
   const prevBlog = useCallback(() => {
-    setActiveBlogIdx((prev) => (prev - 1 + blogPostsData.length) % blogPostsData.length);
+    setActiveBlogIdx((prev) => (prev - 1 + blogPosts.length) % blogPosts.length);
   }, []);
 
   useEffect(() => {
@@ -1173,6 +1191,7 @@ export default function Home() {
         className="relative w-full min-h-[580px] sm:min-h-[640px] md:h-[650px] lg:h-[700px] overflow-hidden bg-gradient-to-br from-[#064e3b] via-[#022c22] to-[#064e3b] select-none"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
+        style={{ order: homeSecOrder("hero") }}
       >
           {/* Background Effects */}
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay"></div>
@@ -1288,6 +1307,7 @@ export default function Home() {
           whileInView="visible"
           viewport={{ once: true, amount: 0.2 }}
           variants={staggerContainer}
+          style={{ order: homeSecOrder("banners") }}
         >
           <motion.div className="group relative min-h-[250px] sm:h-[300px] md:h-[320px] rounded-[24px] sm:rounded-[32px] overflow-hidden bg-gradient-to-br from-[#064e3b] to-emerald-900 shadow-[0_20px_40px_-15px_rgba(6,78,59,0.3)] hover:shadow-[0_25px_50px_-12px_rgba(6,78,59,0.4)] transition-all duration-500 hover:-translate-y-1 border border-emerald-800" variants={slideInLeft}>
             <div className="absolute inset-0 bg-white opacity-5 mix-blend-overlay"></div>
@@ -1337,6 +1357,7 @@ export default function Home() {
           whileInView="visible"
           viewport={{ once: true, amount: 0.15 }}
           variants={staggerContainer}
+          style={{ order: homeSecOrder("categories") }}
         >
           {/* Centered Category Header */}
           <motion.div className="flex flex-col items-center mb-10 sm:mb-16 text-center px-2" variants={fadeInUp}>
@@ -1398,6 +1419,7 @@ export default function Home() {
           whileInView="visible"
           viewport={{ once: true, amount: 0.2 }}
           variants={staggerContainer}
+          style={{ order: homeSecOrder("features") }}
         >
           <div className="bg-gradient-to-r from-[#022c22] via-[#064e3b] to-[#022c22] rounded-[24px] sm:rounded-[40px] shadow-[0_20px_40px_rgba(6,78,59,0.2)] p-6 sm:p-10 relative overflow-hidden border border-emerald-900/50">
             {/* Background glowing effects */}
@@ -1476,6 +1498,7 @@ export default function Home() {
           whileInView="visible"
           viewport={{ once: true, amount: 0.15 }}
           variants={staggerContainer}
+          style={{ order: homeSecOrder("brand") }}
         >
           <div className="fb-container">
             <motion.div className="fb-left" variants={slideInLeft}>
@@ -1513,8 +1536,8 @@ export default function Home() {
                       {prod.discount && <div className="fb-discount">{prod.discount}</div>}
                       <h4 className="fb-title">{prod.title}</h4>
                       <div className="fb-price">
-                        <span className="current">Dhs. {prod.price}</span>
-                        {prod.oldPrice && <span className="old">Dhs. {prod.oldPrice}</span>}
+                        <span className="current">AED {prod.price}</span>
+                        {prod.oldPrice && <span className="old">AED {prod.oldPrice}</span>}
                       </div>
                     </div>
                     <motion.button
@@ -1538,6 +1561,7 @@ export default function Home() {
           whileInView="visible"
           viewport={{ once: true, amount: 0.1 }}
           variants={staggerContainer}
+          style={{ order: homeSecOrder("flavors") }}
         >
           {/* Section Header with Site Royal Emerald & Amber Accents */}
           <div className="flex flex-col items-center text-center mb-6 sm:mb-10">
@@ -1796,6 +1820,7 @@ export default function Home() {
           whileInView="visible"
           viewport={{ once: true, amount: 0.15 }}
           variants={staggerContainer}
+          style={{ order: homeSecOrder("faq") }}
         >
           <motion.div className="flex flex-col items-center mb-10 sm:mb-16 text-center px-2" variants={fadeInUp}>
             <span className="font-cinzel inline-block px-4 py-1.5 rounded-full bg-[#064e3b]/10 text-[#064e3b] font-bold text-xs tracking-[0.25em] uppercase mb-3 sm:mb-4">GOT QUESTIONS?</span>
@@ -1860,6 +1885,7 @@ export default function Home() {
         whileInView="visible"
         viewport={{ once: true, amount: 0.15 }}
         variants={staggerContainer}
+        style={{ order: homeSecOrder("trust") }}
       >
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay"></div>
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-500 rounded-full blur-[130px] opacity-20 -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
@@ -1976,6 +2002,7 @@ export default function Home() {
         whileInView="visible"
         viewport={{ once: true, amount: 0.15 }}
         variants={staggerContainer}
+        style={{ order: homeSecOrder("blog") }}
       >
         {/* Soft Ambient Glows */}
         <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none -z-10" />
@@ -2049,13 +2076,13 @@ export default function Home() {
 
           {/* 3D Stack of Cards */}
           <div className="relative w-full h-full flex items-center justify-center [transform-style:preserve-3d]">
-            {blogPostsData.map((post, idx) => {
+            {blogPosts.map((post, idx) => {
               // Calculate relative distance with wrapping
-              let diff = (idx - activeBlogIdx) % blogPostsData.length;
-              if (diff < -Math.floor(blogPostsData.length / 2)) {
-                diff += blogPostsData.length;
-              } else if (diff > Math.floor(blogPostsData.length / 2)) {
-                diff -= blogPostsData.length;
+              let diff = (idx - activeBlogIdx) % blogPosts.length;
+              if (diff < -Math.floor(blogPosts.length / 2)) {
+                diff += blogPosts.length;
+              } else if (diff > Math.floor(blogPosts.length / 2)) {
+                diff -= blogPosts.length;
               }
 
               const isActive = diff === 0;
@@ -2176,10 +2203,10 @@ export default function Home() {
                     {/* Bottom Action Footer */}
                     <div className="pt-3 border-t border-neutral-100 flex items-center justify-between mt-auto">
                       <span className="text-xs font-bold text-neutral-400">
-                        Article 0{post.id} / 0{blogPostsData.length}
+                        Article 0{post.id} / 0{blogPosts.length}
                       </span>
                       <a
-                        href="#"
+                        href={post.handle ? `/blog/${post.handle}` : "#"}
                         className="inline-flex items-center gap-2 text-xs sm:text-sm font-black text-[#064e3b] hover:text-[#022c22] group/btn transition-colors"
                       >
                         <span>Read Full Guide</span>
@@ -2198,7 +2225,7 @@ export default function Home() {
         {/* Bottom Interactive Navigation Dots / Article Selectors */}
         <div className="mt-8 flex flex-col items-center gap-3">
           <div className="flex items-center justify-center gap-2 sm:gap-3">
-            {blogPostsData.map((post, idx) => (
+            {blogPosts.map((post, idx) => (
               <button
                 key={post.id}
                 onClick={() => setActiveBlogIdx(idx)}
@@ -2212,7 +2239,7 @@ export default function Home() {
             ))}
           </div>
           <span className="text-neutral-400 text-xs font-medium">
-            Click side cards or drag arrows to explore • {activeBlogIdx + 1} of {blogPostsData.length}
+            Click side cards or drag arrows to explore • {activeBlogIdx + 1} of {blogPosts.length}
           </span>
         </div>
       </motion.section>
@@ -2224,6 +2251,7 @@ export default function Home() {
         whileInView="visible"
         viewport={{ once: true, amount: 0.1 }}
         variants={staggerContainer}
+        style={{ order: 999 }}
       >
         {/* Background Accents */}
         <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-emerald-500/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
@@ -2329,7 +2357,7 @@ export default function Home() {
 
           <motion.div variants={fadeInUp} className="pt-6 sm:pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-emerald-100/40 text-[11px] sm:text-xs font-medium text-center md:text-left">
-              &copy; {new Date().getFullYear()} Vape Mart. All Rights Reserved. Designed with <Heart size={10} className="inline text-red-500" fill="currentColor" /> in UAE.
+              {`© ${new Date().getFullYear()} Vape Mart. All Rights Reserved. Designed with `}<Heart size={10} className="inline text-red-500" fill="currentColor" />{` in UAE.`}
             </p>
             <div className="flex items-center gap-3 sm:gap-4 text-emerald-100/30">
               <div className="w-9 sm:w-10 h-6 bg-white/5 rounded flex items-center justify-center"><CreditCard size={14} /></div>
