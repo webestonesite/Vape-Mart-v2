@@ -1447,6 +1447,8 @@ export default function Home() {
           </div>
         </motion.section>)}
 
+        {/* Product Carousels — order tied to the features section so they always sit right after it (same order value renders in DOM order) */}
+        <div style={{ order: homeSecOrder("features") }}>
         {/* Best Selling Carousel */}
         <ProductCarousel
           title={secText("bestSelling", "title", "Best Selling")}
@@ -1491,6 +1493,7 @@ export default function Home() {
           products={secProducts("mostPopular", mostPopularProducts)}
           greenBoxPC={true}
         />
+        </div>
 
         {/* Featured Brand Section */}
         <motion.section
