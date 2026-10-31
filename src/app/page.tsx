@@ -10,6 +10,7 @@ import Lenis from "lenis";
 import "lenis/dist/lenis.css";
 import themePublished from "@/data/theme-published.json";
 import { Header } from "@/components/Header";
+import { SeoContent } from "@/components/SeoContent";
 
 interface Product {
   title: string;
@@ -2243,6 +2244,9 @@ export default function Home() {
           </span>
         </div>
       </motion.section>
+
+      {/* SEO Content */}
+      <SeoContent />
 
       {/* Footer */}
       <motion.footer
