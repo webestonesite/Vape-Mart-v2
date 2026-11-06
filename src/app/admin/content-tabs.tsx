@@ -571,17 +571,34 @@ export function BlogTab({ data, save }: any) {
   const [sel, setSel] = useState<string>("new");
   const [form, setForm] = useState<any>({
     title: "", body: "", summary: "", tags: "", category: "", quickAnswer: "", productSlugs: "", imageUrl: "",
+    author: "Vape Mart Team", handle: "", publishDate: "", isPublished: true,
   });
   const loadPost = (id: string) => {
     setSel(id);
     if (id === "new") {
-      setForm({ title: "", body: "", summary: "", tags: "", category: "", quickAnswer: "", productSlugs: "", imageUrl: "" });
+      setForm({ title: "", body: "", summary: "", tags: "", category: "", quickAnswer: "", productSlugs: "", imageUrl: "", author: "Vape Mart Team", handle: "", publishDate: "", isPublished: true });
     } else {
       const p = (data.blogPosts || []).find((x: any) => x.id === id);
-      if (p) setForm({ ...p, imageUrl: "" });
+      if (p) setForm({ ...p, imageUrl: "", author: p.author || "Vape Mart Team", handle: p.handle || "", publishDate: "", isPublished: p.isPublished !== false });
     }
   };
   const set = (k: string, v: any) => setForm({ ...form, [k]: v });
+  const doSave = (publish: boolean) =>
+    save("blog.save", {
+      id: sel === "new" ? undefined : sel,
+      title: form.title,
+      body: form.body,
+      summary: form.summary,
+      tags: form.tags,
+      category: form.category,
+      quickAnswer: form.quickAnswer,
+      productSlugs: form.productSlugs,
+      imageUrl: form.imageUrl || undefined,
+      author: form.author,
+      handle: form.handle,
+      isPublished: publish,
+      publishDate: form.publishDate || undefined,
+    });
 
   return (
     <div>
@@ -602,7 +619,7 @@ export function BlogTab({ data, save }: any) {
               sel === p.id ? "bg-emerald-500 text-white" : "bg-neutral-100 text-neutral-700"
             }`}
           >
-            {p.title}
+            {p.title}{p.isPublished === false ? " (Draft)" : ""}
           </button>
         ))}
       </div>
@@ -640,29 +657,40 @@ export function BlogTab({ data, save }: any) {
             <Lbl>Featured image URL</Lbl>
             <Inp value={form.imageUrl} onChange={(e) => set("imageUrl", e.target.value)} placeholder="https://…" />
           </div>
+          <div>
+            <Lbl>Author (lekhok-er nam)</Lbl>
+            <Inp value={form.author} onChange={(e) => set("author", e.target.value)} placeholder="Vape Mart Team" />
+          </div>
+          <div>
+            <Lbl>Slug (link-er shesh ongsho — khali rakhle auto hobe)</Lbl>
+            <Inp value={form.handle} onChange={(e) => set("handle", e.target.value)} placeholder="khali-rakhle-auto" />
+          </div>
+          <div>
+            <Lbl>Publish date (khali rakhle ekhoni publish hobe)</Lbl>
+            <Inp type="datetime-local" value={form.publishDate} onChange={(e) => set("publishDate", e.target.value)} />
+          </div>
+          {sel !== "new" && (
+            <div>
+              <Lbl>Status</Lbl>
+              <p className="text-sm font-bold text-neutral-800">{form.isPublished ? "Published (live)" : "Draft (live na)"}</p>
+            </div>
+          )}
         </div>
         <div className="flex gap-2">
-          <SaveBtn
-            onClick={() =>
-              save("blog.save", {
-                id: sel === "new" ? undefined : sel,
-                title: form.title,
-                body: form.body,
-                summary: form.summary,
-                tags: form.tags,
-                category: form.category,
-                quickAnswer: form.quickAnswer,
-                productSlugs: form.productSlugs,
-                imageUrl: form.imageUrl || undefined,
-              })
-            }
-          >
-            {sel === "new" ? "Publish post" : "Save post"}
+          <SaveBtn onClick={() => doSave(true)}>
+            {sel === "new" ? "Publish post" : "Publish kore save koro"}
           </SaveBtn>
+          <button
+            type="button"
+            onClick={() => doSave(false)}
+            className="rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-bold text-neutral-700 hover:bg-neutral-50"
+          >
+            Draft hishebe save koro
+          </button>
           {sel !== "new" && <DelBtn onClick={() => save("blog.delete", { id: sel })} />}
         </div>
         <p className="text-xs text-neutral-500 mt-3">
-          Post save korlei publish hoye jay ebong site-e 5–10 minute-er moddhe dekhabe.
+          Draft save korle post live hobe na — pore Publish kore save korlei live hobe. Slug bodle purano link 404 hobe — Redirects tab-e purano link add koro. Save korar 5–10 minute-er moddhe site-e dekhabe.
         </p>
       </Card>
     </div>

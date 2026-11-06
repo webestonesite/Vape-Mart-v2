@@ -166,6 +166,7 @@ export function CollectionsManager({ data, notify, reload }: any) {
   const [form, setForm] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [newTitle, setNewTitle] = useState("");
+  const [newSort, setNewSort] = useState("MANUAL");
   const [faqForm, setFaqForm] = useState<any>({ question: "", answer: "", position: 0 });
 
   const shown = (data.collections || []).filter((c: any) => !q || c.title.toLowerCase().includes(q.toLowerCase()));
@@ -188,8 +189,8 @@ export function CollectionsManager({ data, notify, reload }: any) {
 
   const doCreate = async () => {
     if (!newTitle.trim()) return;
-    const r = await api({ action: "collection.create", title: newTitle.trim() });
-    if (r.ok) { notify("Collection created."); setNewTitle(""); reload(); }
+    const r = await api({ action: "collection.create", title: newTitle.trim(), sortOrder: newSort });
+    if (r.ok) { notify("Collection created."); setNewTitle(""); reload(); if (r.id) openEdit({ id: r.id }); }
     else notify("Error: " + (r.error || "create failed"));
   };
 
@@ -224,6 +225,19 @@ export function CollectionsManager({ data, notify, reload }: any) {
             <div>
               <Lbl>SEO description</Lbl>
               <Inp value={form.seoDescription} onChange={(e) => setForm({ ...form, seoDescription: e.target.value })} />
+            </div>
+            <div>
+              <Lbl>Sort order (product sajano)</Lbl>
+              <select value={form.sortOrder || "MANUAL"} onChange={(e) => setForm({ ...form, sortOrder: e.target.value })} className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm">
+                <option value="MANUAL">Manual (nije sajano)</option>
+                <option value="BEST_SELLING">Best selling</option>
+                <option value="ALPHA_ASC">Name A–Z</option>
+                <option value="ALPHA_DESC">Name Z–A</option>
+                <option value="PRICE">Price kom → beshi</option>
+                <option value="PRICE_DESC">Price beshi → kom</option>
+                <option value="CREATED">Oldest first</option>
+                <option value="CREATED_DESC">Newest first</option>
+              </select>
             </div>
             <div>
               <Lbl>Badge (collection page hero)</Lbl>
@@ -295,6 +309,16 @@ export function CollectionsManager({ data, notify, reload }: any) {
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search collections…" className="w-full rounded-md border border-neutral-300 bg-white pl-9 pr-3 py-2 text-sm" />
         </div>
         <input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} placeholder="New collection title…" className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm" />
+        <select value={newSort} onChange={(e) => setNewSort(e.target.value)} className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm">
+          <option value="MANUAL">Manual</option>
+          <option value="BEST_SELLING">Best selling</option>
+          <option value="ALPHA_ASC">Name A–Z</option>
+          <option value="ALPHA_DESC">Name Z–A</option>
+          <option value="PRICE">Price kom → beshi</option>
+          <option value="PRICE_DESC">Price beshi → kom</option>
+          <option value="CREATED">Oldest first</option>
+          <option value="CREATED_DESC">Newest first</option>
+        </select>
         <PrimaryBtn onClick={doCreate}><Plus size={15} /> Create</PrimaryBtn>
       </div>
       {loading && <p className="text-neutral-500">Loading collection…</p>}

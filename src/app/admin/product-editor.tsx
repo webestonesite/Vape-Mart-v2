@@ -381,10 +381,10 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
     if (nv) return { kind: "new" as const, v: nv };
     return {
       kind: "fresh" as const,
-      v: { options: tuple, price: basePrice, compareAtPrice: isNew ? form.compareAtPrice : "", sku: "", barcode: "", inventoryQuantity: baseStock },
+      v: { options: tuple, price: basePrice, compareAtPrice: isNew ? form.compareAtPrice : "", sku: "", barcode: "", inventoryQuantity: baseStock, cost: "", weightKg: "", taxable: true, requiresShipping: true, tracked: true },
     };
   };
-  const setRowField = (tuple: string[], field: string, value: string) => {
+  const setRowField = (tuple: string[], field: string, value: any) => {
     const row = rowFor(tuple);
     if (row.kind === "existing") {
       setVariants(variants.map((x: any) => (x.id === row.v.id ? { ...x, [field]: value } : x)));
@@ -414,6 +414,15 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
   const simplePrice = isNew ? form.price : (firstVariant?.price ?? "");
   const simpleCompare = isNew ? form.compareAtPrice : (firstVariant?.compareAtPrice ?? "");
   const simpleStock = isNew ? form.inventoryQuantity : (firstVariant?.inventoryQuantity ?? "");
+  const simpleCost = isNew ? (form.cost ?? "") : (firstVariant?.cost ?? "");
+  const simpleWeightKg = isNew ? (form.weightKg ?? "") : (firstVariant?.weightKg ?? "");
+  const simpleTaxable = isNew ? (form.taxable !== false) : (firstVariant?.taxable !== false);
+  const simpleRequiresShipping = isNew ? (form.requiresShipping !== false) : (firstVariant?.requiresShipping !== false);
+  const simpleTracked = isNew ? (form.tracked !== false) : (firstVariant?.tracked !== false);
+  const setSimpleCost = (v: string) => (isNew ? set("cost", v) : setFirstVariant("cost", v));
+  const setSimpleWeightKg = (v: string) => (isNew ? set("weightKg", v) : setFirstVariant("weightKg", v));
+  const setSimpleFlag = (field: string, v: boolean) =>
+    isNew ? set(field, v) : setVariants(variants.map((x: any, i: number) => (i === 0 ? { ...x, [field]: v } : x)));
   const setSimplePrice = (v: string) => (isNew ? set("price", v) : setFirstVariant("price", v));
   const setSimpleCompare = (v: string) => (isNew ? set("compareAtPrice", v) : setFirstVariant("compareAtPrice", v));
   const setSimpleStock = (v: string) => (isNew ? set("inventoryQuantity", v) : setFirstVariant("inventoryQuantity", v));
@@ -519,6 +528,8 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
         ...base,
         price: form.price, compareAtPrice: form.compareAtPrice, sku: form.sku, barcode: form.barcode,
         inventoryQuantity: form.inventoryQuantity,
+        cost: form.cost, weightKg: form.weightKg,
+        taxable: form.taxable, requiresShipping: form.requiresShipping, tracked: form.tracked,
         options: cleanOptions,
       };
       if (cleanOptions.length) {
@@ -532,6 +543,11 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
             sku: nv?.sku ?? "",
             barcode: nv?.barcode ?? "",
             inventoryQuantity: nv?.inventoryQuantity ?? form.inventoryQuantity,
+            cost: nv?.cost ?? "",
+            weightKg: nv?.weightKg ?? "",
+            taxable: nv?.taxable ?? true,
+            requiresShipping: nv?.requiresShipping ?? true,
+            tracked: nv?.tracked ?? true,
           };
         });
       }
@@ -545,7 +561,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
         if (m) { matchedIds.add(m.id); continue; }
         const nv = newVariantFor(t);
         if (nv) { if (nv.price !== "") newFromCombos.push(nv); continue; }
-        newFromCombos.push({ options: t, price: variants[0]?.price || "0", compareAtPrice: "", sku: "", barcode: "", inventoryQuantity: variants[0]?.inventoryQuantity ?? "" });
+        newFromCombos.push({ options: t, price: variants[0]?.price || "0", compareAtPrice: "", sku: "", barcode: "", inventoryQuantity: variants[0]?.inventoryQuantity ?? "", cost: variants[0]?.cost ?? "", weightKg: variants[0]?.weightKg ?? "", taxable: variants[0]?.taxable ?? true, requiresShipping: variants[0]?.requiresShipping ?? true, tracked: variants[0]?.tracked ?? true });
       }
       const kept = variants.filter((v: any) => matchedIds.has(v.id));
       const orphans = variants.filter((v: any) => !matchedIds.has(v.id));
@@ -561,9 +577,9 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
         payload: {
           ...base, id: productId,
           variantUpdates: kept.map((v: any) => ({
-            id: v.id, price: v.price, compareAtPrice: v.compareAtPrice, sku: v.sku, barcode: v.barcode,
+            id: v.id, price: v.price, compareAtPrice: v.compareAtPrice, sku: v.sku, barcode: v.barcode, taxable: v.taxable,
           })),
-          inventoryUpdates: kept.map((v: any) => ({ inventoryItemId: v.inventoryItemId, quantity: v.inventoryQuantity })),
+          inventoryUpdates: kept.map((v: any) => ({ inventoryItemId: v.inventoryItemId, quantity: v.inventoryQuantity, cost: v.cost, weightKg: v.weightKg, requiresShipping: v.requiresShipping, tracked: v.tracked })),
           newVariants: newWithValues, deleteVariantIds: [...deleteVariantIds, ...orphans.map((v: any) => v.id)], deleteMediaIds,
         },
       });
@@ -744,7 +760,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
                       <Trash2 size={14} />
                     </button>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                     <div>
                       <Lbl>Dam</Lbl>
                       <Inp type="number" value={v.price ?? ""} onChange={(e) => setRowField(t, "price", e.target.value)} placeholder="Dam" />
@@ -758,9 +774,35 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
                       <Inp value={v.sku ?? ""} onChange={(e) => setRowField(t, "sku", e.target.value)} placeholder="SKU" />
                     </div>
                     <div>
+                      <Lbl>Barcode</Lbl>
+                      <Inp value={v.barcode ?? ""} onChange={(e) => setRowField(t, "barcode", e.target.value)} placeholder="Barcode" />
+                    </div>
+                    <div>
                       <Lbl>Stock</Lbl>
                       <Inp type="number" value={v.inventoryQuantity ?? ""} onChange={(e) => setRowField(t, "inventoryQuantity", e.target.value)} placeholder="Stock" />
                     </div>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-2">
+                    <div>
+                      <Lbl>Cost (kinte koto pore)</Lbl>
+                      <Inp type="number" value={v.cost ?? ""} onChange={(e) => setRowField(t, "cost", e.target.value)} placeholder="Cost" />
+                    </div>
+                    <div>
+                      <Lbl>Weight (kg)</Lbl>
+                      <Inp type="number" value={v.weightKg ?? ""} onChange={(e) => setRowField(t, "weightKg", e.target.value)} placeholder="kg" />
+                    </div>
+                    <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600 self-end pb-2.5">
+                      <input type="checkbox" checked={v.taxable !== false} onChange={(e) => setRowField(t, "taxable", e.target.checked)} />
+                      Tax lagbe
+                    </label>
+                    <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600 self-end pb-2.5">
+                      <input type="checkbox" checked={v.requiresShipping !== false} onChange={(e) => setRowField(t, "requiresShipping", e.target.checked)} />
+                      Shipping lagbe
+                    </label>
+                    <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600 self-end pb-2.5">
+                      <input type="checkbox" checked={v.tracked !== false} onChange={(e) => setRowField(t, "tracked", e.target.checked)} />
+                      Stock track koro
+                    </label>
                   </div>
                   <div className="mt-2">
                     <Lbl>Variant-er chhobi — chhobi dekhe tap koro</Lbl>
@@ -827,8 +869,12 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
           <p className="text-xs text-neutral-500 mt-1">URL: /products/{form.handle || "…"}</p>
         </Section>
 
-        {liveOptions.length === 0 && (
-          <Section n={8} title="Price" hint="Variant option na thakle ekhaner dam-i product-er dam.">
+        {/* Section 8 always renders (2026-11-07 audit: it used to hide when
+            the product had variant options, so the numbering jumped 7 → 9
+            and looked like a missing section). With options, it shows a
+            read-only price summary — prices are edited in section 6. */}
+        <Section n={8} title="Price" hint={liveOptions.length === 0 ? "Variant option na thakle ekhaner dam-i product-er dam." : "Variant option ache — dam 6 number Variant section-e bodlate hobe, ekhane sudhu dekhabe."}>
+          {liveOptions.length === 0 ? (
             <div className="grid sm:grid-cols-2 gap-3">
               <div>
                 <Lbl>Bikri dam (AED) *</Lbl>
@@ -842,6 +888,26 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
                 <Lbl>Stock — kotota ache</Lbl>
                 <Inp type="number" value={simpleStock} onChange={(e) => setSimpleStock(e.target.value)} placeholder="Stock" />
               </div>
+              <div>
+                <Lbl>Cost (kinte koto pore — AED)</Lbl>
+                <Inp type="number" value={simpleCost} onChange={(e) => setSimpleCost(e.target.value)} placeholder="Cost" />
+              </div>
+              <div>
+                <Lbl>Weight (kg)</Lbl>
+                <Inp type="number" value={simpleWeightKg} onChange={(e) => setSimpleWeightKg(e.target.value)} placeholder="kg" />
+              </div>
+              <label className="flex items-center gap-2 text-sm font-semibold text-neutral-700">
+                <input type="checkbox" checked={simpleTaxable} onChange={(e) => setSimpleFlag("taxable", e.target.checked)} />
+                Tax lagbe
+              </label>
+              <label className="flex items-center gap-2 text-sm font-semibold text-neutral-700">
+                <input type="checkbox" checked={simpleRequiresShipping} onChange={(e) => setSimpleFlag("requiresShipping", e.target.checked)} />
+                Shipping lagbe
+              </label>
+              <label className="flex items-center gap-2 text-sm font-semibold text-neutral-700">
+                <input type="checkbox" checked={simpleTracked} onChange={(e) => setSimpleFlag("tracked", e.target.checked)} />
+                Stock track koro
+              </label>
               {isNew && (
                 <>
                   <div>
@@ -855,8 +921,26 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
                 </>
               )}
             </div>
-          </Section>
-        )}
+          ) : (
+            <div className="space-y-1.5">
+              {visibleCombos().map((t: string[]) => {
+                const row = rowFor(t);
+                const v: any = row.v;
+                const cat = parseFloat(String(v.compareAtPrice || "0")) || 0;
+                return (
+                  <div key={tupleKey(t)} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm">
+                    <span className="font-semibold text-neutral-800">{t.join(" / ") || "Default"}</span>
+                    <span className="text-neutral-600">
+                      AED {v.price || "0"}
+                      {cat > 0 ? <span className="text-neutral-400 line-through ml-2">AED {v.compareAtPrice}</span> : null}
+                      <span className="ml-3">Stock: {v.inventoryQuantity ?? 0}</span>
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </Section>
 
         <Section n={9} title="Collection" hint="Product-ta kon category-te dekhabe — tap kore tick dao.">
           <div className="flex flex-wrap gap-2 mb-3">
@@ -913,8 +997,8 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
           </div>
         </Section>
 
-        <Section n={11} title="Dokane dekhabe?" hint="Live korle dokane dekhabe, draft rakhle shudhu tumi dekhba.">
-          <div className="flex gap-2">
+        <Section n={11} title="Dokane dekhabe?" hint="Live korle dokane dekhabe, draft rakhle shudhu tumi dekhba, archive korle dokan theke lukano thakbe kintu delete hobe na.">
+          <div className="flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() => set("status", "ACTIVE")}
@@ -925,9 +1009,16 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
             <button
               type="button"
               onClick={() => set("status", "DRAFT")}
-              className={`rounded-full px-4 py-2 text-sm font-bold border ${form.status !== "ACTIVE" ? "bg-neutral-900 text-white border-neutral-900" : "bg-white text-neutral-700 border-neutral-300"}`}
+              className={`rounded-full px-4 py-2 text-sm font-bold border ${form.status === "DRAFT" ? "bg-neutral-900 text-white border-neutral-900" : "bg-white text-neutral-700 border-neutral-300"}`}
             >
               Na, draft rakho
+            </button>
+            <button
+              type="button"
+              onClick={() => set("status", "ARCHIVED")}
+              className={`rounded-full px-4 py-2 text-sm font-bold border ${form.status === "ARCHIVED" ? "bg-neutral-900 text-white border-neutral-900" : "bg-white text-neutral-700 border-neutral-300"}`}
+            >
+              Archive koro
             </button>
           </div>
         </Section>

@@ -193,12 +193,6 @@ const PANEL_QUERY = `
     testimonials: metaobjects(type: "testimonial", first: 30) { nodes { id fields { key value } } }
     faqs: metaobjects(type: "faq_item", first: 30) { nodes { id fields { key value } } }
     showcase: metaobjects(type: "showcase_card", first: 60) { nodes { id fields { key value } } }
-    products(first: 250) {
-      nodes {
-        id title handle status featuredImage { url }
-        variants(first: 1) { nodes { id price compareAtPrice inventoryQuantity inventoryItem { id } } }
-      }
-    }
     locations(first: 5) { nodes { id name } }
     files(first: 40, sortKey: CREATED_AT, reverse: true) {
       nodes { id ... on MediaImage { image { url } } }
@@ -206,7 +200,8 @@ const PANEL_QUERY = `
     blog(id: "${BLOG_ID}") {
       articles(first: 50) {
         nodes {
-          id handle title bodyHtml: body summary tags publishedAt
+          id handle title bodyHtml: body summary tags publishedAt isPublished
+          author { name }
           metafields(first: 10, namespace: "vapemart") { nodes { key type value } }
         }
       }
@@ -214,26 +209,23 @@ const PANEL_QUERY = `
     pages(first: 30) { nodes { id handle title body } }
     menus(first: 10) { nodes { id title handle } }
     orders(first: 25, sortKey: CREATED_AT, reverse: true) {
-      nodes { id name createdAt displayFulfillmentStatus totalPriceSet { shopMoney { amount currencyCode } } customer { displayName email } }
+      nodes { id name createdAt displayFulfillmentStatus displayFinancialStatus totalPriceSet { shopMoney { amount currencyCode } } customer { displayName email } }
     }
     draftOrders(first: 25) {
       nodes { id name createdAt status totalPriceSet { shopMoney { amount currencyCode } } customer { displayName email } }
     }
     customers(first: 25, sortKey: CREATED_AT, reverse: true) {
-      nodes { id displayName email phone numberOfOrders amountSpent { amount currencyCode } }
+      nodes { id displayName email phone numberOfOrders amountSpent { amount currencyCode } note tags }
     }
     discountNodes(first: 25) {
       nodes { id discount {
-        ... on DiscountCodeBasic { title codes(first: 1) { nodes { code } } }
-        ... on DiscountCodeBxgy { title codes(first: 1) { nodes { code } } }
-        ... on DiscountCodeFreeShipping { title codes(first: 1) { nodes { code } } }
-        ... on DiscountAutomaticBasic { title }
-        ... on DiscountAutomaticBxgy { title }
-        ... on DiscountAutomaticFreeShipping { title }
+        ... on DiscountCodeBasic { title status codes(first: 1) { nodes { code } } }
+        ... on DiscountCodeBxgy { title status codes(first: 1) { nodes { code } } }
+        ... on DiscountCodeFreeShipping { title status codes(first: 1) { nodes { code } } }
+        ... on DiscountAutomaticBasic { title status }
+        ... on DiscountAutomaticBxgy { title status }
+        ... on DiscountAutomaticFreeShipping { title status }
       } }
-    }
-    redirects: urlRedirects(first: 100) {
-      nodes { id path target }
     }
   }
 `;
@@ -250,9 +242,87 @@ const MENU_QUERY = `
   }
 `;
 
+/* ------------------------------------------------------------------ */
+/*  Full-list pagination (2026-11-07 audit)                            */
+/*                                                                     */
+/*  The panel used to read products(first: 250), collections(first:   */
+/*  60) and redirects(first: 100) in one shot, so 27 products and 9   */
+/*  collections never reached the panel at all — the dashboard total  */
+/*  was wrong and the newest zero-price products were uneditable.     */
+/*  These helpers loop with cursors until everything is read. Pages   */
+/*  stay small so each query stays under Shopify's 1000-point limit.  */
+/* ------------------------------------------------------------------ */
+
+async function listAllPanelProducts(): Promise<any[]> {
+  const out: any[] = [];
+  let after: string | null = null;
+  for (let page = 0; page < 20; page++) {
+    const d: any = await gql<any>(
+      `query PanelProducts($after: String) {
+         products(first: 100, after: $after) {
+           nodes {
+             id title handle status featuredImage { url }
+             variants(first: 1) { nodes { id price compareAtPrice inventoryQuantity inventoryItem { id } } }
+           }
+           pageInfo { hasNextPage endCursor }
+         }
+       }`,
+      { after }
+    );
+    out.push(...(d.products?.nodes ?? []));
+    if (!d.products?.pageInfo?.hasNextPage) break;
+    after = d.products.pageInfo.endCursor;
+  }
+  return out;
+}
+
+async function listAllRedirects(): Promise<any[]> {
+  const out: any[] = [];
+  let after: string | null = null;
+  for (let page = 0; page < 20; page++) {
+    const d: any = await gql<any>(
+      `query PanelRedirects($after: String) {
+         urlRedirects(first: 100, after: $after) {
+           nodes { id path target }
+           pageInfo { hasNextPage endCursor }
+         }
+       }`,
+      { after }
+    );
+    out.push(...(d.urlRedirects?.nodes ?? []));
+    if (!d.urlRedirects?.pageInfo?.hasNextPage) break;
+    after = d.urlRedirects.pageInfo.endCursor;
+  }
+  return out;
+}
+
+async function listAllCollections(): Promise<any[]> {
+  const out: any[] = [];
+  let after: string | null = null;
+  for (let page = 0; page < 20; page++) {
+    const d: any = await gql<any>(
+      `query PanelCollections($after: String) {
+         collections(first: 50, after: $after) {
+           nodes { id title handle productsCount { count } }
+           pageInfo { hasNextPage endCursor }
+         }
+       }`,
+      { after }
+    );
+    out.push(...(d.collections?.nodes ?? []));
+    if (!d.collections?.pageInfo?.hasNextPage) break;
+    after = d.collections.pageInfo.endCursor;
+  }
+  return out;
+}
+
 export async function getPanelData() {
   const settings = await fetchShopSettings();
-  const d = await gql<any>(PANEL_QUERY);
+  const [d, allProducts, allRedirects] = await Promise.all([
+    gql<any>(PANEL_QUERY),
+    listAllPanelProducts(),
+    listAllRedirects(),
+  ]);
 
   const mo = (nodes: any[] | undefined) =>
     (nodes ?? []).map((n) => ({ id: n.id as string, f: fieldsMap(n.fields), raw: n }));
@@ -306,7 +376,7 @@ export async function getPanelData() {
     position: parseInt(f.position || "0", 10) || 0,
   })).sort((a, b) => a.sectionKey.localeCompare(b.sectionKey) || a.position - b.position);
 
-  const products = (d.products?.nodes ?? []).map((p: any) => {
+  const products = (allProducts ?? []).map((p: any) => {
     const v = p.variants?.nodes?.[0] ?? {};
     return {
       id: p.id as string,
@@ -316,7 +386,7 @@ export async function getPanelData() {
       image: p.featuredImage?.url || "",
       variantId: v.id || "",
       price: v.price || "",
-      compareAtPrice: v.compareAtPrice || "",
+      compareAtPrice: parseFloat(String(v.compareAtPrice || "0")) > 0 ? v.compareAtPrice : "",
       inventoryQuantity: typeof v.inventoryQuantity === "number" ? v.inventoryQuantity : 0,
       inventoryItemId: v.inventoryItem?.id || "",
     };
@@ -340,6 +410,8 @@ export async function getPanelData() {
       quickAnswer: mf.quick_answer || "",
       productSlugs: parseList(mf.product_slugs).join(", "),
       publishedAt: a.publishedAt || "",
+      isPublished: a.isPublished !== false,
+      author: a.author?.name || "",
     };
   });
 
@@ -369,7 +441,7 @@ export async function getPanelData() {
 
   const orders = (d.orders?.nodes ?? []).map((o: any) => ({
     id: o.id as string, name: o.name as string, customer: o.customer?.displayName || o.customer?.email || "Guest",
-    fulfillment: o.displayFulfillmentStatus || "", total: o.totalPriceSet?.shopMoney?.amount || "",
+    fulfillment: o.displayFulfillmentStatus || "", financial: o.displayFinancialStatus || "", total: o.totalPriceSet?.shopMoney?.amount || "",
     currency: o.totalPriceSet?.shopMoney?.currencyCode || "AED", createdAt: o.createdAt || "",
   }));
   const draftOrders = (d.draftOrders?.nodes ?? []).map((o: any) => ({
@@ -380,12 +452,14 @@ export async function getPanelData() {
   const customers = (d.customers?.nodes ?? []).map((c: any) => ({
     id: c.id as string, name: c.displayName || "", email: c.email || "", phone: c.phone || "",
     orders: c.numberOfOrders ?? 0, spent: c.amountSpent?.amount || "", currency: c.amountSpent?.currencyCode || "AED",
+    note: c.note || "", tags: (c.tags ?? []).join(", "),
   }));
   const discounts = (d.discountNodes?.nodes ?? []).map((n: any) => ({
     id: n.id as string, title: n.discount?.title || "",
     code: n.discount?.codes?.nodes?.[0]?.code || (n.discount ? "Automatic" : ""),
+    status: n.discount?.status || "",
   }));
-  const redirects = (d.redirects?.nodes ?? []).map((r: any) => ({
+  const redirects = (allRedirects ?? []).map((r: any) => ({
     id: r.id as string, path: r.path as string, target: r.target as string,
   }));
 
@@ -428,6 +502,15 @@ export async function getPanelData() {
 
 export interface SaveResult {
   message: string;
+  id?: string;
+}
+
+/* Collection sort orders (Shopify CollectionSortOrder enum, verified live:
+   the "Home page" collection reports BEST_SELLING). */
+const COLLECTION_SORT_ORDERS = ["MANUAL", "BEST_SELLING", "ALPHA_ASC", "ALPHA_DESC", "PRICE", "PRICE_DESC", "CREATED", "CREATED_DESC"] as const;
+function validSortOrder(v: unknown): string | undefined {
+  const s = String(v || "");
+  return (COLLECTION_SORT_ORDERS as readonly string[]).includes(s) ? s : undefined;
 }
 
 async function blogMetafields(articleId: string, p: any): Promise<void> {
@@ -511,13 +594,19 @@ export async function saveAction(action: string, p: any): Promise<SaveResult> {
     case "showcase.delete": await moDelete(p.id); return { message: "Card deleted." };
 
     case "blog.save": {
+      // Author is REQUIRED by articleCreate (2026-11-07 audit: the panel
+      // omitted it, so creates could fail). Drafts are supported now —
+      // isPublished false saves a draft instead of publishing live.
       const article: Record<string, unknown> = {
         title: p.title,
         body: p.body || "",
         summary: p.summary || "",
         tags: String(p.tags || "").split(",").map((x: string) => x.trim()).filter(Boolean),
-        isPublished: true,
+        author: { name: String(p.author || "Vape Mart Team").trim() || "Vape Mart Team" },
+        isPublished: p.isPublished !== false,
       };
+      if (p.handle && slugify(p.handle)) article.handle = slugify(p.handle);
+      if (p.publishDate) article.publishDate = p.publishDate;
       let id: string | undefined = p.id;
       const trySave = async (withImage: boolean) => {
         const input = { ...article };
@@ -553,7 +642,8 @@ export async function saveAction(action: string, p: any): Promise<SaveResult> {
         } else throw e;
       }
       if (id) await blogMetafields(id, p);
-      return { message: (id && p.id ? "Blog post updated." : "Blog post published.") + warning };
+      const published = article.isPublished !== false;
+      return { message: (id && p.id ? "Blog post updated." : published ? "Blog post published." : "Blog post saved as draft.") + warning };
     }
     case "blog.delete": {
       const d = await gql<any>(
@@ -660,6 +750,8 @@ export async function saveAction(action: string, p: any): Promise<SaveResult> {
 
     case "collection.save": {
       const collection: Record<string, any> = { id: p.id, title: p.title, descriptionHtml: p.descriptionHtml || "" };
+      const so = validSortOrder(p.sortOrder);
+      if (so) collection.sortOrder = so;
       if (p.imageUrl) collection.image = { src: p.imageUrl, altText: p.title || "" };
       if (p.seoTitle !== undefined || p.seoDescription !== undefined)
         collection.seo = { title: p.seoTitle || "", description: p.seoDescription || "" };
@@ -761,6 +853,75 @@ export async function saveAction(action: string, p: any): Promise<SaveResult> {
       return { message: "Info page settings saved." };
     }
 
+    case "discount.save": {
+      // Code discount (percentage or fixed AED off the whole order).
+      // BXGY / free-shipping / automatic discounts stay in Shopify admin.
+      const title = String(p.title || "").trim();
+      const code = String(p.code || "").trim().toUpperCase().replace(/[^A-Z0-9_-]/g, "");
+      const value = parseFloat(String(p.value || "0"));
+      if (!title) throw new Error("Discount-er nam dao.");
+      if (!code) throw new Error("Code dao (jemon: EID10).");
+      if (!(value > 0)) throw new Error("Chhar-er poriman dao (0-r beshi hote hobe).");
+      if (p.type === "percentage" && value > 100) throw new Error("Percentage 100-er beshi hote parbe na.");
+      const customerGets: Record<string, unknown> = {
+        items: { all: true },
+        appliesOnOneTimePurchase: true,
+      };
+      if (p.type === "fixed") {
+        customerGets.value = { discountAmount: { amount: value.toFixed(2), appliesOnEachItem: false } };
+      } else {
+        customerGets.value = { percentage: value / 100 };
+      }
+      const input: Record<string, unknown> = { title, code, customerGets };
+      if (p.startsAt) input.startsAt = p.startsAt;
+      if (p.endsAt) input.endsAt = p.endsAt;
+      const limit = parseInt(String(p.usageLimit || ""), 10);
+      if (Number.isFinite(limit) && limit > 0) input.usageLimit = limit;
+      const minSub = parseFloat(String(p.minSubtotal || "0"));
+      if (minSub > 0) input.minimumRequirement = { subtotal: { greaterThanOrEqualToSubtotal: minSub.toFixed(2) } };
+      if (p.oncePerCustomer) input.appliesOncePerCustomer = true;
+      const d = await gql<any>(
+        `mutation DiscountCreate($basicCodeDiscount: DiscountCodeBasicInput!) {
+           discountCodeBasicCreate(basicCodeDiscount: $basicCodeDiscount) {
+             codeDiscountNode { id }
+             userErrors { message }
+           }
+         }`,
+        { basicCodeDiscount: input }
+      );
+      const errs = d.discountCodeBasicCreate?.userErrors ?? [];
+      if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
+      return { message: `Discount "${code}" toiri hoise.` };
+    }
+
+    case "discount.delete": {
+      const d = await gql<any>(
+        `mutation DiscountDelete($id: ID!) {
+           discountCodeDelete(id: $id) { deletedCodeDiscountId userErrors { message } }
+         }`,
+        { id: p.id }
+      );
+      const errs = d.discountCodeDelete?.userErrors ?? [];
+      if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
+      return { message: "Discount deleted." };
+    }
+
+    case "customer.save": {
+      const input: Record<string, unknown> = { id: p.id };
+      if (p.note !== undefined) input.note = String(p.note || "");
+      if (p.tags !== undefined)
+        input.tags = String(p.tags || "").split(",").map((x: string) => x.trim()).filter(Boolean);
+      const d = await gql<any>(
+        `mutation CustomerSave($input: CustomerInput!) {
+           customerUpdate(input: $input) { customer { id } userErrors { message } }
+         }`,
+        { input }
+      );
+      const errs = d.customerUpdate?.userErrors ?? [];
+      if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
+      return { message: "Customer saved." };
+    }
+
     case "redirect.save": {
       const path = String(p.path || "").trim();
       const target = String(p.target || "").trim();
@@ -815,11 +976,9 @@ async function gqlTry(docs: { query: string; variables: any }[]): Promise<any> {
 /* ------------------------------------------------------------------ */
 
 export async function getPanelExtras() {
-  const d = await gql<any>(`
+  const [d, allCollections] = await Promise.all([
+    gql<any>(`
     query PanelExtras {
-      collections(first: 60) {
-        nodes { id title handle productsCount { count } }
-      }
       orders(first: 20, reverse: true) {
         nodes {
           id name createdAt displayFulfillmentStatus
@@ -837,7 +996,9 @@ export async function getPanelExtras() {
         nodes { id fields { key value } }
       }
     }
-  `);
+  `),
+    listAllCollections(),
+  ]);
   const flavors = (d.flavors?.nodes ?? []).map((n: any) => {
     const f: Record<string, string> = {};
     for (const fld of n.fields ?? []) if (fld.value != null) f[fld.key] = fld.value;
@@ -850,7 +1011,7 @@ export async function getPanelExtras() {
       return { id: n.id as string, ...f };
     });
   return {
-    collections: (d.collections?.nodes ?? []).map((c: any) => ({
+    collections: (allCollections ?? []).map((c: any) => ({
       id: c.id as string,
       title: c.title as string,
       handle: c.handle as string,
@@ -890,17 +1051,35 @@ export async function getCollectionDetail(id: string) {
   const d = await gql<any>(
     `query CollectionDetail($id: ID!) {
        collection(id: $id) {
-         id title handle descriptionHtml
+         id title handle descriptionHtml sortOrder
          image { url altText }
          seo { title description }
          metafields(first: 20, namespace: "collection") { nodes { key value } }
-         products(first: 100) { nodes { id } }
        }
      }`,
     { id }
   );
   const c = d.collection;
   if (!c) throw new Error("Collection not found.");
+  // Product membership can exceed 100 (disposable-vape has 88+); page it.
+  const productIds: string[] = [];
+  let after: string | null = null;
+  for (let page = 0; page < 20; page++) {
+    const pd: any = await gql<any>(
+      `query CollectionProducts($id: ID!, $after: String) {
+         collection(id: $id) {
+           products(first: 100, after: $after) {
+             nodes { id }
+             pageInfo { hasNextPage endCursor }
+           }
+         }
+       }`,
+      { id, after }
+    );
+    productIds.push(...((pd.collection?.products?.nodes ?? []) as any[]).map((p: any) => p.id as string));
+    if (!pd.collection?.products?.pageInfo?.hasNextPage) break;
+    after = pd.collection.products.pageInfo.endCursor;
+  }
   const mf: Record<string, string> = {};
   for (const m of c.metafields?.nodes ?? []) mf[m.key] = m.value;
   return {
@@ -908,13 +1087,242 @@ export async function getCollectionDetail(id: string) {
     title: c.title as string,
     handle: c.handle as string,
     descriptionHtml: c.descriptionHtml || "",
+    sortOrder: c.sortOrder || "MANUAL",
     imageUrl: c.image?.url || "",
     seoTitle: c.seo?.title || "",
     seoDescription: c.seo?.description || "",
     badge: mf.badge || "",
     heroSubtitle: mf.hero_subtitle || "",
     showAsCard: mf.show_as_card === "true",
-    productIds: (c.products?.nodes ?? []).map((p: any) => p.id as string),
+    productIds,
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/*  Orders (batch 2, 2026-11-07): detail + fulfil + full refund        */
+/*  The panel used to list orders only — fulfil/refund needed Shopify. */
+/*  Fulfil = fulfillmentCreate on every OPEN fulfillment order, all    */
+/*  remaining items, customer notified. Refund = FULL refund only      */
+/*  (all refundable line items, restocked, original gateway, customer  */
+/*  notified). Partial refunds stay in Shopify admin.                 */
+/* ------------------------------------------------------------------ */
+
+export async function getOrderDetail(id: string) {
+  const d: any = await gql<any>(
+    `query OrderDetail($id: ID!) {
+       order(id: $id) {
+         id name createdAt displayFinancialStatus displayFulfillmentStatus
+         note tags
+         totalPriceSet { shopMoney { amount currencyCode } }
+         totalRefundedSet { shopMoney { amount currencyCode } }
+         subtotalPriceSet { shopMoney { amount } }
+         totalShippingPriceSet { shopMoney { amount } }
+         totalTaxSet { shopMoney { amount } }
+         customer { displayName email phone }
+         email phone
+         shippingAddress { name address1 address2 city country phone }
+         lineItems(first: 50) {
+           nodes {
+             id title variantTitle quantity refundableQuantity unfulfilledQuantity sku vendor
+             originalUnitPriceSet { shopMoney { amount } }
+             discountedTotalSet { shopMoney { amount } }
+           }
+         }
+         fulfillmentOrders(first: 10) {
+           nodes {
+             id status
+             lineItems(first: 20) { nodes { id remainingQuantity lineItem { id title } } }
+           }
+         }
+         fulfillments(first: 10) {
+           nodes { id status createdAt trackingInfo { company number url } }
+         }
+         transactions(first: 10) {
+           nodes { id kind gateway status amountSet { shopMoney { amount } } }
+         }
+         refunds(first: 10) {
+           nodes { id createdAt totalRefundedSet { shopMoney { amount } } }
+         }
+       }
+     }`,
+    { id }
+  );
+  const o = d.order;
+  if (!o) throw new Error("Order not found.");
+  const money = (m: any) => m?.shopMoney?.amount || "0";
+  return {
+    id: o.id as string,
+    name: o.name as string,
+    createdAt: o.createdAt as string,
+    financial: o.displayFinancialStatus || "",
+    fulfillment: o.displayFulfillmentStatus || "",
+    note: o.note || "",
+    tags: (o.tags ?? []).join(", "),
+    total: money(o.totalPriceSet),
+    refunded: money(o.totalRefundedSet),
+    subtotal: money(o.subtotalPriceSet),
+    shipping: money(o.totalShippingPriceSet),
+    tax: money(o.totalTaxSet),
+    currency: o.totalPriceSet?.shopMoney?.currencyCode || "AED",
+    customer: o.customer?.displayName || o.email || "Guest",
+    email: o.customer?.email || o.email || "",
+    phone: o.customer?.phone || o.phone || "",
+    shippingAddress: o.shippingAddress
+      ? [o.shippingAddress.name, o.shippingAddress.address1, o.shippingAddress.address2, o.shippingAddress.city, o.shippingAddress.country].filter(Boolean).join(", ")
+      : "",
+    lineItems: (o.lineItems?.nodes ?? []).map((li: any) => ({
+      id: li.id as string,
+      title: li.title as string,
+      variantTitle: li.variantTitle || "",
+      quantity: li.quantity ?? 0,
+      refundableQuantity: li.refundableQuantity ?? 0,
+      unfulfilledQuantity: li.unfulfilledQuantity ?? 0,
+      sku: li.sku || "",
+      vendor: li.vendor || "",
+      unitPrice: money(li.originalUnitPriceSet),
+      total: money(li.discountedTotalSet),
+    })),
+    fulfillmentOrders: (o.fulfillmentOrders?.nodes ?? []).map((fo: any) => ({
+      id: fo.id as string,
+      status: fo.status || "",
+      lineItems: (fo.lineItems?.nodes ?? []).map((x: any) => ({
+        id: x.id as string,
+        remainingQuantity: x.remainingQuantity ?? 0,
+        title: x.lineItem?.title || "",
+      })),
+    })),
+    fulfillments: (o.fulfillments?.nodes ?? []).map((f: any) => ({
+      id: f.id as string,
+      status: f.status || "",
+      createdAt: f.createdAt || "",
+      tracking: [f.trackingInfo?.company, f.trackingInfo?.number].filter(Boolean).join(" "),
+      trackingUrl: f.trackingInfo?.url || "",
+    })),
+    refunds: (o.refunds?.nodes ?? []).map((r: any) => ({
+      id: r.id as string,
+      createdAt: r.createdAt || "",
+      amount: money(r.totalRefundedSet),
+    })),
+    saleGateway: (o.transactions?.nodes ?? []).find((t: any) => t.kind === "SALE" && t.status === "SUCCESS")?.gateway || "",
+  };
+}
+
+export async function fulfillOrder(id: string): Promise<SaveResult> {
+  const detail = await getOrderDetail(id);
+  const open = detail.fulfillmentOrders.filter(
+    (fo: any) => fo.status === "OPEN" && fo.lineItems.some((li: any) => li.remainingQuantity > 0)
+  );
+  if (!open.length) throw new Error("Order already fulfilled — kono khula fulfillment order nai.");
+  for (const fo of open) {
+    const d: any = await gql<any>(
+      `mutation FulfillCreate($fulfillment: FulfillmentInput!) {
+         fulfillmentCreate(fulfillment: $fulfillment) {
+           fulfillment { id }
+           userErrors { message }
+         }
+       }`,
+      {
+        fulfillment: {
+          notifyCustomer: true,
+          lineItemsByFulfillmentOrder: [
+            {
+              fulfillmentOrderId: fo.id,
+              fulfillmentOrderLineItems: fo.lineItems
+                .filter((li: any) => li.remainingQuantity > 0)
+                .map((li: any) => ({ id: li.id, quantity: li.remainingQuantity })),
+            },
+          ],
+        },
+      }
+    );
+    const errs = d.fulfillmentCreate?.userErrors ?? [];
+    if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
+  }
+  return { message: "Order fulfilled — customer-ke janano hoise." };
+}
+
+export async function refundOrder(id: string): Promise<SaveResult> {
+  const detail = await getOrderDetail(id);
+  const total = parseFloat(detail.total || "0") || 0;
+  const refunded = parseFloat(detail.refunded || "0") || 0;
+  const refundable = total - refunded;
+  if (refundable <= 0) throw new Error("Refund korar moto taka nai — order-ta agei puro refund hoye gese.");
+  const refundLineItems = detail.lineItems
+    .filter((li: any) => li.refundableQuantity > 0)
+    .map((li: any) => ({ lineItemId: li.id, quantity: li.refundableQuantity, restockType: "RETURN" }));
+  if (!refundLineItems.length) throw new Error("Refund korar moto item nai.");
+  const input: Record<string, unknown> = {
+    orderId: id,
+    refundLineItems,
+    notify: true,
+    note: "Full refund from Vape Mart panel.",
+  };
+  if (detail.saleGateway) {
+    input.transactions = [{ kind: "REFUND", gateway: detail.saleGateway, amount: refundable.toFixed(2) }];
+  }
+  const d: any = await gql<any>(
+    `mutation RefundCreate($input: RefundInput!) {
+       refundCreate(input: $input) {
+         refund { id }
+         userErrors { message }
+       }
+     }`,
+    { input }
+  );
+  const errs = d.refundCreate?.userErrors ?? [];
+  if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
+  return { message: `Full refund done — ${detail.currency} ${refundable.toFixed(2)} ferot deoa hoise, item-gulo stock-e fire gese.` };
+}
+
+/* ------------------------------------------------------------------ */
+/*  Customers (batch 2, 2026-11-07): detail + note/tags edit           */
+/* ------------------------------------------------------------------ */
+
+export async function getCustomerDetail(id: string) {
+  const d: any = await gql<any>(
+    `query CustomerDetail($id: ID!) {
+       customer(id: $id) {
+         id displayName email phone note tags
+         numberOfOrders amountSpent { amount currencyCode }
+         addressesV2(first: 10) {
+           edges { node { id name address1 address2 city country phone default } }
+         }
+         orders(first: 20, reverse: true) {
+           nodes { id name createdAt displayFinancialStatus displayFulfillmentStatus totalPriceSet { shopMoney { amount currencyCode } } }
+         }
+       }
+     }`,
+    { id }
+  );
+  const c = d.customer;
+  if (!c) throw new Error("Customer not found.");
+  return {
+    id: c.id as string,
+    name: c.displayName || "",
+    email: c.email || "",
+    phone: c.phone || "",
+    note: c.note || "",
+    tags: (c.tags ?? []).join(", "),
+    orders: c.numberOfOrders ?? 0,
+    spent: c.amountSpent?.amount || "",
+    currency: c.amountSpent?.currencyCode || "AED",
+    addresses: (c.addressesV2?.edges ?? []).map((e: any) => {
+      const a = e.node;
+      return {
+        id: a.id as string,
+        label: [a.name, a.address1, a.address2, a.city, a.country, a.phone].filter(Boolean).join(", "),
+        isDefault: !!a.default,
+      };
+    }),
+    orderHistory: (c.orders?.nodes ?? []).map((o: any) => ({
+      id: o.id as string,
+      name: o.name as string,
+      createdAt: o.createdAt || "",
+      financial: o.displayFinancialStatus || "",
+      fulfillment: o.displayFulfillmentStatus || "",
+      total: o.totalPriceSet?.shopMoney?.amount || "",
+      currency: o.totalPriceSet?.shopMoney?.currencyCode || "AED",
+    })),
   };
 }
 
@@ -927,8 +1335,8 @@ export async function getProductDetail(id: string) {
          options { id name position values }
          variants(first: 50) {
            nodes {
-             id title price compareAtPrice sku barcode inventoryQuantity
-             inventoryItem { id }
+             id title price compareAtPrice sku barcode inventoryQuantity taxable
+             inventoryItem { id unitCost { amount } measurement { weight { value unit } } requiresShipping tracked }
              selectedOptions { name value }
              media(first: 5) { nodes { ... on MediaImage { id image { url } } } }
            }
@@ -1012,20 +1420,35 @@ export async function getProductDetail(id: string) {
     tags: (p.tags ?? []).join(", "),
     status: p.status as string,
     options: (p.options ?? []).map((o: any) => ({ id: o.id, name: o.name, values: o.values ?? [] })),
-    variants: (p.variants?.nodes ?? []).map((v: any) => ({
-      id: v.id as string,
-      title: v.title as string,
-      price: v.price || "",
-      compareAtPrice: v.compareAtPrice || "",
-      sku: v.sku || "",
-      barcode: v.barcode || "",
-      inventoryQuantity: typeof v.inventoryQuantity === "number" ? v.inventoryQuantity : 0,
-      inventoryItemId: v.inventoryItem?.id || "",
-      selectedOptions: (v.selectedOptions ?? []).map((s: any) => ({ name: s.name, value: s.value })),
-      media: (v.media?.nodes ?? [])
-        .filter((m: any) => m.image?.url)
-        .map((m: any) => ({ id: m.id as string, url: m.image.url as string })),
-    })),
+    variants: (p.variants?.nodes ?? []).map((v: any) => {
+      // Weight comes back in the unit it was stored in — normalise to kg.
+      const w = v.inventoryItem?.measurement?.weight;
+      let weightKg = "";
+      if (w && typeof w.value === "number") {
+        const unit = String(w.unit || "KILOGRAMS").toUpperCase();
+        const kg = unit === "GRAMS" ? w.value / 1000 : unit === "OUNCES" ? w.value * 0.0283495 : unit === "POUNDS" ? w.value * 0.453592 : w.value;
+        weightKg = String(Math.round(kg * 1000) / 1000);
+      }
+      return {
+        id: v.id as string,
+        title: v.title as string,
+        price: v.price || "",
+        compareAtPrice: parseFloat(String(v.compareAtPrice || "0")) > 0 ? v.compareAtPrice : "",
+        sku: v.sku || "",
+        barcode: v.barcode || "",
+        inventoryQuantity: typeof v.inventoryQuantity === "number" ? v.inventoryQuantity : 0,
+        inventoryItemId: v.inventoryItem?.id || "",
+        cost: v.inventoryItem?.unitCost?.amount || "",
+        weightKg,
+        requiresShipping: v.inventoryItem?.requiresShipping !== false,
+        tracked: v.inventoryItem?.tracked !== false,
+        taxable: v.taxable !== false,
+        selectedOptions: (v.selectedOptions ?? []).map((s: any) => ({ name: s.name, value: s.value })),
+        media: (v.media?.nodes ?? [])
+          .filter((m: any) => m.image?.url)
+          .map((m: any) => ({ id: m.id as string, url: m.image.url as string })),
+      };
+    }),
     media: (p.media?.nodes ?? [])
       .filter((m: any) => m.image?.url)
       .map((m: any) => ({ id: m.id as string, url: m.image.url as string, altText: m.image.altText || "" })),
@@ -1532,11 +1955,35 @@ async function setInventory(itemId: string, locationId: string, quantity: number
   ]);
 }
 
+/* Compare-at must be a real "was" price: 0 / "0" / "" means "no compare-at",
+   never write 0.00 to Shopify (2026-11-07 audit: 1,559 variants carry a
+   0.00 compare-at, and the panel used to write "0" from its own form). */
+function validCompareAt(v: unknown): string | null {
+  const n = parseFloat(String(v ?? ""));
+  return Number.isFinite(n) && n > 0 ? String(n) : null;
+}
+
+/* URL slug from a typed handle (create used to drop it silently — the
+   product then got an auto handle the client never asked for). */
+function slugify(s: string): string {
+  return String(s || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 async function bulkUpdateVariants(productId: string, variants: any[]): Promise<void> {
   const clean = variants.map((v: any) => {
     const out: Record<string, unknown> = { id: v.id };
     if (v.price !== undefined && v.price !== "") out.price = String(v.price);
-    if (v.compareAtPrice !== undefined) out.compareAtPrice = v.compareAtPrice === "" ? null : String(v.compareAtPrice);
+    if (v.compareAtPrice !== undefined) out.compareAtPrice = validCompareAt(v.compareAtPrice);
+    // SKU / barcode ride the bulk input (inventoryItem.sku + barcodes) —
+    // the old classic productVariantUpdate call silently swallowed schema
+    // rejections, so typed SKUs vanished. Only send non-empty values.
+    if (typeof v.sku === "string" && v.sku.trim()) out.inventoryItem = { sku: v.sku.trim() };
+    if (typeof v.barcode === "string" && v.barcode.trim()) out.barcodes = [{ value: v.barcode.trim() }];
+    if (typeof v.taxable === "boolean") out.taxable = v.taxable;
     return out;
   });
   const d = await gql<any>(
@@ -1559,9 +2006,20 @@ async function bulkUpdateVariants(productId: string, variants: any[]): Promise<v
 function comboToBulkInput(v: any, locationId: string | undefined): Record<string, unknown> {
   const out: Record<string, unknown> = { price: String(v.price || "0") };
   if (Array.isArray(v.optionValues) && v.optionValues.length) out.optionValues = v.optionValues;
-  if (v.compareAtPrice) out.compareAtPrice = String(v.compareAtPrice);
-  if (v.sku) out.inventoryItem = { sku: String(v.sku) };
+  const cat = validCompareAt(v.compareAtPrice);
+  if (cat) out.compareAtPrice = cat;
+  // Cost / weight / shipping / tracking live on the inventory item.
+  const inv: Record<string, unknown> = {};
+  if (v.sku) inv.sku = String(v.sku);
+  const cost = parseFloat(String(v.cost ?? ""));
+  if (Number.isFinite(cost) && cost >= 0) inv.cost = cost.toFixed(2);
+  const w = parseFloat(String(v.weightKg ?? ""));
+  if (Number.isFinite(w) && w > 0) inv.measurement = { weight: { unit: "KILOGRAMS", value: w } };
+  if (typeof v.requiresShipping === "boolean") inv.requiresShipping = v.requiresShipping;
+  if (typeof v.tracked === "boolean") inv.tracked = v.tracked;
+  if (Object.keys(inv).length) out.inventoryItem = inv;
   if (v.barcode) out.barcodes = [{ value: String(v.barcode) }];
+  if (typeof v.taxable === "boolean") out.taxable = v.taxable;
   if (locationId && v.inventoryQuantity !== undefined && v.inventoryQuantity !== "")
     out.inventoryQuantities = [{ availableQuantity: parseInt(String(v.inventoryQuantity), 10) || 0, locationId }];
   return out;
@@ -1580,6 +2038,31 @@ async function createProductOptions(productId: string, options: any[]): Promise<
   );
   const errs = d.productOptionsCreate?.userErrors ?? [];
   if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
+}
+
+/* Cost / weight / shipping / tracking live on the variant's inventory
+   item (inventoryItemUpdate). Only fields the client actually set are
+   sent; the rest stay untouched. */
+async function updateVariantInventory(items: any[]): Promise<void> {
+  for (const it of items || []) {
+    if (!it.inventoryItemId) continue;
+    const input: Record<string, unknown> = {};
+    const cost = parseFloat(String(it.cost ?? ""));
+    if (Number.isFinite(cost) && cost >= 0) input.cost = cost.toFixed(2);
+    const w = parseFloat(String(it.weightKg ?? ""));
+    if (Number.isFinite(w) && w > 0) input.measurement = { weight: { unit: "KILOGRAMS", value: w } };
+    if (typeof it.requiresShipping === "boolean") input.requiresShipping = it.requiresShipping;
+    if (typeof it.tracked === "boolean") input.tracked = it.tracked;
+    if (!Object.keys(input).length) continue;
+    const d = await gql<any>(
+      `mutation InvItemUpdate($id: ID!, $input: InventoryItemInput!) {
+         inventoryItemUpdate(id: $id, input: $input) { inventoryItem { id } userErrors { message } }
+       }`,
+      { id: it.inventoryItemId, input }
+    );
+    const errs = d.inventoryItemUpdate?.userErrors ?? [];
+    if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
+  }
 }
 
 async function bulkCreateVariants(productId: string, variants: any[], locationId: string | undefined, removeStandalone: boolean): Promise<{ id: string; selectedOptions: { name: string; value: string }[] }[]> {
@@ -1632,8 +2115,12 @@ export async function createProduct(p: any): Promise<SaveResult> {
   };
   if (p.seoTitle !== undefined || p.seoDescription !== undefined)
     baseInput.seo = { title: p.seoTitle || "", description: p.seoDescription || "" };
+  // Custom slug (was silently dropped on create — the product got an
+  // auto handle instead). A taken handle fails loudly, which is correct.
+  if (p.handle && slugify(p.handle)) baseInput.handle = slugify(p.handle);
   const first: Record<string, unknown> = { price: String(p.price || "0") };
-  if (p.compareAtPrice) first.compareAtPrice = String(p.compareAtPrice);
+  const cat = validCompareAt(p.compareAtPrice);
+  if (cat) first.compareAtPrice = cat;
   if (p.sku) first.sku = String(p.sku);
   if (p.barcode) first.barcode = String(p.barcode);
   if (p.locationId && p.inventoryQuantity !== undefined && p.inventoryQuantity !== "")
@@ -1659,9 +2146,13 @@ export async function createProduct(p: any): Promise<SaveResult> {
     const dv = detail.variants[0];
     if (dv) {
       createdVariants = [{ id: dv.id, selectedOptions: (dv.selectedOptions || []).map((s: any) => ({ name: s.name, value: s.value })) }];
-      await bulkUpdateVariants(id, [{ id: dv.id, price: first.price, compareAtPrice: first.compareAtPrice }]);
+      // No-option create: SKU/barcode were built into `first` but never
+      // applied (bulkUpdateVariants used to drop them). Pass them through.
+      await bulkUpdateVariants(id, [{ id: dv.id, price: first.price, compareAtPrice: first.compareAtPrice, sku: p.sku, barcode: p.barcode, taxable: p.taxable }]);
       if (p.locationId && p.inventoryQuantity !== undefined && p.inventoryQuantity !== "" && dv.inventoryItemId)
         await setInventory(dv.inventoryItemId, p.locationId, parseInt(String(p.inventoryQuantity), 10) || 0);
+      if (dv.inventoryItemId)
+        await updateVariantInventory([{ inventoryItemId: dv.inventoryItemId, cost: p.cost, weightKg: p.weightKg, requiresShipping: p.requiresShipping, tracked: p.tracked }]);
     }
   }
   let newMediaIds: string[] = [];
@@ -1724,22 +2215,10 @@ export async function updateProduct(p: any): Promise<SaveResult> {
   if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
 
   if (Array.isArray(p.variantUpdates) && p.variantUpdates.length) {
+    // SKU/barcode now ride bulkUpdateVariants (inventoryItem.sku +
+    // barcodes); the old classic productVariantUpdate fallback silently
+    // swallowed rejections, so typed SKUs vanished.
     await bulkUpdateVariants(p.id, p.variantUpdates);
-    // SKU/barcode live on the variant in older API versions only; try the
-    // classic single-variant update, and ignore a schema rejection.
-    for (const v of p.variantUpdates) {
-      if (v.sku === undefined && v.barcode === undefined) continue;
-      try {
-        await gql<any>(
-          `mutation VarSingle($input: ProductVariantUpdateInput!) {
-             productVariantUpdate(input: $input) { productVariant { id } userErrors { message } }
-           }`,
-          { input: { id: v.id, sku: v.sku || null, barcode: v.barcode || null } }
-        );
-      } catch {
-        /* newer API: SKU/barcode moved off the variant input — skip */
-      }
-    }
   }
   if (Array.isArray(p.newVariants) && p.newVariants.length) {
     // bulkCreate needs the option NAMES to exist first; new values are added
@@ -1777,11 +2256,15 @@ export async function updateProduct(p: any): Promise<SaveResult> {
   }
   let newMediaIds: string[] = [];
   if (Array.isArray(p.mediaSources) && p.mediaSources.length) newMediaIds = await addMedia(p.id, p.mediaSources);
-  if (Array.isArray(p.inventoryUpdates) && p.inventoryUpdates.length && p.locationId) {
-    for (const u of p.inventoryUpdates) {
-      if (!u.inventoryItemId) continue;
-      await setInventory(u.inventoryItemId, p.locationId, parseInt(String(u.quantity), 10) || 0);
+  if (Array.isArray(p.inventoryUpdates) && p.inventoryUpdates.length) {
+    if (p.locationId) {
+      for (const u of p.inventoryUpdates) {
+        if (!u.inventoryItemId) continue;
+        await setInventory(u.inventoryItemId, p.locationId, parseInt(String(u.quantity), 10) || 0);
+      }
     }
+    // Cost / weight / shipping / tracking ride the same payload.
+    await updateVariantInventory(p.inventoryUpdates);
   }
   if (Array.isArray(p.vapeDeleteKeys) && p.vapeDeleteKeys.length)
     await deleteProductMetafields(p.id, p.vapeDeleteKeys);
@@ -1829,16 +2312,20 @@ export async function deleteProduct(id: string): Promise<SaveResult> {
   return { message: "Product deleted." };
 }
 
-export async function createCollection(title: string): Promise<SaveResult> {
+export async function createCollection(title: string, opts?: { descriptionHtml?: string; sortOrder?: string }): Promise<SaveResult> {
+  const input: Record<string, unknown> = { title };
+  if (opts?.descriptionHtml) input.descriptionHtml = opts.descriptionHtml;
+  const so = validSortOrder(opts?.sortOrder);
+  if (so) input.sortOrder = so;
   const d = await gql<any>(
     `mutation CollCreate($collection: CollectionInput!) {
        collectionCreate(input: $collection) { collection { id } userErrors { message } }
      }`,
-    { collection: { title } }
+    { collection: input }
   );
   const errs = d.collectionCreate?.userErrors ?? [];
   if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
-  return { message: "Collection created." };
+  return { message: "Collection created.", id: d.collectionCreate?.collection?.id };
 }
 
 export async function deleteCollection(id: string): Promise<SaveResult> {

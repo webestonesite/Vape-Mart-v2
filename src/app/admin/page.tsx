@@ -369,13 +369,13 @@ export default function AdminPage() {
               {tab === "blog-settings" && <BlogSettingsTab data={data} save={save} />}
               {tab === "info-pages" && <InfoPagesTab data={data} save={save} />}
               {tab === "drafts" && <DraftsTab data={data} />}
-              {tab === "customers" && <CustomersTab data={data} />}
-              {tab === "discounts" && <DiscountsTab data={data} />}
+              {tab === "customers" && <CustomersTab data={data} save={save} />}
+              {tab === "discounts" && <DiscountsTab data={data} save={save} />}
               {tab === "redirects" && <RedirectsTab data={data} save={save} />}
               {tab === "cart" && <CartTab data={data} save={save} />}
               {tab === "product-page" && <ProductPageTab data={data} save={save} />}
               {tab === "collection-page" && <CollectionPageTab data={data} save={save} />}
-              {tab === "orders" && <OrdersTab data={data} />}
+              {tab === "orders" && <OrdersTab data={data} notify={notify} reload={loadData} />}
               {tab === "settings" && <SettingsTab data={data} save={save} />}
               {tab === "hero" && <HeroTab data={data} save={save} />}
               {tab === "sections" && <SectionsTab data={data} save={save} />}
