@@ -107,13 +107,22 @@ function parseList(value: string | undefined): string[] {
 export async function setShopMetafields(
   entries: { key: string; type: string; value: string; namespace?: string }[]
 ): Promise<void> {
-  const metafields = entries.map((e) => ({
-    ownerId: SHOP_ID,
-    namespace: e.namespace || "store",
-    key: e.key,
-    type: e.type,
-    value: e.value,
-  }));
+  // Shopify rejects blank scalar values ("Value can't be blank") and one
+  // bad entry fails the WHOLE metafieldsSet — so a single empty text box
+  // used to block every settings save (theme.save failed with no changes
+  // made, because search_placeholder + newsletter_text were ""). Skip
+  // blank non-JSON values; the old value simply stays. JSON values are
+  // always "[]"/"{}" here, never blank.
+  const metafields = entries
+    .filter((e) => e.type === "json" || String(e.value ?? "").trim() !== "")
+    .map((e) => ({
+      ownerId: SHOP_ID,
+      namespace: e.namespace || "store",
+      key: e.key,
+      type: e.type,
+      value: e.value,
+    }));
+  if (!metafields.length) return;
   const d = await gql<any>(
     `mutation MfSet($metafields: [MetafieldsSetInput!]!) {
        metafieldsSet(metafields: $metafields) { metafields { id } userErrors { message } }
@@ -235,8 +244,8 @@ const MENU_QUERY = `
     menu(id: $id) {
       id title handle
       items {
-        id title url type
-        items { id title url type items { id title url type } }
+        id title url type resourceId
+        items { id title url type resourceId items { id title url type resourceId } }
       }
     }
   }
@@ -428,6 +437,8 @@ export async function getPanelData() {
         id: it.id,
         title: it.title || "",
         url: it.url || "",
+        type: it.type || "HTTP",
+        resourceId: it.resourceId || "",
         children: (it.items ?? []).map(mapItem),
       });
       menu = {
@@ -668,14 +679,35 @@ export async function saveAction(action: string, p: any): Promise<SaveResult> {
     }
 
     case "menu.save": {
+      // "LINK" is not a MenuItemType — the old code forced it on every
+      // item, so EVERY menu save failed in Shopify. Preserve each item's
+      // real type (+ resourceId for resource-backed items); new/unknown
+      // items become plain HTTP links. Resource types without a
+      // resourceId also fall back to HTTP rather than failing the save.
+      const MENU_ITEM_TYPES = new Set([
+        "ARTICLE", "BLOG", "CATALOG", "COLLECTION", "COLLECTIONS",
+        "CUSTOMER_ACCOUNT_PAGE", "FRONTPAGE", "HTTP", "METAOBJECT",
+        "PAGE", "PRODUCT", "SEARCH", "SHOP_POLICY",
+      ]);
+      const RESOURCE_TYPES = new Set(["ARTICLE", "BLOG", "COLLECTION", "METAOBJECT", "PAGE", "PRODUCT"]);
       const mapItems = (items: any[]): any[] =>
-        (items ?? []).map((it) => ({
-          ...(it.id ? { id: it.id } : {}),
-          title: String(it.title || ""),
-          type: "LINK",
-          url: String(it.url || "/"),
-          items: mapItems(it.children ?? []),
-        }));
+        (items ?? []).map((it) => {
+          const rawType = String(it.type || "").toUpperCase();
+          const isResource = RESOURCE_TYPES.has(rawType) && !!it.resourceId;
+          const type = isResource
+            ? rawType
+            : MENU_ITEM_TYPES.has(rawType) && !RESOURCE_TYPES.has(rawType)
+              ? rawType
+              : "HTTP";
+          return {
+            ...(it.id ? { id: it.id } : {}),
+            title: String(it.title || ""),
+            type,
+            url: String(it.url || "/"),
+            ...(isResource ? { resourceId: it.resourceId } : {}),
+            items: mapItems(it.children ?? []),
+          };
+        });
       const d = await gql<any>(
         `mutation MenuSave($id: ID!, $title: String!, $handle: String!, $items: [MenuItemUpdateInput!]!) {
            menuUpdate(id: $id, title: $title, handle: $handle, items: $items) { menu { id } userErrors { message } }
