@@ -975,8 +975,18 @@ function moFields(n: MetaobjectNode): Record<string, string> {
   return out;
 }
 
-const SITE_CONTENT_QUERY = `
-  query SiteContent {
+/*  NOTE (2026-11-07 audit): the old combined SITE_CONTENT_QUERY cost 2676
+    points — over Shopify's 1000-point single-query limit — because each
+    home-section product carried the full PRODUCT_FRAGMENT (variants
+    first:100, images, metafields). The query ALWAYS failed and the silent
+    catch below returned empty lists, so /api/site-content served no hero
+    slides / sections / testimonials / FAQs / showcase cards and the
+    homepage silently ran on hardcoded fallbacks. The fix: fetch
+    metaobjects alone (cheap), then fetch section products separately with
+    a lean card fragment, in small batches. Never put the full product
+    fragment inside a metaobject references() call. */
+const SITE_CONTENT_META_QUERY = `
+  query SiteContentMeta {
     heroSlides: metaobjects(type: "hero_slide", first: 10) {
       nodes {
         id fields { key value }
@@ -987,7 +997,7 @@ const SITE_CONTENT_QUERY = `
       nodes {
         id fields { key value }
         productRefs: field(key: "products") {
-          references(first: 24) { nodes { ... on Product { ${PRODUCT_FRAGMENT} } } }
+          references(first: 24) { nodes { ... on Product { id } } }
         }
       }
     }
@@ -1003,10 +1013,65 @@ const SITE_CONTENT_QUERY = `
   }
 `;
 
+/*  Lean fragment for home-section cards: only what cardProduct() reads
+    (handle, title, price, compare-at, review count, badge, brand, first
+    image). No variants(first:100), no full metafield dump — keeps each
+    batch far under the query-cost limit. stockQuantity/inStock on these
+    items are partial (first variant only); the card path never reads them. */
+const SECTION_CARD_FRAGMENT = `
+  id title handle status vendor productType descriptionHtml
+  seo { title description }
+  priceRangeV2 { minVariantPrice { amount } }
+  images(first: 1) { nodes { url altText } }
+  variants(first: 1) { nodes { id title sku price compareAtPrice inventoryQuantity selectedOptions { name value } } }
+  collections(first: 1) { nodes { id title handle } }
+  metafields(first: 10, namespace: "vape") { nodes { namespace key type value } }
+`;
+
+const SECTION_PRODUCTS_QUERY = `
+  query SectionProducts($ids: [ID!]!) {
+    nodes(ids: $ids) {
+      ... on Product { ${SECTION_CARD_FRAGMENT} }
+    }
+  }
+`;
+
+async function fetchSectionProducts(ids: string[]): Promise<Map<string, ProductItem>> {
+  const out = new Map<string, ProductItem>();
+  const unique = [...new Set(ids.filter(Boolean))];
+  const BATCH = 10;
+  for (let i = 0; i < unique.length; i += BATCH) {
+    const batch = unique.slice(i, i + BATCH);
+    try {
+      const data = await shopifyAdmin<any>(SECTION_PRODUCTS_QUERY, { ids: batch }, 600);
+      for (const n of data.nodes ?? []) {
+        if (!n || !n.id) continue;
+        if (n.status && n.status !== "ACTIVE") continue; // home sections show live products only
+        try {
+          out.set(n.id, toProductItem(n));
+        } catch {
+          /* one bad product must not drop the whole section */
+        }
+      }
+    } catch (e) {
+      console.error("[fetchSiteContent] section-products batch failed:", e instanceof Error ? e.message : e);
+    }
+  }
+  return out;
+}
+
 export async function fetchSiteContent(): Promise<SiteContent> {
   const empty: SiteContent = { heroSlides: [], homeSections: [], testimonials: [], faqs: [], showcaseCards: [] };
+  let data: any;
   try {
-    const data = await shopifyAdmin<any>(SITE_CONTENT_QUERY, {}, 600);
+    data = await shopifyAdmin<any>(SITE_CONTENT_META_QUERY, {}, 600);
+  } catch (e) {
+    // Log instead of silently returning empty — a failed content read used
+    // to hide for months behind this catch (see note above).
+    console.error("[fetchSiteContent] meta query failed:", e instanceof Error ? e.message : e);
+    return empty;
+  }
+  try {
     const heroSlides: HeroSlide[] = (data.heroSlides?.nodes ?? [])
       .map((n: MetaobjectNode) => {
         const f = moFields(n);
@@ -1022,12 +1087,19 @@ export async function fetchSiteContent(): Promise<SiteContent> {
       })
       .filter((s: HeroSlide) => s.title)
       .sort((a: HeroSlide, b: HeroSlide) => a.position - b.position);
-    const homeSections: HomeSectionData[] = (data.homeSections?.nodes ?? [])
-      .map((n: MetaobjectNode) => {
-        const f = moFields(n);
-        const products = (n.productRefs?.references?.nodes ?? [])
-          .filter((pn: ShopifyProductNode | null): pn is ShopifyProductNode => !!pn && pn.status === "ACTIVE")
-          .map((pn: ShopifyProductNode) => toProductItem(pn));
+    const sectionNodes: { fields: Record<string, string>; productIds: string[] }[] =
+      (data.homeSections?.nodes ?? []).map((n: MetaobjectNode) => ({
+        fields: moFields(n),
+        productIds: ((n.productRefs?.references?.nodes ?? []) as any[]).map((pn: any) => pn?.id).filter(Boolean),
+      }));
+    const allIds = sectionNodes.flatMap((s) => s.productIds);
+    const productsById = allIds.length ? await fetchSectionProducts(allIds) : new Map<string, ProductItem>();
+    const homeSections: HomeSectionData[] = sectionNodes
+      .map((s) => {
+        const f = s.fields;
+        const products = s.productIds
+          .map((id) => productsById.get(id))
+          .filter((p): p is ProductItem => !!p && p.slug !== undefined);
         return {
           key: f.section_key || "",
           title: f.title || "",
@@ -1078,7 +1150,8 @@ export async function fetchSiteContent(): Promise<SiteContent> {
       .filter((c: ShowcaseCard) => c.sectionKey && c.title)
       .sort((a: ShowcaseCard, b: ShowcaseCard) => a.position - b.position);
     return { heroSlides, homeSections, testimonials, faqs, showcaseCards };
-  } catch {
+  } catch (e) {
+    console.error("[fetchSiteContent] mapping failed:", e instanceof Error ? e.message : e);
     return empty;
   }
 }

@@ -9,6 +9,10 @@ import {
   getPanelExtras,
   getProductDetail,
   getCollectionDetail,
+  getOrderDetail,
+  getCustomerDetail,
+  fulfillOrder,
+  refundOrder,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -97,6 +101,26 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true, detail });
     }
 
+    if (action === "orderDetail") {
+      const detail = await getOrderDetail(String(body.id || ""));
+      return NextResponse.json({ ok: true, detail });
+    }
+
+    if (action === "customerDetail") {
+      const detail = await getCustomerDetail(String(body.id || ""));
+      return NextResponse.json({ ok: true, detail });
+    }
+
+    if (action === "order.fulfill") {
+      const result = await fulfillOrder(String(body.id || ""));
+      return NextResponse.json({ ok: true, ...result });
+    }
+
+    if (action === "order.refund") {
+      const result = await refundOrder(String(body.id || ""));
+      return NextResponse.json({ ok: true, ...result });
+    }
+
     if (action === "product.create") {
       const result = await createProduct(body.payload ?? {});
       return NextResponse.json({ ok: true, ...result });
@@ -113,7 +137,7 @@ export async function POST(req: Request) {
     }
 
     if (action === "collection.create") {
-      const result = await createCollection(String(body.title || ""));
+      const result = await createCollection(String(body.title || ""), { sortOrder: body.sortOrder, descriptionHtml: body.descriptionHtml });
       return NextResponse.json({ ok: true, ...result });
     }
 
