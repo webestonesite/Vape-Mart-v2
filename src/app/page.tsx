@@ -1278,9 +1278,11 @@ export default function Home() {
                       </motion.a>
                     </div>
 
-                    {/* Image Showcase — centred in its half again (owner 2026-11-09: the
-                        far-right spread looked stretched, not beautiful like before) */}
-                    <div className="w-full md:w-1/2 h-[220px] sm:h-[320px] md:h-[460px] lg:h-[560px] relative z-10 flex items-center justify-center mt-4 md:mt-0 px-2 sm:px-4">
+                    {/* Image Showcase — wrapper must be TALLER than the card, or the
+                        card (aspect-square, max-w 260/360/480px) sticks out of it and
+                        touches the button on mobile (owner 2026-11-09: the 220px
+                        wrapper let the 260px card overlap the button by ~4px). */}
+                    <div className="w-full md:w-1/2 h-[280px] sm:h-[380px] md:h-[500px] lg:h-[560px] relative z-10 flex items-center justify-center mt-4 md:mt-0 px-2 sm:px-4">
                       <div className="relative w-full max-w-[260px] sm:max-w-[360px] md:max-w-[480px] aspect-square rounded-[24px] sm:rounded-[36px] overflow-hidden shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] border-2 border-emerald-400/20 group/heroImg backdrop-blur-sm bg-black/20">
                         <Image
                           src={slide.image}
