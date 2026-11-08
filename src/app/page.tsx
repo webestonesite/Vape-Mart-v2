@@ -859,24 +859,52 @@ export default function Home() {
       .then((data) => setCms(data))
       .catch(() => {});
   }, []);
-  const cmsSlides = ((cms?.heroSlides ?? []) as any[])
-    .filter((s) => s.title)
-    .map((s) => ({
-      // Hero title line break: the CMS title field is single-line text, so
-      // it cannot hold "\n". " // " in a CMS title marks the accent line
-      // (rendered italic gold, no dash — like the doc). " — " keeps the old
-      // behaviour (accent line with a leading dash, as slide 1 has).
-      title: String(s.title).includes("\n")
-        ? s.title
-        : String(s.title).includes(" // ")
-          ? String(s.title).replace(" // ", "\n")
-          : String(s.title).replace(" — ", "\n— "),
-      desc: s.description || "",
-      badge: s.badge || "",
-      image: s.imageUrl || "/images/hero_slide_1.jpg",
-      buttonText: s.buttonText || "Explore Collection",
-      buttonLink: s.buttonLink || "/collections",
-    }));
+  // Hero slides — HARDCODED from the owner's Google Doc "vape mart
+  // homepage" (owner instruction 2026-11-09: "directly hardcode kore deo").
+  // The hero no longer reads the CMS or /api/site-content, so it can never
+  // disappear when the Shopify reads fail (that happened 2026-11-09 ~03:22).
+  // Doc wording as of 2026-11-09: 6 of the 20 hero lines had changed vs the
+  // live hero (TEREA accent, JUUL body, Disposable headline/accent/body).
+  // The doc's two new em dashes are commas here, per the owner's standing
+  // no-em-dash rule for site copy. Button links are not in the doc; the
+  // live collection links are kept. Images are the Shopify CDN files.
+  // Title "\n" splits headline (white) from accent (italic gold).
+  // The doc still shows a "New Arrivals" banner at the top of its hero
+  // section — NOT included, per the owner's "no New Arrivals slider" rule.
+  const HERO_SLIDES = [
+    {
+      title: "Original TEREA Sticks\nReal Tobacco, Zero Ash",
+      desc: "If you've already got an IQOS, you don't need a new device - you need sticks you can trust. That's why a lot of vapers treat Vape Mart as the best Terea shop in Dubai: original sticks, in the amber and menthol blends that sell out first, with fast delivery across the UAE.",
+      badge: "TEREA in Dubai",
+      image: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/terea_heets.jpg?v=1794163737",
+      buttonText: "Shop TEREA Sticks",
+      buttonLink: "/collections/terea",
+    },
+    {
+      title: "IQOS ILUMA Devices\nHeat it, don't burn it",
+      desc: "New to heated tobacco? It's simple - the device heats the stick instead of burning it, so you get real tobacco taste without ash. Buy your IQOS online from Vape Mart, the best IQOS shop in Dubai for devices and TEREA sticks together.",
+      badge: "IQOS in Dubai",
+      image: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/hero_slide_4.jpg?v=1792358788",
+      buttonText: "Shop IQOS",
+      buttonLink: "/collections/iqos",
+    },
+    {
+      title: "JUUL Pods That Just Work\nSmall, simple, no fuss",
+      desc: "No buttons to learn, no liquid to spill, you just click a pod in and go. Vape Mart is the best JUUL shop in Dubai for authentic starter kits and pods, from Virginia Tobacco and Mint to fruit ice, Juul 1 comes with 3% and 5% and Juul 2 18mg salt nicotine.",
+      badge: "JUUL & JUUL 2 in Dubai",
+      image: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/juul_product.jpg?v=1794163747",
+      buttonText: "Shop JUUL",
+      buttonLink: "/collections/juul",
+    },
+    {
+      title: "Disposable Vapes\nReady to Go, no refilling",
+      desc: "Open the pack and you're set. From a compact ELFBAR for the weekend to a big Waka Blade 50K for daily use, you'll find high-performance disposables at Vape Mart, the best vape shop in Dubai for disposable vapes, with cash on delivery across the UAE.",
+      badge: "Disposable Vapes in the UAE",
+      image: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/prod_disposable.jpg?v=1794163751",
+      buttonText: "Shop Disposables",
+      buttonLink: "/collections/disposable-vape",
+    },
+  ];
   const cmsSection = (key: string) =>
     ((cms?.homeSections ?? []) as any[]).find((s) => s.key === key);
   const secProducts = (key: string, fallback: any[]) => {
@@ -1016,10 +1044,9 @@ export default function Home() {
     { title: "KIEF King 35000 Puffs Disposable Vape", price: "45.00", oldPrice: "", discount: "" },
   ]);
 
-  // No hardcoded fallback slides (owner decision 2026-11-09): the hero
-  // shows only the CMS hero_slide metaobjects. When the CMS has no
-  // slides, the hero section does not render at all.
-  const slides = cmsSlides;
+  // Hero slides are hardcoded (HERO_SLIDES above, owner's 2026-11-09
+  // instruction) — the hero never depends on the CMS or the API.
+  const slides = HERO_SLIDES;
 
   const nextSlide = useCallback(() => {
     if (slides.length === 0) return;
