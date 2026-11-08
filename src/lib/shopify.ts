@@ -984,21 +984,18 @@ function moFields(n: MetaobjectNode): Record<string, string> {
     homepage silently ran on hardcoded fallbacks. The fix: fetch
     metaobjects alone (cheap), then fetch section products separately with
     a lean card fragment, in small batches. Never put the full product
-    fragment inside a metaobject references() call. */
-const SITE_CONTENT_META_QUERY = `
-  query SiteContentMeta {
+    fragment inside a metaobject references() call.
+    2026-11-09: the combined meta query failed AGAIN on the live site
+    (API 2025-07) while the identical query succeeded via the connector —
+    /api/site-content went empty and the homepage fell back to hardcoded
+    slides/sections. Split it in two so each half stays far under the
+    limit, and one half failing can no longer wipe out the other half. */
+const SITE_CONTENT_META_QUERY_A = `
+  query SiteContentMetaA {
     heroSlides: metaobjects(type: "hero_slide", first: 10) {
       nodes {
         id fields { key value }
         imageRef: field(key: "image") { reference { ... on MediaImage { image { url } } } }
-      }
-    }
-    homeSections: metaobjects(type: "home_section", first: 12) {
-      nodes {
-        id fields { key value }
-        productRefs: field(key: "products") {
-          references(first: 24) { nodes { ... on Product { id } } }
-        }
       }
     }
     testimonials: metaobjects(type: "testimonial", first: 20) {
@@ -1006,6 +1003,18 @@ const SITE_CONTENT_META_QUERY = `
     }
     faqItems: metaobjects(type: "faq_item", first: 20) {
       nodes { id fields { key value } }
+    }
+  }
+`;
+const SITE_CONTENT_META_QUERY_B = `
+  query SiteContentMetaB {
+    homeSections: metaobjects(type: "home_section", first: 12) {
+      nodes {
+        id fields { key value }
+        productRefs: field(key: "products") {
+          references(first: 12) { nodes { ... on Product { id } } }
+        }
+      }
     }
     showcaseCards: metaobjects(type: "showcase_card", first: 40) {
       nodes { id fields { key value } }
@@ -1062,15 +1071,19 @@ async function fetchSectionProducts(ids: string[]): Promise<Map<string, ProductI
 
 export async function fetchSiteContent(): Promise<SiteContent> {
   const empty: SiteContent = { heroSlides: [], homeSections: [], testimonials: [], faqs: [], showcaseCards: [] };
-  let data: any;
-  try {
-    data = await shopifyAdmin<any>(SITE_CONTENT_META_QUERY, {}, 600);
-  } catch (e) {
-    // Log instead of silently returning empty — a failed content read used
-    // to hide for months behind this catch (see note above).
-    console.error("[fetchSiteContent] meta query failed:", e instanceof Error ? e.message : e);
-    return empty;
-  }
+  // Two independent reads (see note above SITE_CONTENT_META_QUERY_A): one
+  // half failing must not wipe out the other half's content.
+  const [a, b] = await Promise.all([
+    shopifyAdmin<any>(SITE_CONTENT_META_QUERY_A, {}, 600).catch((e) => {
+      console.error("[fetchSiteContent] meta query A failed:", e instanceof Error ? e.message : e);
+      return null;
+    }),
+    shopifyAdmin<any>(SITE_CONTENT_META_QUERY_B, {}, 600).catch((e) => {
+      console.error("[fetchSiteContent] meta query B failed:", e instanceof Error ? e.message : e);
+      return null;
+    }),
+  ]);
+  const data: any = { ...(a ?? {}), ...(b ?? {}) };
   try {
     const heroSlides: HeroSlide[] = (data.heroSlides?.nodes ?? [])
       .map((n: MetaobjectNode) => {
