@@ -756,12 +756,12 @@ export function BlogTab({ data, save }: any) {
             <Inp value={form.imageUrl} onChange={(e) => set("imageUrl", e.target.value)} placeholder="https://…" />
           </div>
           <div>
-            <Lbl>Author (lekhok-er nam)</Lbl>
+            <Lbl>Author (writer's name)</Lbl>
             <Inp value={form.author} onChange={(e) => set("author", e.target.value)} placeholder="Vape Mart Team" />
           </div>
           <div>
             <Lbl>Slug (last part of the link — leave blank to auto-generate)</Lbl>
-            <Inp value={form.handle} onChange={(e) => set("handle", e.target.value)} placeholder="khali-rakhle-auto" />
+            <Inp value={form.handle} onChange={(e) => set("handle", e.target.value)} placeholder="e.g. juul-pods-menthol" />
           </div>
           <div>
             <Lbl>Publish date (leave blank to publish now)</Lbl>

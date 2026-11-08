@@ -73,7 +73,7 @@ export function ProductReviewsTab({ data, save }: any) {
     <div>
       <p className="text-sm text-neutral-500 mb-4">
         Write a separate review for each product — they will show in the Customer Reviews carousel on the product page.
-        Age ei section-ta konodin dekha jeto na, karon review-er kono data model chilo na.
+        This section never used to show, because there was no data model for reviews.
       </p>
       <Card title="Add / edit review" right={editing && <button onClick={resetForm} className="text-xs font-semibold text-neutral-500 inline-flex items-center gap-1"><X size={13} /> Cancel edit</button>}>
         <div className="grid sm:grid-cols-2 gap-3">
@@ -362,7 +362,7 @@ export function FlavorsTab({ data, save }: any) {
   return (
     <div>
       <p className="text-sm text-neutral-500 mb-4">
-        Flavour toiri/edit/delete korun — eguloi product page-er flavour dropdown-e dekhabe.
+        Create, edit or delete flavours — these are the ones that show in the flavour dropdown on the product page.
       </p>
       <Card title={editing ? "Edit flavor" : "Add flavor"} right={editing && <button onClick={reset} className="text-xs font-semibold text-neutral-500 inline-flex items-center gap-1"><X size={13} /> Cancel</button>}>
         <div className="grid sm:grid-cols-3 gap-3">

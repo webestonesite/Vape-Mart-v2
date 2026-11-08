@@ -114,7 +114,7 @@ export function CartTab({ data, save }: any) {
   return (
     <div>
       <p className="text-sm text-neutral-500 mb-4">
-        Delivery charge, free-delivery limit, VAT note ar city-wise delivery promise — khali rakhle site-er ager niyom (AED 350 free delivery, AED 25 fee) cholbe.
+        Delivery charge, free-delivery limit, VAT note and city-wise delivery promise — leave blank to keep the site's current rules (AED 350 free delivery, AED 25 fee).
       </p>
       <Card title="Delivery & fees">
         <div className="grid sm:grid-cols-2 gap-3">
@@ -177,7 +177,7 @@ export function ProductPageTab({ data, save }: any) {
   return (
     <div>
       <p className="text-sm text-neutral-500 mb-4">
-        Product page-er trust badge, shipping/return lekha ar spec table-er order — khali rakhle ager lekha/order-i thakbe.
+        The product page trust badge, shipping/return text and spec table order — leave blank to keep the current text/order.
       </p>
       <Card title="Trust badges (the 4 under the buy box)">
         <JsonListEditor
@@ -191,7 +191,7 @@ export function ProductPageTab({ data, save }: any) {
           ]}
         />
       </Card>
-      <Card title="Shipping & return texts (DESCRIPTION tab-er pasher tab)">
+      <Card title="Shipping & return texts (the tab next to DESCRIPTION)">
         <div className="grid gap-3">
           <div>
             <Lbl>Shipping text</Lbl>
@@ -203,7 +203,7 @@ export function ProductPageTab({ data, save }: any) {
           </div>
         </div>
       </Card>
-      <Card title="Spec table order" sub={`Comma-separated. Available keys: ${SPEC_KEYS.join(", ")}. Khali rakhle ager order-i thakbe.`}>
+      <Card title="Spec table order" sub={`Comma-separated. Available keys: ${SPEC_KEYS.join(", ")}. Leave blank to keep the current order.`}>
         <Inp value={specOrder} onChange={(e) => setSpecOrder(e.target.value)} placeholder="Puff Count, Nicotine, E-Liquid, Battery, Charging, Coil, Activation, VG/PG" />
       </Card>
       <SaveBar onSave={() => save("productPage.save", {
@@ -241,7 +241,7 @@ export function CollectionPageTab({ data, save }: any) {
   return (
     <div>
       <p className="text-sm text-neutral-500 mb-4">
-        Collection page-er niyom: proti page-e koyta product, compare limit, sort option, puff filter, flavour family ar Shop All hero — khali rakhle ager niyom cholbe (12 per page, compare 3).
+        Collection page rules: how many products per page, compare limit, sort options, puff filter, flavour family and the Shop All hero — leave blank to keep the current rules (12 per page, compare 3).
       </p>
       <Card title="Paging & compare">
         <div className="grid sm:grid-cols-2 gap-3">
@@ -268,7 +268,7 @@ export function CollectionPageTab({ data, save }: any) {
       </Card>
       <Card title="Puff buckets (filter)">
         <JsonListEditor
-          label="ID → label → min puffs → max puffs (khali = kono sima nei)"
+          label="ID → label → min puffs → max puffs (blank = no limit)"
           rows={buckets}
           setRows={setBuckets}
           fields={[
@@ -357,7 +357,7 @@ export function ThemeTab({ data, save }: any) {
   return (
     <div>
       <p className="text-sm text-neutral-500 mb-4">
-        Header/footer-er lekha: search box-er placeholder, top-bar link, footer link group, newsletter lekha ar store logo — khali rakhle ager design-i thakbe.
+        Header/footer text: search box placeholder, top-bar link, footer link groups, newsletter text and store logo — leave blank to keep the current design.
       </p>
       <Card title="Header">
         <div className="grid gap-3">
@@ -366,7 +366,7 @@ export function ThemeTab({ data, save }: any) {
             <Inp value={placeholder} onChange={(e) => setPlaceholder(e.target.value)} placeholder="Search vapes, brands, flavours…" />
           </div>
           <div>
-            <Lbl>Store logo image URL (khali rakhle logo bodlabe na)</Lbl>
+            <Lbl>Store logo image URL (leave blank to keep the current logo)</Lbl>
             <Inp value={logoUrl} onChange={(e) => setLogoUrl(e.target.value)} placeholder="https://…" />
             <p className="text-xs text-neutral-500 mt-1">Current logo: {data.settings?.logoUrl ? "set in Shopify" : "theme file logo"}</p>
           </div>
@@ -383,7 +383,7 @@ export function ThemeTab({ data, save }: any) {
           />
         </div>
       </Card>
-      <Card title="Footer link groups" sub='Prottek group-er link-gulo alada line-e "Label|/url" akare likhun.'>
+      <Card title="Footer link groups" sub='Write the links for each group on separate lines as "Label|/url".'>
         <div className="space-y-3">
           {footerGroups.map((g, i) => (
             <div key={i} className="rounded-lg border border-neutral-100 p-3">
@@ -427,7 +427,7 @@ export function ThemeTab({ data, save }: any) {
         <Inp value={newsletter} onChange={(e) => setNewsletter(e.target.value)} placeholder="e.g. Get 10% off your first order" />
       </Card>
       <Card title="Site colour & fonts">
-        <p className="text-xs text-neutral-500 mb-3">Main colour bodlale header, button, dark section — sob jaiga bodle jabe. Gold accent sob theme-e eki thakbe. Save korar ~10 minute-er moddhe site-e dekhabe.</p>
+        <p className="text-xs text-neutral-500 mb-3">Changing the main colour changes the header, buttons and dark sections — everywhere. The gold accent stays the same in every theme. Changes show on the site about 10 minutes after saving.</p>
         <div className="grid gap-3">
           <div>
             <Lbl>Site-er main colour</Lbl>
@@ -533,7 +533,7 @@ export function HomeTab({ data, save }: any) {
   return (
     <div>
       <p className="text-sm text-neutral-500 mb-4">
-        Home page-er banner, category tile, features strip ar trust number — khali rakhle ager design/lekha-i thakbe. Section lukate chaile checkbox off korun.
+        Home page banner, category tiles, features strip and trust numbers — leave blank to keep the current design/text. To hide a section, turn its checkbox off.
       </p>
       <Card title="Promo banners" sub="The 2 banners on the home page. Leave the image blank to keep the current image. Leave the button link blank and the button will do nothing.">
         <JsonListEditor
@@ -551,7 +551,7 @@ export function HomeTab({ data, save }: any) {
           addLabel="Add banner"
         />
       </Card>
-      <Card title="Shop by Category tiles" sub="6-ti tile. Color khali rakhle ager gradient-i thakbe (e.g. from-emerald-900/80 to-black/90).">
+      <Card title="Shop by Category tiles" sub="6 tiles. Leave the colour blank to keep the current gradient (e.g. from-emerald-900/80 to-black/90).">
         <JsonListEditor
           label="Tile (title → subtitle → image → tag → gradient)"
           rows={tiles}
@@ -566,7 +566,7 @@ export function HomeTab({ data, save }: any) {
           addLabel="Add tile"
         />
       </Card>
-      <Card title="Features strip" sub="Icon nam: Truck, Headset, RotateCcw, CreditCard, ShieldCheck, Zap, Clock, Star.">
+      <Card title="Features strip" sub="Icon name: Truck, Headset, RotateCcw, CreditCard, ShieldCheck, Zap, Clock, Star.">
         <JsonListEditor
           label="Feature (icon → title → description)"
           rows={features}
@@ -692,9 +692,9 @@ export function InfoPagesTab({ data, save }: any) {
   return (
     <div>
       <p className="text-sm text-neutral-500 mb-4">
-        About/Contact page-er card ar hero subtitle — khali rakhle ager lekha-i thakbe. Icon nam: BadgeCheck, ShieldCheck, Truck, Headset, PackageCheck, Award, Timer, Phone, Mail, MapPin, Clock.
+        About/Contact page cards and hero subtitle — leave blank to keep the current text. Icon name: BadgeCheck, ShieldCheck, Truck, Headset, PackageCheck, Award, Timer, Phone, Mail, MapPin, Clock.
       </p>
-      <Card title="About — values (4-ti card)">
+      <Card title="About — values (4 cards)">
         <JsonListEditor
           label="Value (icon → title → text)"
           rows={values}
@@ -707,7 +707,7 @@ export function InfoPagesTab({ data, save }: any) {
           addLabel="Add value"
         />
       </Card>
-      <Card title="About — stats (3-ti)">
+      <Card title="About — stats (3)">
         <JsonListEditor
           label="Stat (icon → value → label)"
           rows={stats}
@@ -720,7 +720,7 @@ export function InfoPagesTab({ data, save }: any) {
           addLabel="Add stat"
         />
       </Card>
-      <Card title="Contact — cards (4-ti)">
+      <Card title="Contact — cards (4)">
         <JsonListEditor
           label="Card (icon → title → value → sub → link)"
           rows={cards}
@@ -740,7 +740,7 @@ export function InfoPagesTab({ data, save }: any) {
           {(["about", "contact", "privacy-policy", "terms-conditions"] as const).map((k) => (
             <div key={k}>
               <Lbl>{k}</Lbl>
-              <Inp value={subs[k] || ""} onChange={(e) => setSubs({ ...subs, [k]: e.target.value })} placeholder="Khali rakhle ager subtitle-i thakbe" />
+              <Inp value={subs[k] || ""} onChange={(e) => setSubs({ ...subs, [k]: e.target.value })} placeholder="Leave blank to keep the current subtitle" />
             </div>
           ))}
         </div>

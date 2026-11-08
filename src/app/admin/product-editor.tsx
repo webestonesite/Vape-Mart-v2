@@ -146,7 +146,7 @@ function LinkHelper({ value, onApply }: { value: string; onApply: (html: string)
   return (
     <div className="flex gap-1 col-span-3">
       <Inp placeholder="Link — https://…" value={url} onChange={(e) => setUrl(e.target.value)} />
-      <Inp placeholder="Kisher upor link" value={text} onChange={(e) => setText(e.target.value)} />
+      <Inp placeholder="Link text" value={text} onChange={(e) => setText(e.target.value)} />
       <button
         type="button"
         className="shrink-0 rounded-md bg-neutral-900 px-3 py-2 text-xs font-bold text-white"
@@ -643,7 +643,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
 
       <div className="max-w-3xl space-y-4">
         <Section n={1} title="Title">
-          <Inp value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="Product-er nam" />
+          <Inp value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="Product name" />
         </Section>
 
         <Section n={2} title="Description" hint="Shows on the product page in the store. Use the toolbar for bold, lists and links.">
@@ -651,11 +651,11 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
         </Section>
 
         <Section n={3} title="Meta title" hint="The title shown in Google search. Leave blank to use the product name.">
-          <Inp value={form.seoTitle} onChange={(e) => set("seoTitle", e.target.value)} placeholder="Search-er title" />
+          <Inp value={form.seoTitle} onChange={(e) => set("seoTitle", e.target.value)} placeholder="Search title" />
         </Section>
 
         <Section n={4} title="Meta description" hint="The short text shown under the title in Google search.">
-          <Inp value={form.seoDescription} onChange={(e) => set("seoDescription", e.target.value)} placeholder="Search-er chhoto biboron" />
+          <Inp value={form.seoDescription} onChange={(e) => set("seoDescription", e.target.value)} placeholder="Search short description" />
         </Section>
 
         <Section n={5} title="Product image" hint="The first image shows large in the store. Add alt text for each image — for Google and screen readers.">
@@ -720,7 +720,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
             <div key={oi} className="grid sm:grid-cols-[160px_1fr_auto] gap-2 mb-2">
               <Inp
                 value={o.name}
-                placeholder="Option nam"
+                placeholder="Option name"
                 onChange={(e) => setOptions(options.map((x: any, j: number) => (j === oi ? { ...x, name: e.target.value } : x)))}
               />
               <ValueChips
@@ -762,12 +762,12 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                     <div>
-                      <Lbl>Dam</Lbl>
-                      <Inp type="number" value={v.price ?? ""} onChange={(e) => setRowField(t, "price", e.target.value)} placeholder="Dam" />
+                      <Lbl>Price</Lbl>
+                      <Inp type="number" value={v.price ?? ""} onChange={(e) => setRowField(t, "price", e.target.value)} placeholder="Price" />
                     </div>
                     <div>
-                      <Lbl>Ager dam</Lbl>
-                      <Inp type="number" value={v.compareAtPrice ?? ""} onChange={(e) => setRowField(t, "compareAtPrice", e.target.value)} placeholder="Ager dam" />
+                      <Lbl>Old price</Lbl>
+                      <Inp type="number" value={v.compareAtPrice ?? ""} onChange={(e) => setRowField(t, "compareAtPrice", e.target.value)} placeholder="Old price" />
                     </div>
                     <div>
                       <Lbl>SKU</Lbl>
@@ -877,12 +877,12 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
           {liveOptions.length === 0 ? (
             <div className="grid sm:grid-cols-2 gap-3">
               <div>
-                <Lbl>Bikri dam (AED) *</Lbl>
-                <Inp type="number" value={simplePrice} onChange={(e) => setSimplePrice(e.target.value)} placeholder="Dam" />
+                <Lbl>Selling price (AED) *</Lbl>
+                <Inp type="number" value={simplePrice} onChange={(e) => setSimplePrice(e.target.value)} placeholder="Price" />
               </div>
               <div>
                 <Lbl>Old price (shown crossed out — optional)</Lbl>
-                <Inp type="number" value={simpleCompare} onChange={(e) => setSimpleCompare(e.target.value)} placeholder="Ager dam" />
+                <Inp type="number" value={simpleCompare} onChange={(e) => setSimpleCompare(e.target.value)} placeholder="Old price" />
               </div>
               <div>
                 <Lbl>Stock — how many are left</Lbl>
@@ -975,11 +975,11 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
           </div>
         </Section>
 
-        <Section n={10} title="Brand" hint="Brand, type ar tag — khali rakhleo cholbe.">
+        <Section n={10} title="Brand" hint="Brand, type and tags — leaving them blank is fine.">
           <div className="grid sm:grid-cols-2 gap-3">
             <div>
               <Lbl>Brand</Lbl>
-              <Inp value={form.vendor} onChange={(e) => set("vendor", e.target.value)} placeholder="Brand-er nam" />
+              <Inp value={form.vendor} onChange={(e) => set("vendor", e.target.value)} placeholder="Brand name" />
             </div>
             <div>
               <Lbl>Product type</Lbl>
@@ -997,7 +997,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
           </div>
         </Section>
 
-        <Section n={11} title="Dokane dekhabe?" hint="Live shows it in the store, draft is only visible to you, archived hides it from the store but does not delete it.">
+        <Section n={11} title="Show in the store?" hint="Live shows it in the store, draft is only visible to you, archived hides it from the store but does not delete it.">
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
@@ -1038,7 +1038,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
                   ) : (
                     <Inp
                       value={r.label}
-                      placeholder="Spec nam"
+                      placeholder="Spec name"
                       onChange={(e) => setSpecRows(specRows.map((x: any, j: number) => (j === i ? { ...x, label: e.target.value } : x)))}
                     />
                   )}
@@ -1138,13 +1138,13 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
           </div>
         </Section>
 
-        <Section n={14} title="FAQ" hint="Ei product-er nijer proshno-uttor. Product page-er FAQ section-e shobar age egulo dekhabe. Answer-e link bosano jabe.">
+        <Section n={14} title="FAQ" hint="This product's own questions and answers. They show first in the FAQ section on the product page. You can add a link in an answer.">
           <div className="space-y-3">
             {faqs.map((f: any, i: number) => (
               <div key={f.id || `new-${i}`} className="rounded-lg border border-neutral-200 p-3">
                 <div className="flex items-center gap-2 mb-2">
                   <Inp
-                    placeholder="Proshno"
+                    placeholder="Question"
                     value={f.question}
                     onChange={(e) => setFaqs(faqs.map((x: any, j: number) => (j === i ? { ...x, question: e.target.value } : x)))}
                   />
@@ -1159,7 +1159,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
                 <RichText
                   value={f.answer}
                   onChange={(v) => setFaqs(faqs.map((x: any, j: number) => (j === i ? { ...x, answer: v } : x)))}
-                  placeholder="Uttor"
+                  placeholder="Answer"
                   minHeight={80}
                 />
               </div>
@@ -1174,14 +1174,14 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
           </button>
         </Section>
 
-        <Section n={15} title="Review" hint="Ei product-er review. Product page-er review carousel-e dekhabe. Lekha-te link bosano jabe.">
+        <Section n={15} title="Review" hint="This product's reviews. They show in the review carousel on the product page. You can add a link in the text.">
           <div className="space-y-3">
             {reviews.map((r: any, i: number) => (
               <div key={r.id || `new-${i}`} className="rounded-lg border border-neutral-200 p-3">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="grid grid-cols-2 gap-2 flex-1">
                     <Inp
-                      placeholder="Nam"
+                      placeholder="Name"
                       value={r.author}
                       onChange={(e) => setReviews(reviews.map((x: any, j: number) => (j === i ? { ...x, author: e.target.value } : x)))}
                     />
@@ -1213,7 +1213,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
                   <RichText
                     value={r.body}
                     onChange={(v) => setReviews(reviews.map((x: any, j: number) => (j === i ? { ...x, body: v } : x)))}
-                    placeholder="Review lekha"
+                    placeholder="Review text"
                     minHeight={80}
                   />
                 </div>
