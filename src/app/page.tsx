@@ -862,9 +862,15 @@ export default function Home() {
   const cmsSlides = ((cms?.heroSlides ?? []) as any[])
     .filter((s) => s.title)
     .map((s) => ({
+      // Hero title line break: the CMS title field is single-line text, so
+      // it cannot hold "\n". " // " in a CMS title marks the accent line
+      // (rendered italic gold, no dash — like the doc). " — " keeps the old
+      // behaviour (accent line with a leading dash, as slide 1 has).
       title: String(s.title).includes("\n")
         ? s.title
-        : String(s.title).replace(" — ", "\n— "),
+        : String(s.title).includes(" // ")
+          ? String(s.title).replace(" // ", "\n")
+          : String(s.title).replace(" — ", "\n— "),
       desc: s.description || "",
       badge: s.badge || "",
       image: s.imageUrl || "/images/hero_slide_1.jpg",
