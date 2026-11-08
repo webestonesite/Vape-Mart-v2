@@ -1217,7 +1217,7 @@ export default function Home() {
             }}>
               {slides.map((slide, idx) => (
                 <div key={idx} className="w-full h-full flex items-center relative" style={{ width: `${100 / slides.length}%` }}>
-                  <div className="max-w-[1680px] mx-auto px-4 sm:px-8 md:px-8 w-full flex flex-col md:flex-row items-center justify-between pb-12 md:pb-0">
+                  <div className="max-w-[1520px] mx-auto px-4 sm:px-8 md:px-12 w-full flex flex-col md:flex-row items-center justify-between pb-12 md:pb-0">
                     {/* Content */}
                     <div className="w-full md:w-1/2 flex flex-col items-center md:items-start text-center md:text-left z-20 pt-4 md:pt-10">
                       <div className="inline-flex items-center gap-2 px-3.5 py-1 sm:px-4 sm:py-1.5 rounded-full bg-gradient-to-r from-amber-500/15 via-emerald-400/15 to-amber-500/15 border border-amber-400/30 mb-3 sm:mb-6 shadow-sm backdrop-blur-md">
@@ -1251,8 +1251,9 @@ export default function Home() {
                       </motion.a>
                     </div>
 
-                    {/* Image Showcase — pushed to the right on desktop (owner mark 2026-11-09) */}
-                    <div className="w-full md:w-1/2 h-[220px] sm:h-[320px] md:h-[460px] lg:h-[560px] relative z-10 flex items-center justify-center md:justify-end mt-4 md:mt-0 px-2 sm:px-4">
+                    {/* Image Showcase — centred in its half again (owner 2026-11-09: the
+                        far-right spread looked stretched, not beautiful like before) */}
+                    <div className="w-full md:w-1/2 h-[220px] sm:h-[320px] md:h-[460px] lg:h-[560px] relative z-10 flex items-center justify-center mt-4 md:mt-0 px-2 sm:px-4">
                       <div className="relative w-full max-w-[260px] sm:max-w-[360px] md:max-w-[480px] aspect-square rounded-[24px] sm:rounded-[36px] overflow-hidden shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] border-2 border-emerald-400/20 group/heroImg backdrop-blur-sm bg-black/20">
                         <Image
                           src={slide.image}
