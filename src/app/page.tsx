@@ -1173,9 +1173,12 @@ export default function Home() {
       {/* Global Unified Header Component */}
       <Header />
 
-      {/* Hero Section — CMS slides only, no fallback (owner decision 2026-11-09) */}
+      {/* Hero Section — height follows the tallest slide (owner report 2026-11-09:
+          fixed 650/700px clipped the button + last text lines under the wave).
+          Track is in-flow so the section grows with content; pb-20 keeps the
+          content clear of the bottom wave. No fallback slides (2026-11-09). */}
       {slides.length > 0 && (<section
-        className="relative w-full min-h-[580px] sm:min-h-[640px] md:h-[650px] lg:h-[700px] overflow-hidden bg-gradient-to-br from-[#064e3b] via-[#022c22] to-[#064e3b] select-none"
+        className="relative w-full min-h-[580px] sm:min-h-[640px] md:min-h-[680px] lg:min-h-[720px] overflow-hidden bg-gradient-to-br from-[#064e3b] via-[#022c22] to-[#064e3b] select-none pb-20"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         style={{ order: homeSecOrder("hero") }}
@@ -1205,8 +1208,9 @@ export default function Home() {
             <ChevronRight size={22} />
           </motion.button>
 
-          {/* Swipe Track for Content and Image */}
-          <div className="absolute inset-0 z-20">
+          {/* Swipe Track for Content and Image — in-flow (not absolute) so the
+              section height follows the tallest slide's content */}
+          <div className="relative z-20">
             <div className="flex h-full transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]" style={{
               width: `${slides.length * 100}%`,
               transform: `translateX(-${(currentSlide * 100) / slides.length}%)`,
@@ -1222,7 +1226,7 @@ export default function Home() {
                           {slide.badge}
                         </span>
                       </div>
-                      <h1 className="font-luxury text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-[68px] font-extrabold text-white leading-[1.12] mb-3 sm:mb-6 tracking-tight drop-shadow-[0_4px_30px_rgba(0,0,0,0.6)]">
+                      <h1 className="font-luxury text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-[56px] font-extrabold text-white leading-[1.12] mb-3 sm:mb-4 tracking-tight drop-shadow-[0_4px_30px_rgba(0,0,0,0.6)]">
                         {slide.title.split('\n')[0]}
                         {slide.title.split('\n')[1] && (
                           <span className="block mt-1 sm:mt-2 font-luxury italic font-semibold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-100 drop-shadow-[0_2px_15px_rgba(245,158,11,0.3)]">
@@ -1230,7 +1234,7 @@ export default function Home() {
                           </span>
                         )}
                       </h1>
-                      <p className="text-xs sm:text-sm md:text-base lg:text-lg text-emerald-50/85 leading-relaxed mb-6 sm:mb-10 max-w-sm sm:max-w-lg font-normal tracking-wide line-clamp-3 sm:line-clamp-none">
+                      <p className="text-xs sm:text-sm md:text-base lg:text-lg text-emerald-50/85 leading-relaxed mb-6 sm:mb-8 max-w-sm sm:max-w-lg font-normal tracking-wide line-clamp-3 sm:line-clamp-none">
                         {slide.desc}
                       </p>
                       <motion.a
