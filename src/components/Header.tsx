@@ -232,12 +232,12 @@ export function Header({ onCartClick, cartCount = 0 }: HeaderProps) {
             <a
               href={
                 headerData?.topBar?.phoneHref ||
-                `tel:${headerData?.topBar?.phone?.replace(/[^0-9+]/g, "") || "+971551688299"}`
+                `tel:${headerData?.topBar?.phone?.replace(/[^0-9+]/g, "") || "+971551103401"}`
               }
               className="flex items-center gap-1.5 text-emerald-100 hover:text-amber-300 font-semibold transition-colors no-underline"
             >
               <Phone size={12} className="text-amber-400 shrink-0" />
-              <span>{headerData?.topBar?.phone || "+971 55 168 8299"}</span>
+              <span>{headerData?.topBar?.phone || "+971 55 110 3401"}</span>
             </a>
             {(
               headerData?.topBar?.links || [
@@ -719,7 +719,7 @@ export function Header({ onCartClick, cartCount = 0 }: HeaderProps) {
                   </div>
                   <div className="flex items-center gap-2.5 text-xs text-emerald-200/80">
                     <Phone size={14} className="text-emerald-400" />
-                    <span>Support: +971 55 168 8299</span>
+                    <span>Support: +971 55 110 3401</span>
                   </div>
                 </div>
               </div>

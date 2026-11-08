@@ -73,7 +73,7 @@ export function CartDrawer({
       .catch(() => {});
   }, []);
   const checkout = checkoutSettings?.checkout || {};
-  const waPhone = (checkoutSettings?.phone || "+971 55 168 8299").replace(/[^0-9]/g, "");
+  const waPhone = (checkoutSettings?.phone || "+971 55 110 3401").replace(/[^0-9]/g, "");
   const cityPromises = checkout.cityPromises?.length ? checkout.cityPromises : DEFAULT_CITIES;
   const paymentLabel = (key: string, fallback: string) =>
     (checkout.paymentLabels || []).find((l: any) => l.key === key)?.label || fallback;

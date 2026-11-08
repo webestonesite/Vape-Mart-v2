@@ -51,7 +51,7 @@ interface CollectionPageViewProps {
   catalogProducts?: ProductItem[];
 }
 
-const WHATSAPP_LINK = "https://wa.me/971551688299?text=Hi%20Vape%20Mart!%20I%20need%20help%20choosing%20a%20vape.";
+const WHATSAPP_LINK = "https://wa.me/971551103401?text=Hi%20Vape%20Mart!%20I%20need%20help%20choosing%20a%20vape.";
 const ITEMS_PER_PAGE = 12;
 
 interface RecentItem { slug: string; title: string; brand: string; price: number; primaryImage: string; }
