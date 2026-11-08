@@ -874,6 +874,8 @@ export default function Home() {
       desc: s.description || "",
       badge: s.badge || "",
       image: s.imageUrl || "/images/hero_slide_1.jpg",
+      buttonText: s.buttonText || "Explore Collection",
+      buttonLink: s.buttonLink || "/collections",
     }));
   const cmsSection = (key: string) =>
     ((cms?.homeSections ?? []) as any[]).find((s) => s.key === key);
@@ -1020,24 +1022,32 @@ export default function Home() {
       desc: "Shop premium disposable vapes, pod systems, and starter kits from top brands. Delivered anywhere in Dubai & UAE.",
       badge: "Exclusive Offer up to 10% OFF",
       image: "/images/hero_slide_1.jpg",
+      buttonText: "Explore Collection",
+      buttonLink: "/collections",
     },
     {
       title: "New Arrivals: Premium Pods\nCompact & Powerful",
       desc: "Upgrade your vaping experience with the latest pod systems. Long battery life and intense flavor production.",
       badge: "New Arrivals",
       image: "/images/hero_slide_2.jpg",
+      buttonText: "Explore Collection",
+      buttonLink: "/collections",
     },
     {
       title: "Best E-Liquids of 2026\nTaste the Difference",
       desc: "Explore our new collection of premium e-liquids featuring exotic fruit blends and classic tobacco flavors.",
       badge: "Top Rated",
       image: "/images/hero_slide_3.jpg",
+      buttonText: "Explore Collection",
+      buttonLink: "/collections",
     },
     {
       title: "Mega Sale on Starter Kits\nBegin Your Journey",
       desc: "Perfect for beginners. Get everything you need to start vaping at an unbeatable price today.",
       badge: "Flash Sale",
       image: "/images/hero_slide_4.jpg",
+      buttonText: "Explore Collection",
+      buttonLink: "/collections",
     }
   ];
 
@@ -1253,17 +1263,18 @@ export default function Home() {
                       <p className="text-xs sm:text-sm md:text-base lg:text-lg text-emerald-50/85 leading-relaxed mb-6 sm:mb-10 max-w-sm sm:max-w-lg font-normal tracking-wide line-clamp-3 sm:line-clamp-none">
                         {slide.desc}
                       </p>
-                      <motion.button
+                      <motion.a
+                        href={slide.buttonLink || "/collections"}
                         whileHover={{ scale: 1.05, y: -2 }}
                         whileTap={{ scale: 0.95 }}
                         className="group relative bg-white text-[#064e3b] px-7 py-3 sm:px-9 sm:py-4 rounded-full font-extrabold text-sm sm:text-base hover:bg-emerald-50 transition-all duration-300 shadow-[0_10px_30px_rgba(255,255,255,0.2)] hover:shadow-[0_15px_40px_rgba(52,211,153,0.35)] flex items-center gap-2.5 sm:gap-3 overflow-hidden cursor-pointer"
                       >
-                        <span className="relative z-10">Explore Collection</span>
+                        <span className="relative z-10">{slide.buttonText || "Explore Collection"}</span>
                         <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#064e3b] text-white flex items-center justify-center relative z-10 group-hover:scale-110 group-hover:bg-[#022c22] transition-all">
                           <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
                         </div>
                         <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-emerald-400/20 to-transparent pointer-events-none"></span>
-                      </motion.button>
+                      </motion.a>
                     </div>
 
                     {/* Image Showcase */}
