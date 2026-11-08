@@ -1374,7 +1374,7 @@ export default function Home() {
               <div className="h-px w-12 sm:w-16 bg-gradient-to-l from-transparent to-[#064e3b]"></div>
             </div>
             <p className="text-neutral-500 max-w-2xl text-xs sm:text-[15px] leading-relaxed">
-              Discover our carefully curated collection of premium vaping products designed for the ultimate experience.
+              Not sure where to start? Just pick what you use and you&apos;re straight to genuine stock in Dubai, priced in AED, with fast delivery across the UAE.
             </p>
           </motion.div>
 
@@ -1576,7 +1576,7 @@ export default function Home() {
               Signature Flavours
             </h2>
             <p className="text-neutral-600 text-sm sm:text-base max-w-xl">
-              Rotate the artisan dial to explore hand-crafted tasting notes, sensory sweetness, and cooling ice profiles.
+              Turn the dial and find your flavour. If you&apos;re not sure where to start, pick the one that sounds like you and go from there.
             </p>
           </div>
 
@@ -1841,7 +1841,7 @@ export default function Home() {
                 <HelpCircle size={26} color="#fff" />
               </div>
               <h3 className="font-luxury text-xl sm:text-2xl font-bold text-neutral-900 mb-3 sm:mb-4">Still have questions?</h3>
-              <p className="text-neutral-500 text-sm mb-6 sm:mb-8 leading-relaxed">Can&apos;t find the answer you&apos;re looking for? Our support team is happy to help you with any inquiries.</p>
+              <p className="text-neutral-500 text-sm mb-6 sm:mb-8 leading-relaxed">Can&apos;t find the answer you&apos;re looking for? Message us and we&apos;ll help you pick the right device, flavour and strength.</p>
               <motion.button
                 whileHover={{ scale: 1.04, y: -2 }}
                 whileTap={{ scale: 0.96 }}
@@ -1906,7 +1906,7 @@ export default function Home() {
               Official Authorized Premium Retailer
             </h2>
             <p className="text-emerald-100/80 text-xs sm:text-sm md:text-base leading-relaxed">
-              Directly partnered with global leaders to ensure 100% genuine hardware, verifiable security codes, and tamper-proof packaging.
+              Vape Mart works directly with global brands, so you get 100% genuine hardware, verifiable security codes, and tamper-proof packaging. No fakes, no guesswork, just original products you can trust, from an authentic vape shop in Dubai.
             </p>
           </motion.div>
 
@@ -2023,7 +2023,7 @@ export default function Home() {
               Vape Culture <span className="font-luxury text-[#064e3b]">&</span> Insights
             </h2>
             <p className="text-neutral-500 text-xs sm:text-sm md:text-base mt-2 max-w-xl">
-              Immerse yourself in expert masterclasses, flavor science, and the latest vaping trends across UAE.
+              Read clear, practical guides on the devices and flavours here, so you can choose with confidence instead of guessing.
             </p>
           </div>
 
