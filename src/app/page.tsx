@@ -1095,16 +1095,33 @@ export default function Home() {
   const [activeArcIdx, setActiveArcIdx] = useState<number>(0);
   const [isArcAutoplay, setIsArcAutoplay] = useState<boolean>(true);
   const isArcHovered = useRef<boolean>(false);
+  // Pause the dial when its section scrolls off-screen (CLS 2026-11-09): the
+  // detail panel re-renders every 1.3s and its height can change by a few px,
+  // which shifted the SEO section and footer below it while the user read
+  // them. When the dial is visible the rotation is expected and local.
+  const flavorsSectionRef = useRef<HTMLElement | null>(null);
+  const [isFlavorsVisible, setIsFlavorsVisible] = useState<boolean>(true);
 
   useEffect(() => {
-    if (!isArcAutoplay) return;
+    const el = flavorsSectionRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const obs = new IntersectionObserver(
+      ([entry]) => setIsFlavorsVisible(entry.isIntersecting),
+      { threshold: 0 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!isArcAutoplay || !isFlavorsVisible) return;
     const timer = setInterval(() => {
       if (!isArcHovered.current) {
         setActiveArcIdx((prev) => (prev + 1) % flavorsData.length);
       }
     }, 1300);
     return () => clearInterval(timer);
-  }, [isArcAutoplay]);
+  }, [isArcAutoplay, isFlavorsVisible]);
 
   const currentArcFlavor = flavorsData[activeArcIdx] || flavorsData[0];
 
@@ -1581,6 +1598,7 @@ export default function Home() {
         {/* Option 2: Luxury 3D Arc Dial Section (Vibrant Light Luxury Edition) */}
         <motion.section
           id="flavors"
+          ref={flavorsSectionRef}
           className="relative max-w-[1380px] w-full mx-auto px-4 sm:px-6 my-16 md:my-24 select-none"
           initial="hidden"
           whileInView="visible"
