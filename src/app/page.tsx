@@ -1016,48 +1016,18 @@ export default function Home() {
     { title: "KIEF King 35000 Puffs Disposable Vape", price: "45.00", oldPrice: "", discount: "" },
   ]);
 
-  const defaultSlides = [
-    {
-      title: "Buy Authentic Vape in Dubai\n— Fast Delivery, Best Prices",
-      desc: "Shop premium disposable vapes, pod systems, and starter kits from top brands. Delivered anywhere in Dubai & UAE.",
-      badge: "Exclusive Offer up to 10% OFF",
-      image: "/images/hero_slide_1.jpg",
-      buttonText: "Explore Collection",
-      buttonLink: "/collections",
-    },
-    {
-      title: "New Arrivals: Premium Pods\nCompact & Powerful",
-      desc: "Upgrade your vaping experience with the latest pod systems. Long battery life and intense flavor production.",
-      badge: "New Arrivals",
-      image: "/images/hero_slide_2.jpg",
-      buttonText: "Explore Collection",
-      buttonLink: "/collections",
-    },
-    {
-      title: "Best E-Liquids of 2026\nTaste the Difference",
-      desc: "Explore our new collection of premium e-liquids featuring exotic fruit blends and classic tobacco flavors.",
-      badge: "Top Rated",
-      image: "/images/hero_slide_3.jpg",
-      buttonText: "Explore Collection",
-      buttonLink: "/collections",
-    },
-    {
-      title: "Mega Sale on Starter Kits\nBegin Your Journey",
-      desc: "Perfect for beginners. Get everything you need to start vaping at an unbeatable price today.",
-      badge: "Flash Sale",
-      image: "/images/hero_slide_4.jpg",
-      buttonText: "Explore Collection",
-      buttonLink: "/collections",
-    }
-  ];
-
-  const slides = cmsSlides.length ? cmsSlides : defaultSlides;
+  // No hardcoded fallback slides (owner decision 2026-11-09): the hero
+  // shows only the CMS hero_slide metaobjects. When the CMS has no
+  // slides, the hero section does not render at all.
+  const slides = cmsSlides;
 
   const nextSlide = useCallback(() => {
+    if (slides.length === 0) return;
     setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
   }, [slides.length]);
 
   const prevSlide = useCallback(() => {
+    if (slides.length === 0) return;
     setCurrentSlide((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
   }, [slides.length]);
 
@@ -1203,8 +1173,8 @@ export default function Home() {
       {/* Global Unified Header Component */}
       <Header />
 
-      {/* Hero Section */}
-      <section
+      {/* Hero Section — CMS slides only, no fallback (owner decision 2026-11-09) */}
+      {slides.length > 0 && (<section
         className="relative w-full min-h-[580px] sm:min-h-[640px] md:h-[650px] lg:h-[700px] overflow-hidden bg-gradient-to-br from-[#064e3b] via-[#022c22] to-[#064e3b] select-none"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
@@ -1316,7 +1286,7 @@ export default function Home() {
               ></button>
             ))}
           </div>
-        </section>
+        </section>)}
 
         {/* Ultra-Premium Promo Banners Section */}
         {homeVisible("banners") && (<motion.section
