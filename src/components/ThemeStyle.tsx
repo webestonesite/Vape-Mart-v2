@@ -56,14 +56,14 @@ const PRESETS: Record<string, Record<string, string>> = {
 };
 
 const HEADING_STACKS: Record<string, string> = {
-  cinzel: "'Cinzel', serif",
+  cinzel: "var(--font-cinzel), 'Cinzel', serif",
   outfit: "var(--font-outfit), 'Outfit', sans-serif",
 };
 
 const BODY_STACKS: Record<string, string> = {
   inter: "var(--font-inter), 'Inter', sans-serif",
   outfit: "var(--font-outfit), 'Outfit', sans-serif",
-  poppins: "'Poppins', sans-serif",
+  poppins: "var(--font-poppins), 'Poppins', sans-serif",
 };
 
 // Literal brand hex -> emerald shade it stands for.

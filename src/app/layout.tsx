@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Outfit, Playfair_Display } from "next/font/google";
+import { Inter, Outfit, Playfair_Display, Cinzel, Poppins } from "next/font/google";
 import ThemeStyle from "@/components/ThemeStyle";
 import "./globals.css";
 
@@ -10,6 +10,20 @@ const playfair = Playfair_Display({
   variable: "--font-playfair",
   weight: ["500", "600", "700", "800", "900"],
   style: ["normal", "italic"],
+});
+// Cinzel and Poppins used to load from Google Fonts CDN (plain <link> / CSS
+// @import) with display=swap and no size-adjusted fallback, so every swap
+// reflowed text and shifted the layout. Self-hosting them through next/font
+// gives them the same size-adjusted fallback metrics as the other fonts.
+const cinzel = Cinzel({
+  subsets: ["latin"],
+  variable: "--font-cinzel",
+  weight: ["600", "700", "800", "900"],
+});
+const poppins = Poppins({
+  subsets: ["latin"],
+  variable: "--font-poppins",
+  weight: ["300", "400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
@@ -46,15 +60,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&display=swap"
-        />
         <ThemeStyle />
       </head>
-      <body className={`${inter.variable} ${outfit.variable} ${playfair.variable}`}>
+      <body className={`${inter.variable} ${outfit.variable} ${playfair.variable} ${cinzel.variable} ${poppins.variable}`}>
         {children}
       </body>
     </html>
