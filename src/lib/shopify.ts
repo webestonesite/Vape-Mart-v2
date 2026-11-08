@@ -84,14 +84,31 @@ async function shopifyAdmin<T>(query: string, variables: Record<string, unknown>
       next: { revalidate },
     });
 
-  let res = await doRequest(await getShopifyAccessToken());
-  if (res.status === 401) {
-    // Token rejected (expired/revoked): drop the cache, mint a fresh one, retry once.
-    invalidateShopifyTokenCache();
-    res = await doRequest(await getShopifyAccessToken(true));
+  const once = async (): Promise<{ res: Response; json: any }> => {
+    let res = await doRequest(await getShopifyAccessToken());
+    if (res.status === 401) {
+      // Token rejected (expired/revoked): drop the cache, mint a fresh one, retry once.
+      invalidateShopifyTokenCache();
+      res = await doRequest(await getShopifyAccessToken(true));
+    }
+    if (!res.ok) return { res, json: null };
+    return { res, json: await res.json() };
+  };
+  // Shopify answers a throttled query with HTTP 429, or with HTTP 200 and
+  // a "Throttled" GraphQL error (cost over the available bucket).
+  const isThrottle = (res: Response, json: any) =>
+    res.status === 429 || (json?.errors && /throttl/i.test(JSON.stringify(json.errors)));
+
+  let { res, json } = await once();
+  if (isThrottle(res, json)) {
+    // The bucket refills over seconds, so wait briefly and try once more
+    // instead of failing the whole read. (2026-11-09: the live
+    // /api/site-content went empty for hours because a throttled meta/blog
+    // read had no retry and the empty result kept being served.)
+    await new Promise((r) => setTimeout(r, 2500));
+    ({ res, json } = await once());
   }
   if (!res.ok) throw new Error(`Shopify Admin API HTTP ${res.status}`);
-  const json = await res.json();
   if (json.errors) throw new Error(`Shopify GraphQL errors: ${JSON.stringify(json.errors).slice(0, 500)}`);
   return json.data as T;
 }
@@ -860,7 +877,7 @@ export async function fetchBlogPosts(): Promise<BlogPost[]> {
   const out: BlogPost[] = [];
   let after: string | null = null;
   for (let page = 0; page < 3; page++) {
-    const data: any = await shopifyAdmin<any>(BLOG_QUERY, { id: BLOG_ID, first: 50, after }, 600);
+    const data: any = await shopifyAdmin<any>(BLOG_QUERY, { id: BLOG_ID, first: 10, after }, 600);
     const conn: any = data.blog?.articles;
     if (!conn) break;
     out.push(...conn.nodes.map((n: any) => toBlogPost(n)));
@@ -877,7 +894,7 @@ export async function fetchBlogPost(handle: string): Promise<BlogPost | null> {
   // field), so scan the blog's articles and match the handle client-side.
   let after: string | null = null;
   for (let page = 0; page < 3; page++) {
-    const data: any = await shopifyAdmin<any>(BLOG_QUERY, { id: BLOG_ID, first: 50, after }, 600);
+    const data: any = await shopifyAdmin<any>(BLOG_QUERY, { id: BLOG_ID, first: 10, after }, 600);
     const conn: any = data.blog?.articles;
     if (!conn) return null;
     const node = conn.nodes.find((n: any) => n.handle === handle);
@@ -998,10 +1015,10 @@ const SITE_CONTENT_META_QUERY_A = `
         imageRef: field(key: "image") { reference { ... on MediaImage { image { url } } } }
       }
     }
-    testimonials: metaobjects(type: "testimonial", first: 20) {
+    testimonials: metaobjects(type: "testimonial", first: 12) {
       nodes { id fields { key value } }
     }
-    faqItems: metaobjects(type: "faq_item", first: 20) {
+    faqItems: metaobjects(type: "faq_item", first: 12) {
       nodes { id fields { key value } }
     }
   }
@@ -1016,7 +1033,7 @@ const SITE_CONTENT_META_QUERY_B = `
         }
       }
     }
-    showcaseCards: metaobjects(type: "showcase_card", first: 40) {
+    showcaseCards: metaobjects(type: "showcase_card", first: 24) {
       nodes { id fields { key value } }
     }
   }
