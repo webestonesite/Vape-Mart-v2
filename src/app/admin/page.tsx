@@ -472,7 +472,7 @@ function DashboardTab({ data, stats, go }: any) {
         </div>
       </div>
       <p className="text-xs text-neutral-500 mt-4">
-        Save korle site-e 5–10 minute-er moddhe update hoy (cache). Panel theke shob save Shopify-tei jay.
+        Saving updates the site within 5–10 minutes (cache). Everything saved here goes to Shopify.
       </p>
     </div>
   );

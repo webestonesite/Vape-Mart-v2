@@ -218,7 +218,7 @@ export function CollectionsTab({ data, notify, reload }: any) {
           </tbody>
         </table>
       </div>
-      <p className="text-xs text-neutral-500 mt-3">Collection-e product add/remove korte product editor-er Collections box use koro.</p>
+      <p className="text-xs text-neutral-500 mt-3">To add or remove products from a collection, use the Collections box in the product editor.</p>
     </div>
   );
 }
@@ -246,7 +246,7 @@ export function OrdersTab({ data, notify, reload }: any) {
 
   const doFulfill = async () => {
     if (!detail) return;
-    if (!window.confirm(`${detail.name} order-ta fulfilled hishebe mark korbo? Customer-ke janano hobe.`)) return;
+    if (!window.confirm(`${detail.name} Mark this order as fulfilled? The customer will be notified.`)) return;
     setBusy(true);
     const r = await api({ action: "order.fulfill", id: detail.id });
     setBusy(false);
@@ -337,19 +337,19 @@ export function OrdersTab({ data, notify, reload }: any) {
         <div className="flex flex-wrap gap-2">
           {canFulfill && (
             <button type="button" disabled={busy} onClick={doFulfill} className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-800 disabled:opacity-50">
-              {busy ? "Kaj hocche…" : "Fulfil order"}
+              {busy ? "Working…" : "Fulfil order"}
             </button>
           )}
           {refundable > 0 && (
             <button type="button" disabled={busy} onClick={doRefund} className="rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-sm font-bold text-red-700 hover:bg-red-100 disabled:opacity-50">
-              {busy ? "Kaj hocche…" : `Refund full amount (${detail.currency} ${refundable.toFixed(2)})`}
+              {busy ? "Working…" : `Refund full amount (${detail.currency} ${refundable.toFixed(2)})`}
             </button>
           )}
           {!canFulfill && refundable <= 0 && (
-            <p className="text-sm text-neutral-500">Ei order-e ar fulfil ba refund korar kichu nai.</p>
+            <p className="text-sm text-neutral-500">There is nothing left to fulfil or refund on this order.</p>
           )}
         </div>
-        <p className="text-xs text-neutral-500 mt-3">Partial refund (koyekta item ba kichu taka) korte Shopify admin use koro — panel-e shudhu puro refund hoy.</p>
+        <p className="text-xs text-neutral-500 mt-3">For a partial refund (a few items or an amount), use Shopify admin — this panel only does full refunds.</p>
       </div>
     );
   }

@@ -72,7 +72,7 @@ export function ProductReviewsTab({ data, save }: any) {
   return (
     <div>
       <p className="text-sm text-neutral-500 mb-4">
-        Prottek product-er jonno alada review likhun — egulo product page-er Customer Reviews carousel-e dekhabe.
+        Write a separate review for each product — they will show in the Customer Reviews carousel on the product page.
         Age ei section-ta konodin dekha jeto na, karon review-er kono data model chilo na.
       </p>
       <Card title="Add / edit review" right={editing && <button onClick={resetForm} className="text-xs font-semibold text-neutral-500 inline-flex items-center gap-1"><X size={13} /> Cancel edit</button>}>
@@ -233,8 +233,8 @@ export function CollectionsManager({ data, notify, reload }: any) {
                 <option value="BEST_SELLING">Best selling</option>
                 <option value="ALPHA_ASC">Name A–Z</option>
                 <option value="ALPHA_DESC">Name Z–A</option>
-                <option value="PRICE">Price kom → beshi</option>
-                <option value="PRICE_DESC">Price beshi → kom</option>
+                <option value="PRICE">Price: low to high</option>
+                <option value="PRICE_DESC">Price: high to low</option>
                 <option value="CREATED">Oldest first</option>
                 <option value="CREATED_DESC">Newest first</option>
               </select>
@@ -314,8 +314,8 @@ export function CollectionsManager({ data, notify, reload }: any) {
           <option value="BEST_SELLING">Best selling</option>
           <option value="ALPHA_ASC">Name A–Z</option>
           <option value="ALPHA_DESC">Name Z–A</option>
-          <option value="PRICE">Price kom → beshi</option>
-          <option value="PRICE_DESC">Price beshi → kom</option>
+          <option value="PRICE">Price: low to high</option>
+          <option value="PRICE_DESC">Price: high to low</option>
           <option value="CREATED">Oldest first</option>
           <option value="CREATED_DESC">Newest first</option>
         </select>
@@ -416,7 +416,7 @@ export function MediaTab({ data, notify, reload }: any) {
   return (
     <div>
       <p className="text-sm text-neutral-500 mb-4">
-        Store-er file library (panel theke upload kora chobi + Shopify Files). Chobi delete korle jekhane bebohar hoyeche sekhane vangte pare — sabdhane delete korun.
+        Store file library (images uploaded from the panel + Shopify Files). Deleting an image can break the places where it is used — please delete carefully.
       </p>
       <div className="relative mb-4">
         <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />

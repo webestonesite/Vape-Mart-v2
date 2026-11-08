@@ -159,7 +159,7 @@ export function ProductPageTab({ data, save }: any) {
       <p className="text-sm text-neutral-500 mb-4">
         Product page-er trust badge, shipping/return lekha ar spec table-er order — khali rakhle ager lekha/order-i thakbe.
       </p>
-      <Card title="Trust badges (buy box-er niche 4-ti)">
+      <Card title="Trust badges (the 4 under the buy box)">
         <JsonListEditor
           label="Icon name → title → subtitle"
           rows={badges}
@@ -271,7 +271,7 @@ export function CollectionPageTab({ data, save }: any) {
           ]}
         />
       </Card>
-      <Card title="Shop All hero (category chara page-er hero lekha)">
+      <Card title="Shop All hero (hero text for the page without a category)">
         <div className="grid gap-3">
           <div>
             <Lbl>Title</Lbl>
@@ -444,7 +444,7 @@ export function ThemeTab({ data, save }: any) {
         </div>
       </Card>
       <Card title="Mega-menu promo banner (DISPOSABLE)">
-        <p className="text-xs text-neutral-500 mb-3">DISPOSABLE menu khulle niche je promo banner dekhay — title khali rakhle banner dekhabe na.</p>
+        <p className="text-xs text-neutral-500 mb-3">The promo banner shown under the DISPOSABLE menu — leave the title blank to hide the banner.</p>
         <div className="grid gap-3">
           <div>
             <Lbl>Badge</Lbl>
@@ -515,7 +515,7 @@ export function HomeTab({ data, save }: any) {
       <p className="text-sm text-neutral-500 mb-4">
         Home page-er banner, category tile, features strip ar trust number — khali rakhle ager design/lekha-i thakbe. Section lukate chaile checkbox off korun.
       </p>
-      <Card title="Promo banners" sub="Home page-er 2-ti banner. Image khali rakhle ager chhobi-i thakbe. Button link khali rakhle button kichu korbe na.">
+      <Card title="Promo banners" sub="The 2 banners on the home page. Leave the image blank to keep the current image. Leave the button link blank and the button will do nothing.">
         <JsonListEditor
           label="Banner (eyebrow → title → description → button text → button link → image URL)"
           rows={banners}
@@ -571,7 +571,7 @@ export function HomeTab({ data, save }: any) {
           </div>
         </div>
       </Card>
-      <Card title="Section visibility" sub="Off korle sei section home page-e dekhabe na. Default shob on.">
+      <Card title="Section visibility" sub="Turn a section off and it will not show on the home page. All are on by default.">
         <div className="space-y-2">
           {[
             { key: "banners", label: "Promo banners" },
@@ -586,7 +586,7 @@ export function HomeTab({ data, save }: any) {
           ))}
         </div>
       </Card>
-      <Card title="Section order" sub="Upore-niche button diye home page-er section-gulor serial bodlan. Save korar ~10 minute-er moddhe site-e dekhabe. Design bodlabe na, shudhu serial bodlabe.">
+      <Card title="Section order" sub="Use the up and down buttons to change the order of the home page sections. Changes show on the site about 10 minutes after saving. Only the order changes, not the design.">
         <div className="space-y-2">
           {order.map((id, i) => {
             const label = HOME_SECTIONS.find((x) => x.id === id)?.label || id;
@@ -623,9 +623,9 @@ export function BlogSettingsTab({ data, save }: any) {
   return (
     <div>
       <p className="text-sm text-neutral-500 mb-4">
-        Blog-er category filter list ar protita category-r badge rong. Rong shudhu ei palette theke beche nin (Tailwind class): bg-emerald-600, bg-red-600, bg-blue-600, bg-amber-500, bg-teal-600, bg-purple-600, bg-rose-600, bg-orange-500, bg-cyan-600, bg-slate-600.
+        The blog category filter list and each category's badge colour. Pick colours only from this palette (Tailwind class): bg-emerald-600, bg-red-600, bg-blue-600, bg-amber-500, bg-teal-600, bg-purple-600, bg-rose-600, bg-orange-500, bg-cyan-600, bg-slate-600.
       </p>
-      <Card title="Categories (proti line-e ekti)">
+      <Card title="Categories (one per line)">
         <TA rows={6} value={catsText} onChange={(e) => setCatsText(e.target.value)} placeholder={"Buying Guides\nSafety\nEducation\nRegulations"} />
       </Card>
       <Card title="Category badge colors">
