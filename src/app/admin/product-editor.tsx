@@ -131,7 +131,7 @@ function LinkHelper({ value, onApply }: { value: string; onApply: (html: string)
     return (
       <button
         type="button"
-        title="Link bosao"
+        title="Insert link"
         className="rounded-md border border-neutral-300 bg-white px-2 py-2 text-neutral-700 hover:bg-neutral-50"
         onClick={() => {
           setText(stripTags(value));
@@ -161,7 +161,7 @@ function LinkHelper({ value, onApply }: { value: string; onApply: (html: string)
           setOpen(false);
         }}
       >
-        Bosao
+        Insert
       </button>
       <button
         type="button"
@@ -396,7 +396,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
   };
   const deleteTuple = (tuple: string[]) => {
     if (visibleCombos().length <= 1 && tuple.length === 0) {
-      notify("Ekta variant ontoto rakhte hobe — shob delete kora jabe na.");
+      notify("Keep at least one variant — you cannot delete them all.");
       return;
     }
     const m = matchVariant(tuple);
@@ -569,7 +569,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
       const newWithValues = newFromCombos.map((nv: any) => ({ ...nv, optionValues: toOptionValues(nv.options || []) }));
       if (kept.length === 0 && newFromCombos.length === 0) {
         setSaving(false);
-        notify("Ekta variant ontoto rakhte hobe — age ekta combination-er dam dao.");
+        notify("Keep at least one variant — set a price for a combination first.");
         return;
       }
       r = await api({
@@ -646,26 +646,26 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
           <Inp value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="Product-er nam" />
         </Section>
 
-        <Section n={2} title="Description" hint="Dokane product page-e dekhabe. Toolbar diye bold, list ar link bosano jabe.">
-          <RichText value={form.descriptionHtml} onChange={(v) => set("descriptionHtml", v)} placeholder="Product-ta ki, keno valo — 2-3 line-e likho" minHeight={140} />
+        <Section n={2} title="Description" hint="Shows on the product page in the store. Use the toolbar for bold, lists and links.">
+          <RichText value={form.descriptionHtml} onChange={(v) => set("descriptionHtml", v)} placeholder="What is this product, and why is it good — write 2–3 lines" minHeight={140} />
         </Section>
 
-        <Section n={3} title="Meta title" hint="Google search-e je title dekhabe. Khali rakhle product-er nam hobe.">
+        <Section n={3} title="Meta title" hint="The title shown in Google search. Leave blank to use the product name.">
           <Inp value={form.seoTitle} onChange={(e) => set("seoTitle", e.target.value)} placeholder="Search-er title" />
         </Section>
 
-        <Section n={4} title="Meta description" hint="Google search-er niche je chhoto lekha dekhabe.">
+        <Section n={4} title="Meta description" hint="The short text shown under the title in Google search.">
           <Inp value={form.seoDescription} onChange={(e) => set("seoDescription", e.target.value)} placeholder="Search-er chhoto biboron" />
         </Section>
 
-        <Section n={5} title="Product image" hint="Prothom chhobi-tai dokane boro kore dekhabe. Prottek chhobir alt text dao — Google ar screen reader-er jonno.">
+        <Section n={5} title="Product image" hint="The first image shows large in the store. Add alt text for each image — for Google and screen readers.">
           <div className="space-y-3 mb-3">
             {liveMedia.map((m: any) => (
               <div key={m.id} className="flex items-center gap-3">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={m.url} alt="" className="h-16 w-16 rounded-lg object-cover border border-neutral-200 shrink-0" />
                 <Inp
-                  placeholder="Alt text — chhobi-te ki ache"
+                  placeholder="Alt text — what is in the image"
                   value={mediaAltEdits[m.id] !== undefined ? mediaAltEdits[m.id] : m.altText || ""}
                   onChange={(e) => setMediaAltEdits({ ...mediaAltEdits, [m.id]: e.target.value })}
                 />
@@ -682,7 +682,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={m.preview} alt="" className="h-16 w-16 rounded-lg object-cover border border-emerald-300 shrink-0" />
                 <Inp
-                  placeholder="Alt text — chhobi-te ki ache"
+                  placeholder="Alt text — what is in the image"
                   value={m.alt}
                   onChange={(e) => setNewMedia(newMedia.map((x: any, j: number) => (j === i ? { ...x, alt: e.target.value } : x)))}
                 />
@@ -696,7 +696,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
             ))}
           </div>
           <label className="inline-flex items-center gap-2 rounded-md border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-800 hover:bg-neutral-50 cursor-pointer">
-            <Upload size={15} /> {uploading ? "Uploading…" : "Chhobi dao"}
+            <Upload size={15} /> {uploading ? "Uploading…" : "Add image"}
             <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => onUpload(e.target.files)} />
           </label>
           <div className="flex gap-2 mt-3">
@@ -715,7 +715,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
           </div>
         </Section>
 
-        <Section n={6} title="Variant" hint="Option add koro (Flavor, Color, Pack Size — ja khushi, sorbochcho 3-ta). Prottek combination-er nijer dam, ager dam, SKU, stock ar chhobi hobe.">
+        <Section n={6} title="Variant" hint="Add an option (Flavour, Colour, Pack Size — anything you like, up to 3). Each combination gets its own price, old price, SKU, stock and image.">
           {options.map((o: any, oi: number) => (
             <div key={oi} className="grid sm:grid-cols-[160px_1fr_auto] gap-2 mb-2">
               <Inp
@@ -726,8 +726,8 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
               <ValueChips
                 values={o.values || []}
                 onChange={(next) => setOptions(options.map((x: any, j: number) => (j === oi ? { ...x, values: next } : x)))}
-                placeholder="Ekta value likho (jemon: Mango Ice)"
-                emptyText="Ekhono kono value nai — niche likhe Add chaple chip hobe."
+                placeholder="Type a value (e.g. Mango Ice)"
+                emptyText="No values yet — type below and press Add to make a chip."
               />
               <button
                 onClick={() => setOptions(options.filter((_: any, j: number) => j !== oi))}
@@ -784,7 +784,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-2">
                     <div>
-                      <Lbl>Cost (kinte koto pore)</Lbl>
+                      <Lbl>Cost (what it costs to buy)</Lbl>
                       <Inp type="number" value={v.cost ?? ""} onChange={(e) => setRowField(t, "cost", e.target.value)} placeholder="Cost" />
                     </div>
                     <div>
@@ -793,19 +793,19 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
                     </div>
                     <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600 self-end pb-2.5">
                       <input type="checkbox" checked={v.taxable !== false} onChange={(e) => setRowField(t, "taxable", e.target.checked)} />
-                      Tax lagbe
+                      Charge tax
                     </label>
                     <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600 self-end pb-2.5">
                       <input type="checkbox" checked={v.requiresShipping !== false} onChange={(e) => setRowField(t, "requiresShipping", e.target.checked)} />
-                      Shipping lagbe
+                      Needs shipping
                     </label>
                     <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600 self-end pb-2.5">
                       <input type="checkbox" checked={v.tracked !== false} onChange={(e) => setRowField(t, "tracked", e.target.checked)} />
-                      Stock track koro
+                      Track stock
                     </label>
                   </div>
                   <div className="mt-2">
-                    <Lbl>Variant-er chhobi — chhobi dekhe tap koro</Lbl>
+                    <Lbl>Variant image — tap an image to pick it</Lbl>
                     <div className="flex flex-wrap gap-2">
                       <button
                         type="button"
@@ -816,7 +816,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
                             : "border-dashed border-neutral-300 text-neutral-500"
                         }`}
                       >
-                        Chhobi nai
+                        No image
                       </button>
                       {imageOptions.map((o: any) => {
                         const selected = pickedKey === o.key;
@@ -848,7 +848,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
                     </div>
                     {!imageOptions.length && (
                       <p className="text-xs text-neutral-500 mt-1">
-                        Age section 5-e chhobi add koro, tarpor ekhane chhobi dekhe pick korte parba.
+                        First add images in section 5, then pick one here by looking at the image.
                       </p>
                     )}
                   </div>
@@ -856,16 +856,16 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
               );
             })}
             {!visibleCombos().length && (
-              <p className="text-xs text-neutral-500">Option-e value dao — tarpor ekhane prottek combination-er dam/stock/chhobi bosate parba.</p>
+              <p className="text-xs text-neutral-500">Add a value to the option — then you can set each combination's price, stock and image here.</p>
             )}
           </div>
           <p className="text-xs text-neutral-500 mt-2">
-            Option nam/value bodle purano variant delete hoye notun combination toiri hobe.
+            Changing an option name or value deletes the old variants and creates new combinations.
           </p>
         </Section>
 
-        <Section n={7} title="Slug" hint="Product-er link-er shesh ongsho. Khali rakhle nam theke auto hobe.">
-          <Inp value={form.handle} onChange={(e) => set("handle", e.target.value)} placeholder="Khali rakhle auto hobe" />
+        <Section n={7} title="Slug" hint="Last part of the product link. Leave blank to auto-generate from the name.">
+          <Inp value={form.handle} onChange={(e) => set("handle", e.target.value)} placeholder="Leave blank to auto-generate" />
           <p className="text-xs text-neutral-500 mt-1">URL: /products/{form.handle || "…"}</p>
         </Section>
 
@@ -873,7 +873,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
             the product had variant options, so the numbering jumped 7 → 9
             and looked like a missing section). With options, it shows a
             read-only price summary — prices are edited in section 6. */}
-        <Section n={8} title="Price" hint={liveOptions.length === 0 ? "Variant option na thakle ekhaner dam-i product-er dam." : "Variant option ache — dam 6 number Variant section-e bodlate hobe, ekhane sudhu dekhabe."}>
+        <Section n={8} title="Price" hint={liveOptions.length === 0 ? "With no variant options, this price is the product price." : "There are variant options — change prices in section 6 (Variants); this only shows them here."}>
           {liveOptions.length === 0 ? (
             <div className="grid sm:grid-cols-2 gap-3">
               <div>
@@ -881,15 +881,15 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
                 <Inp type="number" value={simplePrice} onChange={(e) => setSimplePrice(e.target.value)} placeholder="Dam" />
               </div>
               <div>
-                <Lbl>Ager dam (kete dekhabe — na dileo cholbe)</Lbl>
+                <Lbl>Old price (shown crossed out — optional)</Lbl>
                 <Inp type="number" value={simpleCompare} onChange={(e) => setSimpleCompare(e.target.value)} placeholder="Ager dam" />
               </div>
               <div>
-                <Lbl>Stock — kotota ache</Lbl>
+                <Lbl>Stock — how many are left</Lbl>
                 <Inp type="number" value={simpleStock} onChange={(e) => setSimpleStock(e.target.value)} placeholder="Stock" />
               </div>
               <div>
-                <Lbl>Cost (kinte koto pore — AED)</Lbl>
+                <Lbl>Cost (what it costs to buy — AED)</Lbl>
                 <Inp type="number" value={simpleCost} onChange={(e) => setSimpleCost(e.target.value)} placeholder="Cost" />
               </div>
               <div>
@@ -898,15 +898,15 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
               </div>
               <label className="flex items-center gap-2 text-sm font-semibold text-neutral-700">
                 <input type="checkbox" checked={simpleTaxable} onChange={(e) => setSimpleFlag("taxable", e.target.checked)} />
-                Tax lagbe
+                Charge tax
               </label>
               <label className="flex items-center gap-2 text-sm font-semibold text-neutral-700">
                 <input type="checkbox" checked={simpleRequiresShipping} onChange={(e) => setSimpleFlag("requiresShipping", e.target.checked)} />
-                Shipping lagbe
+                Needs shipping
               </label>
               <label className="flex items-center gap-2 text-sm font-semibold text-neutral-700">
                 <input type="checkbox" checked={simpleTracked} onChange={(e) => setSimpleFlag("tracked", e.target.checked)} />
-                Stock track koro
+                Track stock
               </label>
               {isNew && (
                 <>
@@ -942,7 +942,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
           )}
         </Section>
 
-        <Section n={9} title="Collection" hint="Product-ta kon category-te dekhabe — tap kore tick dao.">
+        <Section n={9} title="Collection" hint="Which category this product shows in — tap to tick.">
           <div className="flex flex-wrap gap-2 mb-3">
             {mainCollections.map((c: any) => {
               const on = collectionIds.includes(c.id);
@@ -990,40 +990,40 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
               <ValueChips
                 values={form.tags.split(",").map((s: string) => s.trim()).filter(Boolean)}
                 onChange={(next) => set("tags", next.join(", "))}
-                placeholder="Ekta tag likho"
-                emptyText="Ekhono kono tag nai — niche likhe Add chaple chip hobe."
+                placeholder="Type a tag"
+                emptyText="No tags yet — type below and press Add to make a chip."
               />
             </div>
           </div>
         </Section>
 
-        <Section n={11} title="Dokane dekhabe?" hint="Live korle dokane dekhabe, draft rakhle shudhu tumi dekhba, archive korle dokan theke lukano thakbe kintu delete hobe na.">
+        <Section n={11} title="Dokane dekhabe?" hint="Live shows it in the store, draft is only visible to you, archived hides it from the store but does not delete it.">
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() => set("status", "ACTIVE")}
               className={`rounded-full px-4 py-2 text-sm font-bold border ${form.status === "ACTIVE" ? "bg-emerald-700 text-white border-emerald-700" : "bg-white text-neutral-700 border-neutral-300"}`}
             >
-              Ha, live koro
+              Yes, make it live
             </button>
             <button
               type="button"
               onClick={() => set("status", "DRAFT")}
               className={`rounded-full px-4 py-2 text-sm font-bold border ${form.status === "DRAFT" ? "bg-neutral-900 text-white border-neutral-900" : "bg-white text-neutral-700 border-neutral-300"}`}
             >
-              Na, draft rakho
+              No, keep it as a draft
             </button>
             <button
               type="button"
               onClick={() => set("status", "ARCHIVED")}
               className={`rounded-full px-4 py-2 text-sm font-bold border ${form.status === "ARCHIVED" ? "bg-neutral-900 text-white border-neutral-900" : "bg-white text-neutral-700 border-neutral-300"}`}
             >
-              Archive koro
+              Archive it
             </button>
           </div>
         </Section>
 
-        <Section n={12} title="Spec table" hint="Shob product-er spec same na — ja dorkar sudhu tai rakho, baki delete koro. Egulo product page-er spec table-e dekhabe. Link icon diye value-te link bosano jabe.">
+        <Section n={12} title="Spec table" hint="Not every product has the same specs — keep only what you need and delete the rest. These show in the spec table on the product page. Use the link icon to add a link to a value.">
           <div className="space-y-2">
             {specRows.map((r: any, i: number) => {
               const preset = r.key ? PRESET_CHOICES[r.key] : null;
@@ -1091,9 +1091,9 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
           </button>
         </Section>
 
-        <Section n={13} title="Flavor" hint="Kon flavour-gulo ache tap kore dao. Nicotine strength-gulo tap kore dao, na thakle likhe add koro.">
+        <Section n={13} title="Flavor" hint="Tap the flavours that are available. Tap the nicotine strengths too, or type to add a new one.">
           <FlavourPicker flavors={data.flavors} selected={selFlavors} onToggle={(id: string, on: boolean) => setSelFlavors(on ? selFlavors.filter((x) => x !== id) : [...selFlavors, id])} />
-          <p className="text-xs text-neutral-500 mt-2 mb-2">Notun flavour add korte Flavors tab-e jao.</p>
+          <p className="text-xs text-neutral-500 mt-2 mb-2">To add a new flavour, go to the Flavours tab.</p>
           <Lbl>Nicotine strength</Lbl>
           <div className="flex flex-wrap gap-2">
             {NICOTINE_PRESETS.map((v: string) => {
@@ -1123,7 +1123,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
               ))}
           </div>
           <div className="flex gap-2 mt-2">
-            <Inp placeholder="Onno strength likho" value={nicCustom} onChange={(e) => setNicCustom(e.target.value)} />
+            <Inp placeholder="Type another strength" value={nicCustom} onChange={(e) => setNicCustom(e.target.value)} />
             <button
               type="button"
               onClick={() => {
@@ -1238,7 +1238,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
           </button>
         </Section>
 
-        <Section n={16} title="Related product" hint="Ei product-er niche je product-gulo dekhabe — nam diye khujo, tap kore add koro.">
+        <Section n={16} title="Related product" hint="The products shown under this product — search by name, then tap to add.">
           <div className="flex flex-wrap gap-2 mb-3">
             {related.map((r: any) => (
               <span key={r.handle} className="inline-flex items-center gap-1 rounded-full bg-neutral-900 text-white px-3 py-1.5 text-xs font-semibold">
@@ -1248,14 +1248,14 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
                 </button>
               </span>
             ))}
-            {!related.length && <span className="text-xs text-neutral-500">Kono related product nai.</span>}
+            {!related.length && <span className="text-xs text-neutral-500">No related products.</span>}
           </div>
           <div className="flex gap-2">
             <div className="relative flex-1">
               <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
               <input
                 className={`${inputCls} pl-9`}
-                placeholder="Product-er nam likho"
+                placeholder="Type the product name"
                 value={relQuery}
                 onChange={(e) => setRelQuery(e.target.value)}
                 onKeyDown={(e) => {
@@ -1271,7 +1271,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
               onClick={searchRelated}
               className="shrink-0 rounded-md border border-neutral-300 px-3 py-2 text-sm font-semibold text-neutral-800 hover:bg-neutral-50"
             >
-              {relSearching ? "Khujchi…" : "Khujo"}
+              {relSearching ? "Searching…" : "Search"}
             </button>
           </div>
           {relResults.length > 0 && (

@@ -136,7 +136,7 @@ export function HeroTab({ data, save }: any) {
         >
           <div className="grid sm:grid-cols-2 gap-4 mb-3">
             <div className="sm:col-span-2">
-              <Lbl>Title (\n dile line break hobe)</Lbl>
+              <Lbl>Title (\n adds a line break)</Lbl>
               <Inp value={s.title} onChange={(e) => upd(i, "title", e.target.value)} />
             </div>
             <div className="sm:col-span-2">
@@ -170,13 +170,13 @@ export function HeroTab({ data, save }: any) {
               </div>
             )}
             <div className="flex-1">
-              <Lbl>New image URL (paste korle save-er somoy upload hobe)</Lbl>
+              <Lbl>New image URL (a pasted image uploads when you save)</Lbl>
               <Inp
                 placeholder="https://…"
                 value={s.newImageUrl || ""}
                 onChange={(e) => upd(i, "newImageUrl", e.target.value)}
               />
-              <p className="text-xs text-neutral-500 mt-1">Khali rakhle purano chobi-i thakbe.</p>
+              <p className="text-xs text-neutral-500 mt-1">Leave blank to keep the current image.</p>
             </div>
           </div>
           <SaveBtn
@@ -229,9 +229,8 @@ export function SectionsTab({ data, save }: any) {
   return (
     <div>
       <p className="text-sm text-neutral-500 mb-4">
-        Prottek section-er title/subtitle/badge ar kon product dekhabe ekhan theke control hoy. TEREA ar JUUL
-        section-e product dile shei asol product-i dekhabe; na dile nicher “TEREA / JUUL Cards” tab-er card gula
-        dekhabe.
+        Each section's title, subtitle, badge and which products it shows are controlled here. TEREA ar JUUL
+        If you add products to the TEREA or JUUL section, those real products show; otherwise the cards from the “TEREA / JUUL Cards” tab below show.
       </p>
       {sections.map((s, i) => {
         const q = (query[s.id] || "").toLowerCase();
@@ -291,14 +290,14 @@ export function SectionsTab({ data, save }: any) {
                 </span>
               ))}
               {!(s.productIds || []).length && (
-                <span className="text-xs text-neutral-500">Kono product select kora nai</span>
+                <span className="text-xs text-neutral-500">No product selected</span>
               )}
             </div>
             <div className="relative mb-4 max-w-md">
               <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
               <input
                 className={`${inputCls} pl-9`}
-                placeholder="Product search kore add koro…"
+                placeholder="Search products to add…"
                 value={query[s.id] || ""}
                 onChange={(e) => setQuery({ ...query, [s.id]: e.target.value })}
               />
@@ -630,11 +629,11 @@ export function BlogTab({ data, save }: any) {
             <Inp value={form.title} onChange={(e) => set("title", e.target.value)} />
           </div>
           <div className="sm:col-span-2">
-            <Lbl>Body (HTML — &lt;p&gt;, &lt;h2&gt;, &lt;strong&gt; use kora jay)</Lbl>
+            <Lbl>Body (HTML — you can use &lt;p&gt;, &lt;h2&gt;, &lt;strong&gt;)</Lbl>
             <TA rows={12} value={form.body} onChange={(e) => set("body", e.target.value)} />
           </div>
           <div className="sm:col-span-2">
-            <Lbl>Summary (list page-er choto lekha)</Lbl>
+            <Lbl>Summary (short text on the list page)</Lbl>
             <TA rows={2} value={form.summary} onChange={(e) => set("summary", e.target.value)} />
           </div>
           <div>
@@ -642,7 +641,7 @@ export function BlogTab({ data, save }: any) {
             <Inp value={form.category} onChange={(e) => set("category", e.target.value)} placeholder="Buying Guides / Safety / Education" />
           </div>
           <div>
-            <Lbl>Tags (comma diye)</Lbl>
+            <Lbl>Tags (separate with commas)</Lbl>
             <Inp value={form.tags} onChange={(e) => set("tags", e.target.value)} />
           </div>
           <div className="sm:col-span-2">
@@ -650,7 +649,7 @@ export function BlogTab({ data, save }: any) {
             <TA rows={2} value={form.quickAnswer} onChange={(e) => set("quickAnswer", e.target.value)} />
           </div>
           <div>
-            <Lbl>Related product slugs (comma diye)</Lbl>
+            <Lbl>Related product slugs (separate with commas)</Lbl>
             <Inp value={form.productSlugs} onChange={(e) => set("productSlugs", e.target.value)} />
           </div>
           <div>
@@ -662,11 +661,11 @@ export function BlogTab({ data, save }: any) {
             <Inp value={form.author} onChange={(e) => set("author", e.target.value)} placeholder="Vape Mart Team" />
           </div>
           <div>
-            <Lbl>Slug (link-er shesh ongsho — khali rakhle auto hobe)</Lbl>
+            <Lbl>Slug (last part of the link — leave blank to auto-generate)</Lbl>
             <Inp value={form.handle} onChange={(e) => set("handle", e.target.value)} placeholder="khali-rakhle-auto" />
           </div>
           <div>
-            <Lbl>Publish date (khali rakhle ekhoni publish hobe)</Lbl>
+            <Lbl>Publish date (leave blank to publish now)</Lbl>
             <Inp type="datetime-local" value={form.publishDate} onChange={(e) => set("publishDate", e.target.value)} />
           </div>
           {sel !== "new" && (
@@ -678,19 +677,19 @@ export function BlogTab({ data, save }: any) {
         </div>
         <div className="flex gap-2">
           <SaveBtn onClick={() => doSave(true)}>
-            {sel === "new" ? "Publish post" : "Publish kore save koro"}
+            {sel === "new" ? "Publish post" : "Publish and save"}
           </SaveBtn>
           <button
             type="button"
             onClick={() => doSave(false)}
             className="rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-bold text-neutral-700 hover:bg-neutral-50"
           >
-            Draft hishebe save koro
+            Save as draft
           </button>
           {sel !== "new" && <DelBtn onClick={() => save("blog.delete", { id: sel })} />}
         </div>
         <p className="text-xs text-neutral-500 mt-3">
-          Draft save korle post live hobe na — pore Publish kore save korlei live hobe. Slug bodle purano link 404 hobe — Redirects tab-e purano link add koro. Save korar 5–10 minute-er moddhe site-e dekhabe.
+          Saving as a draft will not publish the post — publish and save later to go live. Changing the slug breaks the old link (404) — add the old link in the Redirects tab. Changes show on the site within 5–10 minutes of saving.
         </p>
       </Card>
     </div>
@@ -735,8 +734,7 @@ export function PagesTab({ data, save }: any) {
       <Card title={`${page.title} — body (HTML)`}>
         <TA rows={16} value={body} onChange={(e) => setBody(e.target.value)} className={inputCls} />
         <p className="text-xs text-neutral-500 my-3">
-          Privacy/Terms-e prottek section &lt;h2&gt; diye shuru koro. About-er body = story ongsho, Contact-er
-          body = form-er uporer intro.
+          Start each section in Privacy/Terms with an &lt;h2&gt;. The About body is the story part, the Contact body is the intro above the form.
         </p>
         <SaveBtn onClick={() => save("page.save", { id: page.id, title: page.title, body })} />
       </Card>
@@ -814,7 +812,7 @@ export function MenuTab({ data, save }: any) {
   return (
     <Card title={`Menu: ${menu.title}`}>
       <p className="text-sm text-neutral-500 mb-4">
-        Header navigation. Uporer item gulo main menu; sub-item diye dropdown/column banao.
+        Header navigation. The top items are the main menu; use sub-items for dropdowns and columns.
       </p>
       <MenuItems items={menu.items || []} depth={0} onChange={(items: any) => setMenu({ ...menu, items })} />
       <div className="mt-4">

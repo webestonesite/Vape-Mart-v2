@@ -48,7 +48,7 @@ export function DraftsTab({ data }: any) {
           </tr>
         ))}
       />
-      <p className="text-xs text-neutral-500 mt-3">Draft order complete/convert korte Shopify app use koro — panel-e shudhu dekha jay.</p>
+      <p className="text-xs text-neutral-500 mt-3">To complete or convert a draft order, use the Shopify app — this panel only shows them.</p>
     </div>
   );
 }
@@ -95,11 +95,11 @@ export function CustomersTab({ data, save }: any) {
         <div className="rounded-xl border border-neutral-200 bg-white shadow-sm p-4 mb-4">
           <div className="grid sm:grid-cols-2 gap-3">
             <div className="sm:col-span-2">
-              <Lbl>Note (customer somporke kichu likhe rakho)</Lbl>
+              <Lbl>Note (write something about the customer)</Lbl>
               <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3} className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600" />
             </div>
             <div className="sm:col-span-2">
-              <Lbl>Tags (comma diye — jemon: vip, wholesale)</Lbl>
+              <Lbl>Tags (separate with commas — e.g. vip, wholesale)</Lbl>
               <Inp value={tags} onChange={(e) => setTags(e.target.value)} placeholder="vip, wholesale" />
             </div>
           </div>
@@ -168,7 +168,7 @@ export function DiscountsTab({ data, save }: any) {
     setForm({ title: "", code: "", type: "percentage", value: "", startsAt: "", endsAt: "", usageLimit: "", minSubtotal: "", oncePerCustomer: false });
   };
   const del = async (id: string, title: string) => {
-    if (!window.confirm(`"${title}" discount-ta delete korbo? Code-ta ar kaj korbe na.`)) return;
+    if (!window.confirm(`"${title}" Delete this discount? The code will stop working.`)) return;
     await save("discount.delete", { id });
   };
 
@@ -176,7 +176,7 @@ export function DiscountsTab({ data, save }: any) {
     <div>
       <h1 className="text-xl font-bold text-neutral-900 mb-4">Discounts</h1>
       <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm mb-4">
-        <h2 className="font-bold text-neutral-900 mb-3">Notun discount code</h2>
+        <h2 className="font-bold text-neutral-900 mb-3">New discount code</h2>
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
             <Lbl>Discount-er nam</Lbl>
@@ -194,32 +194,32 @@ export function DiscountsTab({ data, save }: any) {
             </select>
           </div>
           <div>
-            <Lbl>{form.type === "fixed" ? "Koto AED off" : "Koto % off"}</Lbl>
+            <Lbl>{form.type === "fixed" ? "How much AED off" : "How much % off"}</Lbl>
             <Inp type="number" value={form.value} onChange={(e) => set("value", e.target.value)} placeholder={form.type === "fixed" ? "50" : "10"} />
           </div>
           <div>
-            <Lbl>Shuru (khali rakhle ekhoni)</Lbl>
+            <Lbl>Starts (leave blank to start now)</Lbl>
             <Inp type="datetime-local" value={form.startsAt} onChange={(e) => set("startsAt", e.target.value)} />
           </div>
           <div>
-            <Lbl>Shesh (khali rakhle shesh nai)</Lbl>
+            <Lbl>Ends (leave blank for no end date)</Lbl>
             <Inp type="datetime-local" value={form.endsAt} onChange={(e) => set("endsAt", e.target.value)} />
           </div>
           <div>
-            <Lbl>Usage limit (koybar use kora jabe — khali rakhle limit nai)</Lbl>
+            <Lbl>Usage limit (how many times it can be used — leave blank for no limit)</Lbl>
             <Inp type="number" value={form.usageLimit} onChange={(e) => set("usageLimit", e.target.value)} placeholder="100" />
           </div>
           <div>
-            <Lbl>Minimum order (AED — khali rakhle minimum nai)</Lbl>
+            <Lbl>Minimum order (AED — leave blank for no minimum)</Lbl>
             <Inp type="number" value={form.minSubtotal} onChange={(e) => set("minSubtotal", e.target.value)} placeholder="200" />
           </div>
           <label className="flex items-center gap-2 text-sm text-neutral-700 sm:col-span-2">
             <input type="checkbox" checked={form.oncePerCustomer} onChange={(e) => set("oncePerCustomer", e.target.checked)} />
-            Ekjon customer ekbar-i use korte parbe
+            One customer can use it only once
           </label>
         </div>
         <div className="mt-3">
-          <PrimaryBtn onClick={create}><Plus size={15} /> {busy ? "Toiri hocche…" : "Discount toiri koro"}</PrimaryBtn>
+          <PrimaryBtn onClick={create}><Plus size={15} /> {busy ? "Creating…" : "Create discount"}</PrimaryBtn>
         </div>
       </div>
       <Table
@@ -240,7 +240,7 @@ export function DiscountsTab({ data, save }: any) {
           </tr>
         ))}
       />
-      <p className="text-xs text-neutral-500 mt-3">Buy X Get Y ba free-shipping discount korte Shopify admin use koro — panel-e shudhu percentage / fixed-amount code discount toiri hoy.</p>
+      <p className="text-xs text-neutral-500 mt-3">For Buy X Get Y or free-shipping discounts, use Shopify admin — this panel only creates percentage / fixed-amount code discounts.</p>
     </div>
   );
 }

@@ -97,7 +97,7 @@ export function RichText({
               }}
             />
             <button type="button" className="rounded bg-neutral-900 px-2 py-1 text-xs font-bold text-white" onClick={applyLink}>
-              Bosao
+              Insert
             </button>
           </span>
         )}
