@@ -179,8 +179,8 @@ export function DiscountsTab({ data, save }: any) {
         <h2 className="font-bold text-neutral-900 mb-3">New discount code</h2>
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
-            <Lbl>Discount-er nam</Lbl>
-            <Inp value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="jemon: Eid Sale 10%" />
+            <Lbl>Discount name</Lbl>
+            <Inp value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="e.g. Eid Sale 10%" />
           </div>
           <div>
             <Lbl>Code (customer checkout-e likhbe)</Lbl>

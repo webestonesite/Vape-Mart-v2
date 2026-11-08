@@ -257,7 +257,7 @@ export function OrdersTab({ data, notify, reload }: any) {
   const doRefund = async () => {
     if (!detail) return;
     const refundable = (parseFloat(detail.total || "0") || 0) - (parseFloat(detail.refunded || "0") || 0);
-    if (!window.confirm(`${detail.name} order-er puro ${detail.currency} ${refundable.toFixed(2)} ferot dibo? Taka customer-er kache fire jabe ar item-gulo stock-e fire asbe.`)) return;
+    if (!window.confirm(`${detail.name} Refund the full ${detail.currency} ${refundable.toFixed(2)} for this order? The money goes back to the customer and the items return to stock.`)) return;
     setBusy(true);
     const r = await api({ action: "order.refund", id: detail.id });
     setBusy(false);
@@ -393,7 +393,7 @@ export function OrdersTab({ data, notify, reload }: any) {
         </table>
       </div>
       {loading && <p className="text-sm text-neutral-500 mt-3">Order khulche…</p>}
-      <p className="text-xs text-neutral-500 mt-3">Order-e click korle detail dekhabe — item, customer, fulfil ar full refund ekhan thekei kora jabe.</p>
+      <p className="text-xs text-neutral-500 mt-3">Click an order to see its details — items, customer, fulfilment and full refund are all done from here.</p>
     </div>
   );
 }
