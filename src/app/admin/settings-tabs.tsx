@@ -28,7 +28,7 @@ function JsonListEditor({
   label: string;
   rows: any[];
   setRows: (rows: any[]) => void;
-  fields: { key: string; label: string; placeholder?: string }[];
+  fields: { key: string; label: string; placeholder?: string; options?: { value: string; label: string; swatch: string }[] }[];
   addLabel?: string;
 }) {
   const set = (i: number, key: string, v: string) => {
@@ -43,13 +43,33 @@ function JsonListEditor({
         {(rows || []).map((row, i) => (
           <div key={i} className="flex flex-wrap gap-2 items-center rounded-lg border border-neutral-100 p-2">
             {fields.map((f) => (
-              <input
-                key={f.key}
-                value={row[f.key] ?? ""}
-                onChange={(e) => set(i, f.key, e.target.value)}
-                placeholder={f.placeholder || f.label}
-                className="flex-1 min-w-[120px] rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-sm"
-              />
+              f.options ? (
+                <span key={f.key} className="flex-1 min-w-[160px] flex items-center gap-2">
+                  <span
+                    className="w-5 h-5 rounded-full border border-neutral-300 shrink-0"
+                    style={{ backgroundColor: (f.options.find((o) => o.value === row[f.key]) || {}).swatch || "#e5e7eb" }}
+                    title={row[f.key] || "No colour picked"}
+                  />
+                  <select
+                    value={row[f.key] ?? ""}
+                    onChange={(e) => set(i, f.key, e.target.value)}
+                    className="flex-1 min-w-[120px] rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-sm"
+                  >
+                    <option value="">Pick a colour…</option>
+                    {f.options.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </span>
+              ) : (
+                <input
+                  key={f.key}
+                  value={row[f.key] ?? ""}
+                  onChange={(e) => set(i, f.key, e.target.value)}
+                  placeholder={f.placeholder || f.label}
+                  className="flex-1 min-w-[120px] rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-sm"
+                />
+              )
             ))}
             <button
               onClick={() => setRows(rows.filter((_, j) => j !== i))}
@@ -623,19 +643,33 @@ export function BlogSettingsTab({ data, save }: any) {
   return (
     <div>
       <p className="text-sm text-neutral-500 mb-4">
-        The blog category filter list and each category's badge colour. Pick colours only from this palette (Tailwind class): bg-emerald-600, bg-red-600, bg-blue-600, bg-amber-500, bg-teal-600, bg-purple-600, bg-rose-600, bg-orange-500, bg-cyan-600, bg-slate-600.
+        The blog category filter list and each category&apos;s badge colour. Tap the colour box to pick from the palette — no need to type anything.
       </p>
       <Card title="Categories (one per line)">
         <TA rows={6} value={catsText} onChange={(e) => setCatsText(e.target.value)} placeholder={"Buying Guides\nSafety\nEducation\nRegulations"} />
       </Card>
       <Card title="Category badge colors">
         <JsonListEditor
-          label="Category → badge class"
+          label="Category → badge colour"
           rows={colors}
           setRows={setColors}
           fields={[
             { key: "category", label: "Category" },
-            { key: "cls", label: "Badge class" },
+            {
+              key: "cls", label: "Badge colour",
+              options: [
+                { value: "bg-emerald-600", label: "Emerald", swatch: "#059669" },
+                { value: "bg-red-600", label: "Red", swatch: "#dc2626" },
+                { value: "bg-blue-600", label: "Blue", swatch: "#2563eb" },
+                { value: "bg-amber-500", label: "Amber", swatch: "#f59e0b" },
+                { value: "bg-teal-600", label: "Teal", swatch: "#0d9488" },
+                { value: "bg-purple-600", label: "Purple", swatch: "#9333ea" },
+                { value: "bg-rose-600", label: "Rose", swatch: "#e11d48" },
+                { value: "bg-orange-500", label: "Orange", swatch: "#f97316" },
+                { value: "bg-cyan-600", label: "Cyan", swatch: "#0891b2" },
+                { value: "bg-slate-600", label: "Slate", swatch: "#475569" },
+              ],
+            },
           ]}
           addLabel="Add color"
         />
