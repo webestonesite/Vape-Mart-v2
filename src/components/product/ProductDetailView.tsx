@@ -79,7 +79,7 @@ function SeoBlock({ section }: { section: SeoSection }) {
 
 export function ProductDetailView({ product, relatedProducts, pageSettings, phone }: ProductDetailViewProps) {
   // WhatsApp number comes from the panel (store.phone); literals are fallback.
-  const waPhoneDisplay = phone || "+971 55 168 8299";
+  const waPhoneDisplay = phone || "+971 55 110 3401";
   const waDigits = waPhoneDisplay.replace(/[^0-9]/g, "");
   const waLink = `https://wa.me/${waDigits}?text=Hi%20Vape%20Mart!%20I%20have%20a%20question%20about%20a%20product.`;
   // Spec order from the panel (case-insensitive); unordered specs keep their place.
@@ -578,7 +578,7 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
               </button>
             </div>
             <a
-              href={`https://wa.me/971551688299?text=${encodeURIComponent(`Hi Vape Mart! I want to order: ${product.title}${variantLabel ? ` (${variantLabel})` : ""} (${formatAED(displayPrice)})`)}`}
+              href={`https://wa.me/971551103401?text=${encodeURIComponent(`Hi Vape Mart! I want to order: ${product.title}${variantLabel ? ` (${variantLabel})` : ""} (${formatAED(displayPrice)})`)}`}
               target="_blank" rel="noopener noreferrer"
               className="mt-2.5 h-[52px] xl:h-[60px] rounded-2xl bg-[#25D366] text-white font-bold text-sm tracking-wide hover:brightness-110 active:scale-[0.99] transition-all flex items-center justify-center gap-2"
             >
@@ -854,7 +854,7 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
                     </div>
                   ))}
                 </div>
-                <a href={`https://wa.me/971551688299?text=${encodeURIComponent(`Hi Vape Mart! I want to leave a review for: ${product.title}`)}`} target="_blank" rel="noopener noreferrer" className="mt-5 h-[48px] rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 text-emerald-950 font-extrabold text-sm tracking-wide flex items-center justify-center gap-2 hover:brightness-105 transition-all">
+                <a href={`https://wa.me/971551103401?text=${encodeURIComponent(`Hi Vape Mart! I want to leave a review for: ${product.title}`)}`} target="_blank" rel="noopener noreferrer" className="mt-5 h-[48px] rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 text-emerald-950 font-extrabold text-sm tracking-wide flex items-center justify-center gap-2 hover:brightness-105 transition-all">
                   WRITE A REVIEW
                 </a>
               </div>

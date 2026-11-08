@@ -2335,7 +2335,7 @@ export default function Home() {
                 </li>
                 <li className="flex items-center gap-3 text-emerald-100/60 text-xs sm:text-sm">
                   <Phone size={18} className="text-emerald-400 shrink-0" />
-                  <span>+971 55 168 8299</span>
+                  <span>+971 55 110 3401</span>
                 </li>
                 <li className="flex items-center gap-3 text-emerald-100/60 text-xs sm:text-sm">
                   <Mail size={18} className="text-emerald-400 shrink-0" />

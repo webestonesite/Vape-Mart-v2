@@ -10,9 +10,9 @@ const channels = [
   {
     icon: Phone,
     title: "WhatsApp & Phone",
-    value: "+971 55 168 8299",
+    value: "+971 55 110 3401",
     sub: "Fastest response — usually within minutes",
-    href: "https://wa.me/971551688299",
+    href: "https://wa.me/971551103401",
   },
   {
     icon: Mail,
@@ -221,7 +221,7 @@ export default function ContactPage() {
                   recommendations, and same-day delivery coordination, all in one chat.
                 </p>
                 <a
-                  href="https://wa.me/971551688299"
+                  href="https://wa.me/971551103401"
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex items-center gap-2 bg-amber-400 hover:bg-amber-300 text-emerald-950 font-bold text-sm px-6 py-3 rounded-xl transition-colors relative z-10"

@@ -34,7 +34,7 @@ export function Footer() {
       })
       .catch(() => {});
   }, []);
-  const phoneDisplay = cms.phone || "+971 55 168 8299";
+  const phoneDisplay = cms.phone || "+971 55 110 3401";
   const phoneHref = `tel:${phoneDisplay.replace(/[^0-9+]/g, "")}`;
 
   return (
