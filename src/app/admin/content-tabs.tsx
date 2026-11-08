@@ -3,7 +3,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Save, Plus, Trash2, Search } from "lucide-react";
+import { Save, Plus, Trash2, Search, X } from "lucide-react";
 
 /* ------------------------------------------------------------------ */
 /*  Vape Mart Admin Panel                                              */
@@ -572,16 +572,62 @@ export function BlogTab({ data, save }: any) {
     title: "", body: "", summary: "", tags: "", category: "", quickAnswer: "", productSlugs: "", imageUrl: "",
     author: "Vape Mart Team", handle: "", publishDate: "", isPublished: true,
   });
+  // Related products picker (small popup, no typing slugs): chips show the
+  // product names, the search box finds products by name, tapping adds one.
+  // The saved value stays a comma-separated slug list (form.productSlugs).
+  const [relQuery, setRelQuery] = useState("");
+  const [relResults, setRelResults] = useState<any[]>([]);
+  const [relSearching, setRelSearching] = useState(false);
+  const [relChips, setRelChips] = useState<{ handle: string; title: string }[]>([]);
+  const syncRelChips = async (slugsStr: string) => {
+    const slugs = slugsStr.split(",").map((s: string) => s.trim()).filter(Boolean);
+    if (!slugs.length) { setRelChips([]); return; }
+    const chips: { handle: string; title: string }[] = [];
+    for (const slug of slugs) {
+      try {
+        const r = await api({ action: "bulk.search", search: slug });
+        const match = (r.products || []).find((p: any) => p.handle === slug) || (r.products || [])[0];
+        chips.push({ handle: slug, title: match ? match.title : slug });
+      } catch {
+        chips.push({ handle: slug, title: slug });
+      }
+    }
+    setRelChips(chips);
+  };
   const loadPost = (id: string) => {
     setSel(id);
+    setRelQuery(""); setRelResults([]);
     if (id === "new") {
       setForm({ title: "", body: "", summary: "", tags: "", category: "", quickAnswer: "", productSlugs: "", imageUrl: "", author: "Vape Mart Team", handle: "", publishDate: "", isPublished: true });
+      setRelChips([]);
     } else {
       const p = (data.blogPosts || []).find((x: any) => x.id === id);
-      if (p) setForm({ ...p, imageUrl: "", author: p.author || "Vape Mart Team", handle: p.handle || "", publishDate: "", isPublished: p.isPublished !== false });
+      if (p) {
+        setForm({ ...p, imageUrl: "", author: p.author || "Vape Mart Team", handle: p.handle || "", publishDate: "", isPublished: p.isPublished !== false });
+        syncRelChips(p.productSlugs || "");
+      }
     }
   };
   const set = (k: string, v: any) => setForm({ ...form, [k]: v });
+  const searchRel = async () => {
+    const q = relQuery.trim();
+    if (!q) return;
+    setRelSearching(true);
+    const r = await api({ action: "bulk.search", search: q });
+    setRelSearching(false);
+    if (r.ok) setRelResults(r.products || []);
+  };
+  const addRel = (p: any) => {
+    if (relChips.some((c) => c.handle === p.handle)) return;
+    const next = [...relChips, { handle: p.handle, title: p.title }];
+    setRelChips(next);
+    set("productSlugs", next.map((c) => c.handle).join(", "));
+  };
+  const removeRel = (handle: string) => {
+    const next = relChips.filter((c) => c.handle !== handle);
+    setRelChips(next);
+    set("productSlugs", next.map((c) => c.handle).join(", "));
+  };
   const doSave = (publish: boolean) =>
     save("blog.save", {
       id: sel === "new" ? undefined : sel,
@@ -649,8 +695,61 @@ export function BlogTab({ data, save }: any) {
             <TA rows={2} value={form.quickAnswer} onChange={(e) => set("quickAnswer", e.target.value)} />
           </div>
           <div>
-            <Lbl>Related product slugs (separate with commas)</Lbl>
-            <Inp value={form.productSlugs} onChange={(e) => set("productSlugs", e.target.value)} />
+            <Lbl>Related products</Lbl>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {relChips.map((c) => (
+                <span key={c.handle} className="inline-flex items-center gap-1 rounded-full bg-neutral-900 text-white px-3 py-1.5 text-xs font-semibold">
+                  {c.title}
+                  <button type="button" onClick={() => removeRel(c.handle)} aria-label={`Remove ${c.title}`}>
+                    <X size={12} />
+                  </button>
+                </span>
+              ))}
+              {!relChips.length && <span className="text-xs text-neutral-500">No related products — search by name below and tap to add.</span>}
+            </div>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+                <input
+                  className={`${inputCls} pl-9`}
+                  placeholder="Type the product name"
+                  value={relQuery}
+                  onChange={(e) => setRelQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      searchRel();
+                    }
+                  }}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={searchRel}
+                className="shrink-0 rounded-md border border-neutral-300 px-3 py-2 text-sm font-semibold text-neutral-800 hover:bg-neutral-50"
+              >
+                {relSearching ? "Searching…" : "Search"}
+              </button>
+            </div>
+            {relResults.length > 0 && (
+              <div className="mt-2 rounded-lg border border-neutral-200 divide-y divide-neutral-100">
+                {relResults.map((p: any) => {
+                  const added = relChips.some((c) => c.handle === p.handle);
+                  return (
+                    <button
+                      key={p.id || p.handle}
+                      type="button"
+                      disabled={added}
+                      onClick={() => addRel(p)}
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-emerald-50 disabled:opacity-50 flex items-center justify-between gap-2"
+                    >
+                      <span className="font-semibold text-neutral-800">{p.title}</span>
+                      <span className="text-xs text-neutral-500">{added ? "Added" : "Tap to add"}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
           <div>
             <Lbl>Featured image URL</Lbl>
