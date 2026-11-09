@@ -790,11 +790,20 @@ export async function saveAction(action: string, p: any): Promise<SaveResult> {
       if (!url) throw new Error("No image URL.");
       if (url.startsWith("/") || (url.includes("cdn.shopify.com") && !url.includes("/tmp/"))) return { message: "Image ready.", url };
       const fileId = await fileFromUrl(url, "Uploaded image");
-      const d = await gql<any>(
-        `query FileUrl($id: ID!) { node(id: $id) { ... on MediaImage { image { url } } } }`,
-        { id: fileId }
-      );
-      const finalUrl = d?.node?.image?.url || "";
+      // The file needs a moment to finish processing before its URL
+      // exists. Poll until it is READY instead of reading it at once,
+      // which returned nothing for real (larger) images.
+      let finalUrl = "";
+      for (let i = 0; i < 8; i++) {
+        const d = await gql<any>(
+          `query FileUrl($id: ID!) { node(id: $id) { ... on MediaImage { fileStatus image { url } } } }`,
+          { id: fileId }
+        );
+        finalUrl = d?.node?.image?.url || "";
+        if (finalUrl && d?.node?.fileStatus === "READY") break;
+        if (d?.node?.fileStatus === "FAILED") throw new Error("Shopify could not process the uploaded image.");
+        if (i < 7) await new Promise((r) => setTimeout(r, 1000));
+      }
       if (!finalUrl) throw new Error("Could not read the uploaded image URL.");
       return { message: "Image ready.", url: finalUrl };
     }
