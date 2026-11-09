@@ -27,8 +27,8 @@ export async function uploadFile(file: File): Promise<string> {
    URL can be saved as a banner/hero image without expiring. */
 export async function uploadImageFile(file: File): Promise<string> {
   const staged = await uploadFile(file);
-  const r = await api({ action: "file.permanentUrl", url: staged });
-  if (!r.url) throw new Error(r.error || "Could not save the uploaded image");
+  const r = await api({ action: "save", saveAction: "file.permanentUrl", payload: { url: staged } });
+  if (!r.ok || !r.url) throw new Error(r.error || "Could not save the uploaded image");
   return r.url as string;
 }
 
