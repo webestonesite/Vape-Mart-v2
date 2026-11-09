@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Plus, Trash2, Save } from "lucide-react";
-import { Lbl, Inp, TA, PrimaryBtn } from "./panel-ui";
+import { Lbl, Inp, TA, PrimaryBtn, uploadImageFile } from "./panel-ui";
 
 /* ------------------------------------------------------------------ */
 /*  Phase 3 settings managers: theme, cart & checkout, product page,   */
@@ -28,13 +28,28 @@ function JsonListEditor({
   label: string;
   rows: any[];
   setRows: (rows: any[]) => void;
-  fields: { key: string; label: string; placeholder?: string; options?: { value: string; label: string; swatch: string }[] }[];
+  fields: { key: string; label: string; placeholder?: string; upload?: boolean; options?: { value: string; label: string; swatch: string }[] }[];
   addLabel?: string;
 }) {
+  const [uploading, setUploading] = useState("");
   const set = (i: number, key: string, v: string) => {
     const next = [...rows];
     next[i] = { ...next[i], [key]: v };
     setRows(next);
+  };
+  const onUpload = async (i: number, key: string, files: FileList | null) => {
+    if (!files || !files.length) return;
+    const tag = `${i}:${key}`;
+    setUploading(tag);
+    try {
+      const url = await uploadImageFile(files[0]);
+      set(i, key, url);
+    } catch (e: any) {
+      setUploading("");
+      alert("Upload failed: " + (e.message || "try again"));
+      return;
+    }
+    setUploading("");
   };
   return (
     <div>
@@ -60,6 +75,32 @@ function JsonListEditor({
                       <option key={o.value} value={o.value}>{o.label}</option>
                     ))}
                   </select>
+                </span>
+              ) : f.upload ? (
+                <span key={f.key} className="flex-1 min-w-[160px] flex items-center gap-2">
+                  {row[f.key] ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={row[f.key]} alt="" className="h-10 w-16 rounded object-cover border border-neutral-200 shrink-0" />
+                  ) : null}
+                  <input
+                    value={row[f.key] ?? ""}
+                    onChange={(e) => set(i, f.key, e.target.value)}
+                    placeholder={f.placeholder || f.label}
+                    className="flex-1 min-w-[120px] rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-sm"
+                  />
+                  <label className="inline-flex items-center gap-1 rounded-md border border-neutral-300 px-2 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 cursor-pointer shrink-0">
+                    {uploading === `${i}:${f.key}` ? "Uploading…" : "Upload"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={uploading === `${i}:${f.key}`}
+                      onChange={(e) => {
+                        onUpload(i, f.key, e.target.files);
+                        e.target.value = "";
+                      }}
+                    />
+                  </label>
                 </span>
               ) : (
                 <input
@@ -546,7 +587,7 @@ export function HomeTab({ data, save }: any) {
             { key: "desc", label: "Description" },
             { key: "buttonText", label: "Button" },
             { key: "buttonLink", label: "Button link" },
-            { key: "image", label: "Image URL" },
+            { key: "image", label: "Image URL", upload: true },
           ]}
           addLabel="Add banner"
         />
