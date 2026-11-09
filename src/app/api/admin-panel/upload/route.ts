@@ -39,10 +39,13 @@ export async function POST(req: Request) {
     const target = staged.stagedUploadsCreate?.stagedTargets?.[0];
     if (!target) throw new Error("Shopify did not return an upload target.");
 
-    const body = new FormData();
-    for (const param of target.parameters ?? []) body.append(param.name, param.value);
-    body.append("file", file);
-    const put = await fetch(target.url, { method: "POST", body });
+    // Shopify's staged target rejects multipart POST (HTTP 403). A PUT
+    // of the raw file bytes with the matching Content-Type header works.
+    const put = await fetch(target.url, {
+      method: "PUT",
+      headers: { "Content-Type": file.type || "application/octet-stream" },
+      body: await file.arrayBuffer(),
+    });
     if (!put.ok) throw new Error(`Upload to Shopify storage failed (HTTP ${put.status}).`);
 
     return NextResponse.json({ ok: true, resourceUrl: target.resourceUrl as string, filename });
