@@ -853,11 +853,12 @@ export default function Home() {
 
   // ---- Site content from Shopify (edited in Shopify admin, no deploy) ----
   const [cms, setCms] = useState<any>(null);
+  const [cmsLoaded, setCmsLoaded] = useState(false);
   useEffect(() => {
     fetch("/api/site-content")
       .then((res) => res.json())
-      .then((data) => setCms(data))
-      .catch(() => {});
+      .then((data) => { setCms(data); setCmsLoaded(true); })
+      .catch(() => { setCmsLoaded(true); });
   }, []);
   // Hero slides — HARDCODED from the owner's Google Doc "vape mart
   // homepage" (owner instruction 2026-11-09: "directly hardcode kore deo").
@@ -876,7 +877,7 @@ export default function Home() {
       title: "Original TEREA Sticks\nReal Tobacco, Zero Ash",
       desc: "If you've already got an IQOS, you don't need a new device - you need sticks you can trust. That's why a lot of vapers treat Vape Mart as the best Terea shop in Dubai: original sticks, in the amber and menthol blends that sell out first, with fast delivery across the UAE.",
       badge: "TEREA in Dubai",
-      image: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/terea_heets.jpg?v=1794163737",
+      image: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/Terea_Vapes_in_the_UAE_1ccd890a-83bb-416b-9262-d6ff447fd9c5.webp?v=1794245460",
       buttonText: "Shop TEREA Sticks",
       buttonLink: "/collections/terea",
     },
@@ -900,7 +901,7 @@ export default function Home() {
       title: "Disposable Vapes\nReady to Go, no refilling",
       desc: "Open the pack and you're set. From a compact ELFBAR for the weekend to a big Waka Blade 50K for daily use, you'll find high-performance disposables at Vape Mart, the best vape shop in Dubai for disposable vapes, with cash on delivery across the UAE.",
       badge: "Disposable Vapes in the UAE",
-      image: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/prod_disposable.jpg?v=1794163751",
+      image: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/disposables_result_d1fa53d0-e3da-4409-a1d3-477e82f71631.webp?v=1794245290",
       buttonText: "Shop Disposables",
       buttonLink: "/collections/disposable-vape",
     },
@@ -1312,13 +1313,19 @@ export default function Home() {
                         wrapper let the 260px card overlap the button by ~4px). */}
                     <div className="w-full md:w-1/2 h-[280px] sm:h-[380px] md:h-[500px] lg:h-[560px] relative z-10 flex items-center justify-center mt-4 md:mt-0 px-2 sm:px-4">
                       <div className="relative w-full max-w-[260px] sm:max-w-[360px] md:max-w-[480px] aspect-square rounded-[24px] sm:rounded-[36px] overflow-hidden shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] border-2 border-emerald-400/20 group/heroImg backdrop-blur-sm bg-black/20">
-                        <Image
-                          src={slide.image}
-                          alt={slide.title}
-                          fill
-                          priority={idx === 0}
-                          className="object-cover transform group-hover/heroImg:scale-105 transition-transform duration-700 ease-out"
-                        />
+                        {/* The image waits for the site content to load, so a
+                            stale hardcoded image never flashes before the
+                            owner's chosen image. While loading, the card
+                            stays a plain dark panel. */}
+                        {cmsLoaded && (
+                          <Image
+                            src={slide.image}
+                            alt={slide.title}
+                            fill
+                            priority={idx === 0}
+                            className="object-cover transform group-hover/heroImg:scale-105 transition-transform duration-700 ease-out"
+                          />
+                        )}
                         {/* Elegant atmospheric edge vignette */}
                         <div className="absolute inset-0 bg-gradient-to-t from-[#022c22]/60 via-transparent to-transparent pointer-events-none"></div>
                         <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-[24px] sm:rounded-[36px] pointer-events-none"></div>
@@ -1376,7 +1383,9 @@ export default function Home() {
                 <span className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-emerald-400/20 to-transparent pointer-events-none"></span>
               </motion.button>
             </div>
-            <img src={banner1.image || "/images/cat_vape_kits.png"} alt={banner1.title || "Vape Kits"} className="absolute -right-4 -bottom-4 sm:-bottom-8 w-44 sm:w-56 md:w-64 h-auto object-contain transform group-hover:scale-110 group-hover:-rotate-6 transition-all duration-700 drop-shadow-[0_20px_30px_rgba(0,0,0,0.5)] opacity-50 sm:opacity-90 md:opacity-100" />
+            {cmsLoaded && (
+              <img src={banner1.image || "/images/cat_vape_kits.png"} alt={banner1.title || "Vape Kits"} className="absolute -right-4 -bottom-4 sm:-bottom-8 w-44 sm:w-56 md:w-64 h-auto object-contain transform group-hover:scale-110 group-hover:-rotate-6 transition-all duration-700 drop-shadow-[0_20px_30px_rgba(0,0,0,0.5)] opacity-50 sm:opacity-90 md:opacity-100" />
+            )}
           </motion.div>
 
           <motion.div className="group relative min-h-[250px] sm:min-h-[300px] md:min-h-[320px] rounded-[24px] sm:rounded-[32px] overflow-hidden bg-gradient-to-br from-[#d97706] to-amber-700 shadow-[0_20px_40px_-15px_rgba(217,119,6,0.3)] hover:shadow-[0_25px_50px_-12px_rgba(217,119,6,0.4)] transition-all duration-500 hover:-translate-y-1 border border-amber-600" variants={slideInRight}>
@@ -1396,7 +1405,9 @@ export default function Home() {
                 <span className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-amber-400/20 to-transparent pointer-events-none"></span>
               </motion.button>
             </div>
-            <img src={banner2.image || "/images/product-3.png"} alt={banner2.title || "Premium Vape"} className="absolute -right-4 bottom-0 w-44 sm:w-56 md:w-64 h-auto object-contain transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-700 drop-shadow-[0_20px_30px_rgba(0,0,0,0.5)] opacity-50 sm:opacity-90 md:opacity-100" />
+            {cmsLoaded && (
+              <img src={banner2.image || "/images/product-3.png"} alt={banner2.title || "Premium Vape"} className="absolute -right-4 bottom-0 w-44 sm:w-56 md:w-64 h-auto object-contain transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-700 drop-shadow-[0_20px_30px_rgba(0,0,0,0.5)] opacity-50 sm:opacity-90 md:opacity-100" />
+            )}
           </motion.div>
         </motion.section>)}
 
