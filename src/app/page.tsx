@@ -853,13 +853,22 @@ export default function Home() {
 
   // ---- Site content from Shopify (edited in Shopify admin, no deploy) ----
   const [cms, setCms] = useState<any>(null);
-  const [cmsLoaded, setCmsLoaded] = useState(false);
   useEffect(() => {
     fetch("/api/site-content")
       .then((res) => res.json())
-      .then((data) => { setCms(data); setCmsLoaded(true); })
-      .catch(() => { setCmsLoaded(true); });
+      .then((data) => setCms(data))
+      .catch(() => {});
   }, []);
+  // Ask Shopify's CDN for a smaller file: the hero card is at most 480px
+  // wide, so an 800px file is plenty even on retina screens, and it is
+  // a third smaller than the full-size upload. (Next.js image
+  // optimisation is off — the Vercel quota is exhausted — so the CDN
+  // does the resizing.)
+  const cdnWidth = (url: string, w: number) => {
+    if (!url || !url.includes("cdn.shopify.com")) return url;
+    const sep = url.includes("?") ? "&" : "?";
+    return `${url}${sep}width=${w}`;
+  };
   // Hero slides — HARDCODED from the owner's Google Doc "vape mart
   // homepage" (owner instruction 2026-11-09: "directly hardcode kore deo").
   // The hero no longer reads the CMS or /api/site-content, so it can never
@@ -885,7 +894,7 @@ export default function Home() {
       title: "IQOS ILUMA Devices\nHeat it, don't burn it",
       desc: "New to heated tobacco? It's simple - the device heats the stick instead of burning it, so you get real tobacco taste without ash. Buy your IQOS online from Vape Mart, the best IQOS shop in Dubai for devices and TEREA sticks together.",
       badge: "IQOS in Dubai",
-      image: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/hero_slide_4.jpg?v=1792358788",
+      image: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/IQOS_ILUMA_Devices_In_Dubai_11ee32ec-a088-4623-a569-75cc8c5914f8.webp?v=1794245760",
       buttonText: "Shop IQOS",
       buttonLink: "/collections/iqos",
     },
@@ -893,7 +902,7 @@ export default function Home() {
       title: "JUUL Pods That Just Work\nSmall, simple, no fuss",
       desc: "No buttons to learn, no liquid to spill, you just click a pod in and go. Vape Mart is the best JUUL shop in Dubai for authentic starter kits and pods, from Virginia Tobacco and Mint to fruit ice, Juul 1 comes with 3% and 5% and Juul 2 18mg salt nicotine.",
       badge: "JUUL & JUUL 2 in Dubai",
-      image: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/juul_product.jpg?v=1794163747",
+      image: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/JUUL_JUUL_2_in_Dubai_37e88fa5-1654-49d9-bda1-7717d644e4c9.webp?v=1794245758",
       buttonText: "Shop JUUL",
       buttonLink: "/collections/juul",
     },
@@ -1051,13 +1060,18 @@ export default function Home() {
   // (edited in the admin panel's Hero Slides tab): a CMS slide at the
   // same position with an image wins, otherwise the hardcoded Shopify
   // CDN image is used. Text and buttons stay hardcoded, so the hero
-  // can never disappear when the Shopify reads fail.
+  // can never disappear when the Shopify reads fail. The hardcoded
+  // images are kept in sync with the owner's current CMS images, so
+  // the first paint already shows the right image with no wait.
+  // Every image is asked from the CDN at a smaller width (see
+  // cdnWidth above) so it downloads faster.
   const cmsHeroByPos = new Map(
     ((cms?.heroSlides ?? []) as any[]).map((s: any) => [Number(s.position) || 0, s.imageUrl || ""])
   );
   const slides = HERO_SLIDES.map((s, i) => {
     const cmsImg = cmsHeroByPos.get(i + 1) || "";
-    return cmsImg ? { ...s, image: cmsImg } : s;
+    const img = cmsImg || s.image;
+    return { ...s, image: cdnWidth(img, 800) };
   });
 
   const nextSlide = useCallback(() => {
@@ -1313,19 +1327,13 @@ export default function Home() {
                         wrapper let the 260px card overlap the button by ~4px). */}
                     <div className="w-full md:w-1/2 h-[280px] sm:h-[380px] md:h-[500px] lg:h-[560px] relative z-10 flex items-center justify-center mt-4 md:mt-0 px-2 sm:px-4">
                       <div className="relative w-full max-w-[260px] sm:max-w-[360px] md:max-w-[480px] aspect-square rounded-[24px] sm:rounded-[36px] overflow-hidden shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] border-2 border-emerald-400/20 group/heroImg backdrop-blur-sm bg-black/20">
-                        {/* The image waits for the site content to load, so a
-                            stale hardcoded image never flashes before the
-                            owner's chosen image. While loading, the card
-                            stays a plain dark panel. */}
-                        {cmsLoaded && (
-                          <Image
-                            src={slide.image}
-                            alt={slide.title}
-                            fill
-                            priority={idx === 0}
-                            className="object-cover transform group-hover/heroImg:scale-105 transition-transform duration-700 ease-out"
-                          />
-                        )}
+                        <Image
+                          src={slide.image}
+                          alt={slide.title}
+                          fill
+                          priority={idx === 0}
+                          className="object-cover transform group-hover/heroImg:scale-105 transition-transform duration-700 ease-out"
+                        />
                         {/* Elegant atmospheric edge vignette */}
                         <div className="absolute inset-0 bg-gradient-to-t from-[#022c22]/60 via-transparent to-transparent pointer-events-none"></div>
                         <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-[24px] sm:rounded-[36px] pointer-events-none"></div>
@@ -1383,9 +1391,7 @@ export default function Home() {
                 <span className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-emerald-400/20 to-transparent pointer-events-none"></span>
               </motion.button>
             </div>
-            {cmsLoaded && (
-              <img src={banner1.image || "/images/cat_vape_kits.png"} alt={banner1.title || "Vape Kits"} className="absolute -right-4 -bottom-4 sm:-bottom-8 w-44 sm:w-56 md:w-64 h-auto object-contain transform group-hover:scale-110 group-hover:-rotate-6 transition-all duration-700 drop-shadow-[0_20px_30px_rgba(0,0,0,0.5)] opacity-50 sm:opacity-90 md:opacity-100" />
-            )}
+            <img src={cdnWidth(banner1.image || "/images/cat_vape_kits.png", 500)} alt={banner1.title || "Vape Kits"} className="absolute -right-4 -bottom-4 sm:-bottom-8 w-44 sm:w-56 md:w-64 h-auto object-contain transform group-hover:scale-110 group-hover:-rotate-6 transition-all duration-700 drop-shadow-[0_20px_30px_rgba(0,0,0,0.5)] opacity-50 sm:opacity-90 md:opacity-100" />
           </motion.div>
 
           <motion.div className="group relative min-h-[250px] sm:min-h-[300px] md:min-h-[320px] rounded-[24px] sm:rounded-[32px] overflow-hidden bg-gradient-to-br from-[#d97706] to-amber-700 shadow-[0_20px_40px_-15px_rgba(217,119,6,0.3)] hover:shadow-[0_25px_50px_-12px_rgba(217,119,6,0.4)] transition-all duration-500 hover:-translate-y-1 border border-amber-600" variants={slideInRight}>
@@ -1405,9 +1411,7 @@ export default function Home() {
                 <span className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-amber-400/20 to-transparent pointer-events-none"></span>
               </motion.button>
             </div>
-            {cmsLoaded && (
-              <img src={banner2.image || "/images/product-3.png"} alt={banner2.title || "Premium Vape"} className="absolute -right-4 bottom-0 w-44 sm:w-56 md:w-64 h-auto object-contain transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-700 drop-shadow-[0_20px_30px_rgba(0,0,0,0.5)] opacity-50 sm:opacity-90 md:opacity-100" />
-            )}
+            <img src={cdnWidth(banner2.image || "/images/product-3.png", 500)} alt={banner2.title || "Premium Vape"} className="absolute -right-4 bottom-0 w-44 sm:w-56 md:w-64 h-auto object-contain transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-700 drop-shadow-[0_20px_30px_rgba(0,0,0,0.5)] opacity-50 sm:opacity-90 md:opacity-100" />
           </motion.div>
         </motion.section>)}
 
