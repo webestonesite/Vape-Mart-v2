@@ -296,8 +296,10 @@ export function Header({ onCartClick, cartCount = 0 }: HeaderProps) {
 
           {/* Desktop Search Bar */}
           <form onSubmit={handleSearchSubmit} className="hidden sm:block flex-1 max-w-2xl relative group">
-            <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none text-white transition-colors">
-              <Search size={22} strokeWidth={3.5} />
+            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+              <span className="flex items-center justify-center w-7 h-7 rounded-full bg-white text-emerald-900">
+                <Search size={16} strokeWidth={3} />
+              </span>
             </div>
             <input
               type="text"
