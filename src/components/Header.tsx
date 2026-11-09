@@ -266,9 +266,7 @@ export function Header({ onCartClick, cartCount = 0 }: HeaderProps) {
         }`}
       >
         <div
-          className={`max-w-[1400px] mx-auto px-4 sm:px-6 flex items-center justify-between gap-3 sm:gap-6 md:gap-10 transition-all duration-300 ${
-            isScrolled ? "h-[68px] sm:h-[76px] lg:h-[82px]" : "h-[82px] sm:h-[94px] lg:h-[104px]"
-          }`}
+          className="max-w-[1400px] mx-auto px-4 sm:px-6 flex items-center justify-between gap-3 sm:gap-6 md:gap-10 transition-all duration-300 h-[82px] sm:h-[94px] lg:h-[104px]"
         >
           {/* Left: Mobile Menu Toggle + Brand Logo */}
           <div className="flex items-center gap-2.5 sm:gap-4">
