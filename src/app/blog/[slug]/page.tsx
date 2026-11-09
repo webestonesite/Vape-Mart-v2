@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CalendarDays, Clock, ChevronRight, ArrowRight, Zap } from "lucide-react";
@@ -134,8 +135,11 @@ export default async function BlogArticlePage({ params }: Props) {
               </Link>
             </div>
 
-            {/* Related products */}
-            <RelatedProducts slugs={post.productSlugs} />
+            {/* Related products — streams in after the article, so the
+                text is readable first. */}
+            <Suspense fallback={<div className="min-h-[280px]" aria-hidden="true" />}>
+              <RelatedProducts slugs={post.productSlugs} />
+            </Suspense>
 
             {/* CTA */}
             <div className="rounded-[20px] bg-gradient-to-br from-[#022c22] to-[#065f46] p-8 text-center relative overflow-hidden mt-10">
