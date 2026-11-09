@@ -514,6 +514,7 @@ export async function getPanelData() {
 export interface SaveResult {
   message: string;
   id?: string;
+  url?: string;
 }
 
 /* Collection sort orders (Shopify CollectionSortOrder enum, verified live:
@@ -778,6 +779,24 @@ export async function saveAction(action: string, p: any): Promise<SaveResult> {
       const errs = d.fileDelete?.userErrors ?? [];
       if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
       return { message: "File deleted." };
+    }
+
+    case "file.permanentUrl": {
+      // Turn a staged upload URL (or any external image URL) into a
+      // permanent Shopify Files URL, so a banner/hero image saved from an
+      // upload does not expire. Local /images paths and already-permanent
+      // Shopify CDN files are returned as-is.
+      const url = String(p.url || "");
+      if (!url) throw new Error("No image URL.");
+      if (url.startsWith("/") || (url.includes("cdn.shopify.com") && !url.includes("/tmp/"))) return { message: "Image ready.", url };
+      const fileId = await fileFromUrl(url, "Uploaded image");
+      const d = await gql<any>(
+        `query FileUrl($id: ID!) { node(id: $id) { ... on MediaImage { image { url } } } }`,
+        { id: fileId }
+      );
+      const finalUrl = d?.node?.image?.url || "";
+      if (!finalUrl) throw new Error("Could not read the uploaded image URL.");
+      return { message: "Image ready.", url: finalUrl };
     }
 
     case "collection.save": {

@@ -3,7 +3,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Save, Plus, Trash2, Search, X } from "lucide-react";
+import { Save, Plus, Trash2, Search, X, Upload } from "lucide-react";
+import { uploadFile } from "./panel-ui";
 
 /* ------------------------------------------------------------------ */
 /*  Vape Mart Admin Panel                                              */
@@ -123,8 +124,30 @@ export function SettingsTab({ data, save }: any) {
 export function HeroTab({ data, save }: any) {
   const [slides, setSlides] = useState<any[]>(data.heroSlides || []);
   useEffect(() => setSlides(data.heroSlides || []), [data]);
+  const [uploadingIdx, setUploadingIdx] = useState(-1);
+  const [uploadErr, setUploadErr] = useState("");
   const upd = (i: number, k: string, v: any) =>
     setSlides(slides.map((s, j) => (j === i ? { ...s, [k]: v } : s)));
+  const onUpload = async (i: number, files: FileList | null) => {
+    if (!files || !files.length) return;
+    setUploadingIdx(i);
+    setUploadErr("");
+    try {
+      const resourceUrl = await uploadFile(files[0]);
+      // The staged URL is turned into a permanent file when you save
+      // (hero.save uploads it to Shopify Files). The blob URL is only
+      // a local preview until then.
+      setSlides((prev) =>
+        prev.map((s, j) =>
+          j === i ? { ...s, newImageUrl: resourceUrl, imageUrl: URL.createObjectURL(files[0]) } : s
+        )
+      );
+    } catch (e: any) {
+      setUploadErr("Upload failed: " + (e.message || "try again"));
+    } finally {
+      setUploadingIdx(-1);
+    }
+  };
 
   return (
     <div>
@@ -177,6 +200,23 @@ export function HeroTab({ data, save }: any) {
                 onChange={(e) => upd(i, "newImageUrl", e.target.value)}
               />
               <p className="text-xs text-neutral-500 mt-1">Leave blank to keep the current image.</p>
+              <label className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-neutral-300 px-3 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 cursor-pointer">
+                <Upload size={13} />
+                {uploadingIdx === i ? "Uploading…" : "Upload image"}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  disabled={uploadingIdx === i}
+                  onChange={(e) => {
+                    onUpload(i, e.target.files);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+              {uploadErr && uploadingIdx === -1 && (
+                <p className="text-xs text-red-600 mt-1">{uploadErr}</p>
+              )}
             </div>
           </div>
           <SaveBtn

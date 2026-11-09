@@ -23,6 +23,15 @@ export async function uploadFile(file: File): Promise<string> {
   return j.resourceUrl as string;
 }
 
+/* Upload a file and return a permanent Shopify Files URL for it, so the
+   URL can be saved as a banner/hero image without expiring. */
+export async function uploadImageFile(file: File): Promise<string> {
+  const staged = await uploadFile(file);
+  const r = await api({ action: "file.permanentUrl", url: staged });
+  if (!r.url) throw new Error(r.error || "Could not save the uploaded image");
+  return r.url as string;
+}
+
 export const inputCls =
   "w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600";
 export const labelCls = "block text-xs font-semibold text-neutral-600 mb-1";

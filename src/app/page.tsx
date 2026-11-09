@@ -1046,7 +1046,18 @@ export default function Home() {
 
   // Hero slides are hardcoded (HERO_SLIDES above, owner's 2026-11-09
   // instruction) — the hero never depends on the CMS or the API.
-  const slides = HERO_SLIDES;
+  // Images may be overridden from the CMS hero_slide metaobjects
+  // (edited in the admin panel's Hero Slides tab): a CMS slide at the
+  // same position with an image wins, otherwise the hardcoded Shopify
+  // CDN image is used. Text and buttons stay hardcoded, so the hero
+  // can never disappear when the Shopify reads fail.
+  const cmsHeroByPos = new Map(
+    ((cms?.heroSlides ?? []) as any[]).map((s: any) => [Number(s.position) || 0, s.imageUrl || ""])
+  );
+  const slides = HERO_SLIDES.map((s, i) => {
+    const cmsImg = cmsHeroByPos.get(i + 1) || "";
+    return cmsImg ? { ...s, image: cmsImg } : s;
+  });
 
   const nextSlide = useCallback(() => {
     if (slides.length === 0) return;
