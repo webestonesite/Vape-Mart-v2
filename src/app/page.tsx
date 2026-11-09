@@ -356,8 +356,8 @@ function ProductCarousel({
         </>
       )}
 
-      {/* Centered Section Header */}
-      <motion.div className="section-header-bs mb-6 sm:mb-9 text-center relative z-10" variants={fadeInUp}>
+      {/* Centered Section Header — always visible (no fade-in), so the title/subtitle never look missing on load */}
+      <div className="section-header-bs mb-6 sm:mb-9 text-center relative z-10">
         <div className="top-picks flex items-center justify-center gap-2 mb-2">
           <span className={`line w-5 sm:w-6 h-[2px] rounded-full ${greenBoxPC ? "bg-[#064e3b] md:!bg-amber-400" : "bg-[#064e3b]"}`}></span>
           <span className={`text font-cinzel text-[11px] sm:text-xs font-bold tracking-[0.24em] uppercase ${greenBoxPC ? "text-[#064e3b] md:!text-amber-300" : "text-[#064e3b]"}`}>{badgeText}</span>
@@ -370,7 +370,7 @@ function ProductCarousel({
           <div className={`h-px w-12 sm:w-16 bg-gradient-to-l from-transparent ${greenBoxPC ? "to-[#064e3b] md:to-emerald-300" : "to-[#064e3b]"}`}></div>
         </div>
         <p className={`text-xs sm:text-sm max-w-xl mx-auto ${greenBoxPC ? "text-neutral-500 md:!text-emerald-100/90 font-medium" : "text-neutral-500"}`}>{subtitle}</p>
-      </motion.div>
+      </div>
 
       {/* 2x2 on Mobile (2 ta 2 ta 4 ta), 4 across on Desktop */}
       <motion.div 
