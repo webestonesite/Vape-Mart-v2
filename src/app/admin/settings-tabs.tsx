@@ -77,7 +77,7 @@ function JsonListEditor({
                   </select>
                 </span>
               ) : f.upload ? (
-                <span key={f.key} className="flex-1 min-w-[160px] flex items-center gap-2">
+                <span key={f.key} className="basis-full flex items-center gap-2">
                   {row[f.key] ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={row[f.key]} alt="" className="h-10 w-16 rounded object-cover border border-neutral-200 shrink-0" />
