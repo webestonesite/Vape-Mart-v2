@@ -369,7 +369,7 @@ function ProductCarousel({
           <div className={`w-2 h-2 rotate-45 ${greenBoxPC ? "bg-[#064e3b] md:!bg-amber-400" : "bg-[#064e3b]"}`}></div>
           <div className={`h-px w-12 sm:w-16 bg-gradient-to-l from-transparent ${greenBoxPC ? "to-[#064e3b] md:to-emerald-300" : "to-[#064e3b]"}`}></div>
         </div>
-        <p className={`text-xs sm:text-sm max-w-xl mx-auto ${greenBoxPC ? "text-neutral-500 md:text-white! font-medium" : "text-neutral-500"}`}>{subtitle}</p>
+        <p className={`text-xs sm:text-sm max-w-xl mx-auto font-medium ${greenBoxPC ? "" : "text-neutral-500"}`} style={greenBoxPC ? { color: "#ffffff" } : undefined}>{subtitle}</p>
       </div>
 
       {/* 2x2 on Mobile (2 ta 2 ta 4 ta), 4 across on Desktop */}
