@@ -38,10 +38,13 @@ import {
 } from "lucide-react";
 import { ProductItem, CollectionCategory, CartItem } from "@/types/product";
 import type { CollectionPageSettings } from "@/lib/shopify";
+import dynamic from "next/dynamic";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
-import { CartDrawer } from "@/components/CartDrawer";
+/* The cart drawer only opens on demand, so its code loads as a separate
+   chunk instead of in the first bundle. */
+const CartDrawer = dynamic(() => import("@/components/CartDrawer").then((m) => m.CartDrawer));
 
 interface CollectionPageViewProps {
   category?: CollectionCategory;
@@ -582,12 +585,12 @@ export function CollectionPageView({ category, allCategories, products, catalogP
         <div className="relative aspect-square bg-gradient-to-br from-[#f8fafc] to-emerald-50/60 overflow-hidden">
           <Link href={`/product/${p.slug}`} aria-label={p.title} className="block w-full h-full" onClick={() => saveRecent(p)}>
             <Image
-              src={p.primaryImage} alt={p.title} fill sizes="(max-width: 640px) 50vw, 33vw"
+              src={p.primaryImage} alt={p.title} fill sizes="(max-width: 640px) 50vw, 33vw" priority={i < 4}
               className="object-contain p-1 sm:p-2 transition-transform duration-500 group-hover:scale-105"
             />
             {p.images[1] && (
               <Image
-                src={p.images[1]} alt="" aria-hidden fill sizes="(max-width: 640px) 50vw, 33vw"
+                src={p.images[1]} alt="" aria-hidden fill sizes="(max-width: 640px) 50vw, 33vw" loading="lazy"
                 className="object-contain p-1 sm:p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
               />
             )}
@@ -717,7 +720,7 @@ export function CollectionPageView({ category, allCategories, products, catalogP
               transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
               className="rounded-3xl bg-white/10 backdrop-blur-md border border-white/15 p-4 shadow-2xl"
             >
-              <Image src={products[0].primaryImage} alt="" width={200} height={200} className="w-full h-auto object-contain" />
+              <Image src={products[0].primaryImage} alt="" width={200} height={200} priority className="w-full h-auto object-contain" />
             </motion.div>
           </motion.div>
         )}
@@ -733,7 +736,7 @@ export function CollectionPageView({ category, allCategories, products, catalogP
               transition={{ duration: 8.5, repeat: Infinity, ease: "easeInOut" }}
               className="rounded-3xl bg-white/10 backdrop-blur-md border border-white/15 p-3 shadow-2xl"
             >
-              <Image src={products[1].primaryImage} alt="" width={150} height={150} className="w-full h-auto object-contain" />
+              <Image src={products[1].primaryImage} alt="" width={150} height={150} priority className="w-full h-auto object-contain" />
             </motion.div>
           </motion.div>
         )}
@@ -904,7 +907,7 @@ export function CollectionPageView({ category, allCategories, products, catalogP
                   className="group relative shrink-0 w-48 sm:w-60 snap-start rounded-3xl bg-white border border-emerald-900/10 overflow-hidden hover:border-amber-400/60 hover:shadow-[0_24px_50px_-20px_rgba(245,158,11,0.35)] hover:-translate-y-1 transition-all duration-300"
                 >
                   <div className="relative aspect-[4/3] bg-gradient-to-br from-emerald-50/80 via-white to-amber-50/40 overflow-hidden">
-                    <Image src={r.primaryImage} alt={r.title} fill sizes="240px" className="object-contain p-4 transition-transform duration-500 group-hover:scale-110" />
+                    <Image src={r.primaryImage} alt={r.title} fill loading="lazy" sizes="240px" className="object-contain p-4 transition-transform duration-500 group-hover:scale-110" />
                     <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-white/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                   <div className="p-4">
@@ -942,7 +945,7 @@ export function CollectionPageView({ category, allCategories, products, catalogP
                 href={`/collections/${cat.slug}`}
                 className="group relative shrink-0 w-44 sm:w-56 h-56 sm:h-64 rounded-3xl overflow-hidden snap-start border border-emerald-900/10"
               >
-                <Image src={cat.image} alt={cat.name} fill className="object-cover transition-transform duration-500 group-hover:scale-110" sizes="224px" />
+                <Image src={cat.image} alt={cat.name} fill loading="lazy" className="object-cover transition-transform duration-500 group-hover:scale-110" sizes="224px" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#022c22] via-[#022c22]/40 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-4">
                   <p className="font-luxury text-base sm:text-lg font-bold text-white leading-tight">{cat.name}</p>
@@ -1033,7 +1036,7 @@ export function CollectionPageView({ category, allCategories, products, catalogP
                 <div className={`absolute -top-10 -right-10 h-36 w-36 rounded-full ${t.glow} blur-[50px] pointer-events-none`} />
                 <div className="relative h-44 sm:h-56 overflow-hidden">
                   {f.image ? (
-                    <Image src={f.image} alt={f.name} fill className="object-cover transition-transform duration-700 group-hover:scale-110" sizes="320px" />
+                    <Image src={f.image} alt={f.name} fill loading="lazy" className="object-cover transition-transform duration-700 group-hover:scale-110" sizes="320px" />
                   ) : null}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
                   <div className="absolute top-3 right-3 rounded-full bg-white/95 backdrop-blur px-3 py-1 text-[11px] font-extrabold text-emerald-950 shadow-lg">
@@ -1451,7 +1454,7 @@ export function CollectionPageView({ category, allCategories, products, catalogP
               </button>
               <div className="grid sm:grid-cols-2 overflow-y-auto">
                 <div className="relative aspect-square bg-gradient-to-br from-[#f8fafc] to-emerald-50/60">
-                  <Image src={quickViewProduct.primaryImage} alt={quickViewProduct.title} fill className="object-contain p-8" sizes="50vw" />
+                  <Image src={quickViewProduct.primaryImage} alt={quickViewProduct.title} fill loading="lazy" className="object-contain p-8" sizes="50vw" />
                 </div>
                 <div className="p-5 sm:p-7 flex flex-col" style={{ paddingBottom: "max(1.25rem, env(safe-area-inset-bottom))" }}>
                   <p className="font-cinzel text-[10px] tracking-[0.2em] text-emerald-700/80 font-bold">{quickViewProduct.brand}</p>
@@ -1601,7 +1604,7 @@ export function CollectionPageView({ category, allCategories, products, catalogP
               <div className="flex -space-x-2">
                 {compareProducts.map((p) => (
                   <span key={p.id} className="w-10 h-10 rounded-xl bg-white border-2 border-emerald-950 overflow-hidden inline-block">
-                    <Image src={p.primaryImage} alt="" width={40} height={40} className="w-full h-full object-contain p-0.5" />
+                    <Image src={p.primaryImage} alt="" width={40} height={40} loading="lazy" className="w-full h-full object-contain p-0.5" />
                   </span>
                 ))}
               </div>
@@ -1647,7 +1650,7 @@ export function CollectionPageView({ category, allCategories, products, catalogP
                               <button onClick={() => toggleCompare(p.id)} aria-label={`Remove ${p.title}`} className="absolute top-1.5 right-1.5 w-8 h-8 rounded-full bg-white border border-emerald-900/10 flex items-center justify-center text-neutral-400 hover:text-red-500">
                                 <X size={14} />
                               </button>
-                              <Image src={p.primaryImage} alt={p.title} width={120} height={120} className="w-24 h-24 object-contain mx-auto" />
+                              <Image src={p.primaryImage} alt={p.title} width={120} height={120} loading="lazy" className="w-24 h-24 object-contain mx-auto" />
                             </div>
                             <p className="mt-2 text-[13px] font-bold text-emerald-950 leading-snug text-left">{p.title}</p>
                           </th>

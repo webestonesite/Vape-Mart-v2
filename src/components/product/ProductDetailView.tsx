@@ -30,10 +30,13 @@ import {
 import { ProductItem, CartItem } from "@/types/product";
 import type { ProductPageSettings } from "@/lib/shopify";
 import { buildSeoSections, buildProductFaqs, SeoSection } from "./productSeo";
+import dynamic from "next/dynamic";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
-import { CartDrawer } from "@/components/CartDrawer";
+/* The cart drawer only opens on demand, so its code loads as a separate
+   chunk instead of in the first bundle. */
+const CartDrawer = dynamic(() => import("@/components/CartDrawer").then((m) => m.CartDrawer));
 
 interface ProductDetailViewProps {
   product: ProductItem;
@@ -322,7 +325,7 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
                     key={i} onClick={() => setImgIdx(i)} aria-label={`View image ${i + 1}`}
                     className={`snap-start shrink-0 w-[72px] h-[72px] xl:w-[88px] xl:h-[88px] rounded-2xl border-2 overflow-hidden bg-white transition-all ${i === imgIdx ? "border-amber-500 shadow-md" : "border-emerald-900/10 opacity-70 hover:opacity-100"}`}
                   >
-                    <Image src={src} alt="" width={72} height={72} className="object-contain w-full h-full p-1.5" />
+                    <Image src={src} alt="" width={72} height={72} loading="lazy" className="object-contain w-full h-full p-1.5" />
                   </button>
                 ))}
               </div>
@@ -905,7 +908,7 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
                   <article key={p.id} className="snap-start shrink-0 w-[220px] sm:w-auto group rounded-2xl bg-white border border-emerald-900/10 overflow-hidden hover:shadow-[0_16px_40px_-14px_rgba(6,78,59,0.3)] hover:-translate-y-1 transition-all duration-300 flex flex-col">
                     <div className="relative aspect-square bg-gradient-to-br from-[#f8fafc] to-emerald-50/60">
                       <Link href={`/product/${p.slug}`} aria-label={p.title} className="block w-full h-full">
-                        <Image src={p.primaryImage} alt={p.title} fill sizes="220px" className="object-contain p-4 group-hover:scale-105 transition-transform duration-500" />
+                        <Image src={p.primaryImage} alt={p.title} fill loading="lazy" sizes="220px" className="object-contain p-4 group-hover:scale-105 transition-transform duration-500" />
                       </Link>
                       {d > 0 && <span className="absolute top-2.5 left-2.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-emerald-950 text-[10px] font-extrabold px-2 py-0.5">-{d}%</span>}
                       <button onClick={() => toggleRelatedWish(p.id)} aria-label="Add to wishlist" className="absolute top-2.5 right-2.5 w-9 h-9 rounded-full bg-white/90 border border-emerald-900/10 flex items-center justify-center shadow hover:bg-white">
