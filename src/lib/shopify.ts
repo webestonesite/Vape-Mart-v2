@@ -981,6 +981,12 @@ export interface SiteContent {
   testimonials: Testimonial[];
   faqs: FaqItem[];
   showcaseCards: ShowcaseCard[];
+  /* Featured image URL per collection handle, for the "Shop by
+     Category" tiles (2026-11-11): each tile shows its linked
+     collection's Shopify featured image. A handle missing here means
+     that collection has no featured image — the tile then shows no
+     image at all (owner rule: no fallback images). */
+  collectionImages: Record<string, string>;
   /* Set when a meta query or a mapping step failed: the lists above are
      then partial (the good halves), never silently all-empty. Surfaced
      by /api/site-content as contentError. (B2, 2026-11-11) */
@@ -1046,6 +1052,18 @@ const SITE_CONTENT_META_QUERY_B = `
     }
   }
 `;
+/*  Category tiles (2026-11-11): the featured image of every collection,
+    keyed by handle, so each "Shop by Category" tile can show its linked
+    collection's image. Lean — handle + one image URL per collection —
+    and a third independent read, so it follows the same B2 rule as A/B:
+    one half failing must not wipe out the others. */
+const SITE_CONTENT_COLLECTION_IMAGES_QUERY = `
+  query SiteContentCollectionImages {
+    collections(first: 100) {
+      nodes { handle image { url } }
+    }
+  }
+`;
 
 /*  Lean fragment for home-section cards: only what cardProduct() reads
     (handle, title, price, compare-at, review count, badge, brand, first
@@ -1106,8 +1124,9 @@ export async function fetchSiteContent(): Promise<SiteContent> {
   const errors: string[] = [];
   const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e));
   // Two independent reads (see note above SITE_CONTENT_META_QUERY_A): one
-  // half failing must not wipe out the other half's content.
-  const [a, b] = await Promise.all([
+  // half failing must not wipe out the other half's content. The
+  // collection-images read is a third independent one (same rule).
+  const [a, b, c] = await Promise.all([
     shopifyAdmin<any>(SITE_CONTENT_META_QUERY_A, {}, 600).catch((e) => {
       console.error("[fetchSiteContent] meta query A failed:", errMsg(e));
       errors.push(`meta query A failed: ${errMsg(e)}`);
@@ -1118,9 +1137,22 @@ export async function fetchSiteContent(): Promise<SiteContent> {
       errors.push(`meta query B failed: ${errMsg(e)}`);
       return null;
     }),
+    shopifyAdmin<any>(SITE_CONTENT_COLLECTION_IMAGES_QUERY, {}, 600).catch((e) => {
+      console.error("[fetchSiteContent] collection images failed:", errMsg(e));
+      errors.push(`collection images failed: ${errMsg(e)}`);
+      return null;
+    }),
   ]);
   const data: any = { ...(a ?? {}), ...(b ?? {}) };
-  const out: SiteContent = { heroSlides: [], homeSections: [], testimonials: [], faqs: [], showcaseCards: [] };
+  const out: SiteContent = { heroSlides: [], homeSections: [], testimonials: [], faqs: [], showcaseCards: [], collectionImages: {} };
+  try {
+    for (const n of c?.collections?.nodes ?? []) {
+      if (n?.handle && n?.image?.url) out.collectionImages[n.handle] = n.image.url;
+    }
+  } catch (e) {
+    console.error("[fetchSiteContent] collectionImages mapping failed:", errMsg(e));
+    errors.push(`collectionImages mapping failed: ${errMsg(e)}`);
+  }
   try {
     out.heroSlides = (data.heroSlides?.nodes ?? [])
       .map((n: MetaobjectNode) => {

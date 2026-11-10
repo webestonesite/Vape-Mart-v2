@@ -750,15 +750,29 @@ export default function Home() {
   const homeBanners: any[] = Array.isArray(homeSettings.promoBanners ?? homeSettings.promo_banners) && (homeSettings.promoBanners ?? homeSettings.promo_banners).length ? (homeSettings.promoBanners ?? homeSettings.promo_banners) : [];
   const banner1 = homeBanners[0] || {};
   const banner2 = homeBanners[1] || {};
-  const categoryTiles: { title: string; subtitle: string; num: string; img: string; color: string; tag: string }[] = Array.isArray(homeSettings.categoryTiles ?? homeSettings.category_tiles) && (homeSettings.categoryTiles ?? homeSettings.category_tiles).length
-    ? (homeSettings.categoryTiles ?? homeSettings.category_tiles).map((t: any, i: number) => ({ title: t.title || "", subtitle: t.subtitle || "", num: String(i + 1).padStart(2, "0"), img: t.img || "/images/cat_disposables.png", color: t.color || "from-emerald-900/80 to-black/90", tag: t.tag || "" }))
+  /* Category tiles — each tile shows ITS LINKED COLLECTION's Shopify
+     featured image (2026-11-11; owner: "shopify collection featured
+     image ... thik koro and falback raikho na"). The image comes from
+     cms.collectionImages[handle], never from the tile's old `img` field
+     and never from a local file. A tile with no linked collection, or a
+     collection with no featured image, shows NO image at all — just the
+     gradient background and text. The hardcoded tiles below carry the
+     collection handles (the `home.category_tiles` metafield is empty,
+     so these render); the panel Home tab lets the owner re-link them. */
+  const collectionImages: Record<string, string> = cms?.collectionImages || {};
+  const tileImg = (collection?: string) => {
+    const url = collection ? collectionImages[collection] : "";
+    return url ? cdnWidth(url, 800) : "";
+  };
+  const categoryTiles: { title: string; subtitle: string; num: string; img: string; color: string; tag: string; collection: string }[] = Array.isArray(homeSettings.categoryTiles ?? homeSettings.category_tiles) && (homeSettings.categoryTiles ?? homeSettings.category_tiles).length
+    ? (homeSettings.categoryTiles ?? homeSettings.category_tiles).map((t: any, i: number) => ({ title: t.title || "", subtitle: t.subtitle || "", num: String(i + 1).padStart(2, "0"), img: tileImg(t.collection), color: t.color || "from-emerald-900/80 to-black/90", tag: t.tag || "", collection: t.collection || "" }))
     : [
-        { title: "JUUL", subtitle: "PODS & DEVICES", num: "01", img: "/images/juul_product.jpg", color: "from-blue-900/80 to-black/90", tag: "POPULAR" },
-        { title: "Disposables", subtitle: "NEW ARRIVALS", num: "02", img: "/images/cat_disposables.png", color: "from-emerald-900/80 to-black/90", tag: "TRENDING" },
-        { title: "E-Liquids", subtitle: "TOP RATED", num: "03", img: "/images/vape_hero_sky.png", color: "from-amber-900/80 to-black/90", tag: "HOT" },
-        { title: "TEREA", subtitle: "HEATED TOBACCO", num: "04", img: "/images/terea_heets.jpg", color: "from-purple-900/80 to-black/90", tag: "FEATURED" },
-        { title: "IQOS", subtitle: "ILUMA DEVICES", num: "05", img: "/images/prod_pod.png", color: "from-teal-900/80 to-black/90", tag: "NEW" },
-        { title: "Shop All", subtitle: "FULL COLLECTION", num: "06", img: "/images/cat_disposables.png", color: "from-rose-900/80 to-black/90", tag: "EXPLORE" },
+        { title: "JUUL", subtitle: "PODS & DEVICES", num: "01", img: tileImg("juul"), color: "from-blue-900/80 to-black/90", tag: "POPULAR", collection: "juul" },
+        { title: "Disposables", subtitle: "NEW ARRIVALS", num: "02", img: tileImg("disposable-vape"), color: "from-emerald-900/80 to-black/90", tag: "TRENDING", collection: "disposable-vape" },
+        { title: "E-Liquids", subtitle: "TOP RATED", num: "03", img: tileImg("e-liquids"), color: "from-amber-900/80 to-black/90", tag: "HOT", collection: "e-liquids" },
+        { title: "TEREA", subtitle: "HEATED TOBACCO", num: "04", img: tileImg("terea"), color: "from-purple-900/80 to-black/90", tag: "FEATURED", collection: "terea" },
+        { title: "IQOS", subtitle: "ILUMA DEVICES", num: "05", img: tileImg("iqos"), color: "from-teal-900/80 to-black/90", tag: "NEW", collection: "iqos" },
+        { title: "Shop All", subtitle: "FULL COLLECTION", num: "06", img: tileImg("frontpage"), color: "from-rose-900/80 to-black/90", tag: "EXPLORE", collection: "frontpage" },
       ];
   const HOME_FEATURE_ICONS: Record<string, any> = { Truck, Headset, RotateCcw, CreditCard, ShieldCheck, Zap, Clock, Star };
   const homeFeatures: { icon: any; title: string; desc: string }[] = Array.isArray(homeSettings.features) && homeSettings.features.length
@@ -1268,7 +1282,9 @@ export default function Home() {
                 className="group relative h-[210px] sm:h-[280px] md:h-[340px] rounded-2xl sm:rounded-3xl overflow-hidden bg-neutral-900 cursor-pointer shadow-[0_4px_15px_rgba(0,0,0,0.06)] hover:shadow-[0_15px_35px_rgba(6,78,59,0.25)] transition-all duration-500 border border-neutral-200/60 flex flex-col justify-between p-3 sm:p-5"
               >
                 <div className="absolute inset-0 bg-neutral-900">
-                  <Image src={cat.img} alt={cat.title} fill loading="lazy" sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw" className="object-cover transform group-hover:scale-110 transition-transform duration-700 ease-out opacity-85 group-hover:opacity-95" />
+                  {cat.img ? (
+                    <Image src={cat.img} alt={cat.title} fill loading="lazy" sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw" className="object-cover transform group-hover:scale-110 transition-transform duration-700 ease-out opacity-85 group-hover:opacity-95" />
+                  ) : null}
                   <div className={`absolute inset-0 bg-gradient-to-t ${cat.color} via-black/40 to-black/20 transition-opacity duration-500`}></div>
                 </div>
 
