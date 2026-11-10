@@ -1351,9 +1351,9 @@ export default function Home() {
           greenBoxPC={true}
         />
 
-        {/* TEREA & HEETS Carousel */}
+        {/* IQOS and TEREA Carousel */}
         <ProductCarousel
-          title={secText("tereaHeets", "title", themeData.tereaHeets?.title || "TEREA & HEETS")}
+          title={secText("tereaHeets", "title", themeData.tereaHeets?.title || "IQOS and TEREA")}
           subtitle={secText("tereaHeets", "subtitle", themeData.tereaHeets?.subtitle || "Authentic heated tobacco sticks for IQOS ILUMA & IQOS 3 Duo in UAE")}
           badgeText={secText("tereaHeets", "badgeText", themeData.tereaHeets?.badgeText || "HEATED TOBACCO")}
           products={secProducts("tereaHeets", cmsShowcase("tereaHeets", tereaHeetsProducts))}
