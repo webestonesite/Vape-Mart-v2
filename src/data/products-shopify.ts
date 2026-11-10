@@ -23,7 +23,7 @@ const HANDLE_ALIASES: Record<string, string> = {
   "shisha-hookah": "shisha-hookah",
 };
 
-function normalizeCategorySlug(handle: string): string {
+export function normalizeCategorySlug(handle: string): string {
   return HANDLE_ALIASES[handle] || handle;
 }
 
