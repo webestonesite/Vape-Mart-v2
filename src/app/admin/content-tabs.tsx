@@ -404,7 +404,7 @@ export function ShowcaseTab({ data, save }: any) {
     <div>
       <div className="flex gap-2 mb-4">
         {[
-          { k: "tereaHeets", l: "TEREA & HEETS cards" },
+          { k: "tereaHeets", l: "IQOS and TEREA cards" },
           { k: "juulProducts", l: "JUUL cards" },
         ].map((t) => (
           <button
