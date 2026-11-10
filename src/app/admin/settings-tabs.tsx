@@ -28,7 +28,7 @@ function JsonListEditor({
   label: string;
   rows: any[];
   setRows: (rows: any[]) => void;
-  fields: { key: string; label: string; placeholder?: string; upload?: boolean; options?: { value: string; label: string; swatch: string }[] }[];
+  fields: { key: string; label: string; placeholder?: string; upload?: boolean; select?: boolean; options?: { value: string; label: string; swatch?: string }[] }[];
   addLabel?: string;
 }) {
   const [uploading, setUploading] = useState("");
@@ -58,7 +58,21 @@ function JsonListEditor({
         {(rows || []).map((row, i) => (
           <div key={i} className="flex flex-wrap gap-2 items-center rounded-lg border border-neutral-100 p-2">
             {fields.map((f) => (
-              f.options ? (
+              f.options && f.select ? (
+                <span key={f.key} className="flex-1 min-w-[160px]">
+                  <select
+                    value={row[f.key] ?? ""}
+                    onChange={(e) => set(i, f.key, e.target.value)}
+                    className="w-full rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-sm"
+                    aria-label={f.label}
+                  >
+                    <option value="">No collection — no image</option>
+                    {f.options.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </span>
+              ) : f.options ? (
                 <span key={f.key} className="flex-1 min-w-[160px] flex items-center gap-2">
                   <span
                     className="w-5 h-5 rounded-full border border-neutral-300 shrink-0"
@@ -592,15 +606,15 @@ export function HomeTab({ data, save }: any) {
           addLabel="Add banner"
         />
       </Card>
-      <Card title="Shop by Category tiles" sub="6 tiles. Leave the colour blank to keep the current gradient (e.g. from-emerald-900/80 to-black/90).">
+      <Card title="Shop by Category tiles" sub="6 tiles. Pick the collection for each tile — the tile shows that collection's featured image from Shopify (upload it in Shopify admin, Collections → the collection → featured image). No collection picked, or a collection with no featured image, shows no image on the tile. Leave the colour blank to keep the current gradient (e.g. from-emerald-900/80 to-black/90).">
         <JsonListEditor
-          label="Tile (title → subtitle → image → tag → gradient)"
+          label="Tile (title → subtitle → collection → tag → gradient)"
           rows={tiles}
           setRows={setTiles}
           fields={[
             { key: "title", label: "Title" },
             { key: "subtitle", label: "Subtitle" },
-            { key: "img", label: "Image URL" },
+            { key: "collection", label: "Collection", select: true, options: (data.collections || []).map((c: any) => ({ value: c.handle as string, label: c.title as string })) },
             { key: "tag", label: "Tag" },
             { key: "color", label: "Gradient" },
           ]}

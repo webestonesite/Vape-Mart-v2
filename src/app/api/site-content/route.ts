@@ -48,6 +48,8 @@ export async function GET() {
     testimonials: content.testimonials,
     faqs: content.faqs,
     showcaseCards: content.showcaseCards,
+    /* Category tiles: featured image URL per collection handle. */
+    collectionImages: content.collectionImages,
     blogPosts: posts.map((p, i) => ({
       id: i + 1,
       handle: p.handle,
