@@ -552,7 +552,7 @@ export async function saveAction(action: string, p: any): Promise<SaveResult> {
       await setShopMetafields([
         { key: "announcements", type: "list.single_line_text_field", value: JSON.stringify((p.announcements ?? []).map(String).filter((x: string) => x.trim())) },
         { key: "phone", type: "single_line_text_field", value: String(p.phone ?? "") },
-        { key: "footer_text", type: "single_line_text_field", value: String(p.footerText ?? "") },
+        { key: "footer_text", type: "multi_line_text_field", value: String(p.footerText ?? "") },
       ]);
       return { message: "Top bar, phone and footer text saved." };
     }
