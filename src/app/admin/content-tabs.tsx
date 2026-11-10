@@ -19,7 +19,14 @@ async function api(body: any): Promise<any> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  return res.json();
+  // Never let a non-JSON error page turn into a cryptic "Unexpected token"
+  // SyntaxError: callers check r.ok / r.error.
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { ok: false, error: text || `Request failed (HTTP ${res.status}).` };
+  }
 }
 
 const inputCls =

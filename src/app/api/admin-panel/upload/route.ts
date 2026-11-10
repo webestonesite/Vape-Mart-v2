@@ -21,8 +21,11 @@ export async function POST(req: Request) {
     const form = await req.formData();
     const file = form.get("file") as File | null;
     if (!file) return NextResponse.json({ ok: false, error: "No file received." }, { status: 400 });
-    if (file.size > 10 * 1024 * 1024)
-      return NextResponse.json({ ok: false, error: "File too large (max 10 MB)." }, { status: 400 });
+    // Vercel rejects request bodies over ~4.5 MB before this handler runs,
+    // so the limit must sit below that cap. The panel also compresses
+    // images in the browser and checks the size before sending.
+    if (file.size > 4 * 1024 * 1024)
+      return NextResponse.json({ ok: false, error: "File too large (max 4 MB)." }, { status: 400 });
 
     const filename = (file.name || "upload").replace(/[^a-zA-Z0-9._-]/g, "-");
     const staged = await gql<any>(
