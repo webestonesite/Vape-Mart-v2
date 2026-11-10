@@ -116,7 +116,7 @@ export function SettingsTab({ data, save }: any) {
         </div>
         <div>
           <Lbl>Footer text (copyright line)</Lbl>
-          <Inp value={footerText} onChange={(e) => setFooterText(e.target.value)} />
+          <TA rows={3} value={footerText} onChange={(e) => setFooterText(e.target.value)} />
         </div>
       </div>
       <SaveBtn onClick={() => save("settings", { announcements: ann, phone, footerText })} />
