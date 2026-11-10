@@ -33,6 +33,10 @@ export async function GET() {
   const BADGE = ["bg-emerald-600 text-white", "bg-amber-600 text-white", "bg-blue-600 text-white", "bg-purple-600 text-white", "bg-rose-600 text-white"];
   return NextResponse.json({
     settings,
+    /* B2: null when the meta reads succeeded; otherwise the failure
+       message (e.g. "meta query A failed: ...") so a silent-empty
+       response is diagnosable without Vercel logs. */
+    contentError: content.error ?? null,
     heroSlides: content.heroSlides,
     homeSections: content.homeSections.map((s) => ({
       key: s.key,

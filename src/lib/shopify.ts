@@ -977,6 +977,10 @@ export interface SiteContent {
   testimonials: Testimonial[];
   faqs: FaqItem[];
   showcaseCards: ShowcaseCard[];
+  /* Set when a meta query or a mapping step failed: the lists above are
+     then partial (the good halves), never silently all-empty. Surfaced
+     by /api/site-content as contentError. (B2, 2026-11-11) */
+  error?: string;
 }
 
 interface MetaobjectNode {
@@ -1087,22 +1091,34 @@ async function fetchSectionProducts(ids: string[]): Promise<Map<string, ProductI
 }
 
 export async function fetchSiteContent(): Promise<SiteContent> {
-  const empty: SiteContent = { heroSlides: [], homeSections: [], testimonials: [], faqs: [], showcaseCards: [] };
+  /* B2 (2026-11-11): the meta queries are valid on the pinned API 2025-07
+     (the live /api/site-content returns full data right now) — the empty
+     arrays were a transient failure (throttle / Shopify hiccup) that the
+     old code swallowed into silent all-empty lists, which the route then
+     cached for 300 s. So: each list is mapped independently (one bad node
+     must not wipe the other four), every failure is recorded in `error`
+     and logged with the same "[fetchSiteContent] meta query A/B failed"
+     line, and the good halves are still returned instead of empty. */
+  const errors: string[] = [];
+  const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e));
   // Two independent reads (see note above SITE_CONTENT_META_QUERY_A): one
   // half failing must not wipe out the other half's content.
   const [a, b] = await Promise.all([
     shopifyAdmin<any>(SITE_CONTENT_META_QUERY_A, {}, 600).catch((e) => {
-      console.error("[fetchSiteContent] meta query A failed:", e instanceof Error ? e.message : e);
+      console.error("[fetchSiteContent] meta query A failed:", errMsg(e));
+      errors.push(`meta query A failed: ${errMsg(e)}`);
       return null;
     }),
     shopifyAdmin<any>(SITE_CONTENT_META_QUERY_B, {}, 600).catch((e) => {
-      console.error("[fetchSiteContent] meta query B failed:", e instanceof Error ? e.message : e);
+      console.error("[fetchSiteContent] meta query B failed:", errMsg(e));
+      errors.push(`meta query B failed: ${errMsg(e)}`);
       return null;
     }),
   ]);
   const data: any = { ...(a ?? {}), ...(b ?? {}) };
+  const out: SiteContent = { heroSlides: [], homeSections: [], testimonials: [], faqs: [], showcaseCards: [] };
   try {
-    const heroSlides: HeroSlide[] = (data.heroSlides?.nodes ?? [])
+    out.heroSlides = (data.heroSlides?.nodes ?? [])
       .map((n: MetaobjectNode) => {
         const f = moFields(n);
         return {
@@ -1117,6 +1133,11 @@ export async function fetchSiteContent(): Promise<SiteContent> {
       })
       .filter((s: HeroSlide) => s.title)
       .sort((a: HeroSlide, b: HeroSlide) => a.position - b.position);
+  } catch (e) {
+    console.error("[fetchSiteContent] heroSlides mapping failed:", errMsg(e));
+    errors.push(`heroSlides mapping failed: ${errMsg(e)}`);
+  }
+  try {
     const sectionNodes: { fields: Record<string, string>; productIds: string[] }[] =
       (data.homeSections?.nodes ?? []).map((n: MetaobjectNode) => ({
         fields: moFields(n),
@@ -1124,7 +1145,7 @@ export async function fetchSiteContent(): Promise<SiteContent> {
       }));
     const allIds = sectionNodes.flatMap((s) => s.productIds);
     const productsById = allIds.length ? await fetchSectionProducts(allIds) : new Map<string, ProductItem>();
-    const homeSections: HomeSectionData[] = sectionNodes
+    out.homeSections = sectionNodes
       .map((s) => {
         const f = s.fields;
         const products = s.productIds
@@ -1139,7 +1160,12 @@ export async function fetchSiteContent(): Promise<SiteContent> {
         };
       })
       .filter((s: HomeSectionData) => s.key);
-    const testimonials: Testimonial[] = (data.testimonials?.nodes ?? [])
+  } catch (e) {
+    console.error("[fetchSiteContent] homeSections mapping failed:", errMsg(e));
+    errors.push(`homeSections mapping failed: ${errMsg(e)}`);
+  }
+  try {
+    out.testimonials = (data.testimonials?.nodes ?? [])
       .map((n: MetaobjectNode) => {
         const f = moFields(n);
         return {
@@ -1152,7 +1178,12 @@ export async function fetchSiteContent(): Promise<SiteContent> {
       })
       .filter((t: Testimonial) => t.name && t.review)
       .sort((a: Testimonial, b: Testimonial) => a.position - b.position);
-    const faqs: FaqItem[] = (data.faqItems?.nodes ?? [])
+  } catch (e) {
+    console.error("[fetchSiteContent] testimonials mapping failed:", errMsg(e));
+    errors.push(`testimonials mapping failed: ${errMsg(e)}`);
+  }
+  try {
+    out.faqs = (data.faqItems?.nodes ?? [])
       .map((n: MetaobjectNode) => {
         const f = moFields(n);
         return {
@@ -1163,7 +1194,12 @@ export async function fetchSiteContent(): Promise<SiteContent> {
       })
       .filter((t: FaqItem) => t.question && t.answer)
       .sort((a: FaqItem, b: FaqItem) => a.position - b.position);
-    const showcaseCards: ShowcaseCard[] = (data.showcaseCards?.nodes ?? [])
+  } catch (e) {
+    console.error("[fetchSiteContent] faqs mapping failed:", errMsg(e));
+    errors.push(`faqs mapping failed: ${errMsg(e)}`);
+  }
+  try {
+    out.showcaseCards = (data.showcaseCards?.nodes ?? [])
       .map((n: MetaobjectNode) => {
         const f = moFields(n);
         return {
@@ -1179,11 +1215,12 @@ export async function fetchSiteContent(): Promise<SiteContent> {
       })
       .filter((c: ShowcaseCard) => c.sectionKey && c.title)
       .sort((a: ShowcaseCard, b: ShowcaseCard) => a.position - b.position);
-    return { heroSlides, homeSections, testimonials, faqs, showcaseCards };
   } catch (e) {
-    console.error("[fetchSiteContent] mapping failed:", e instanceof Error ? e.message : e);
-    return empty;
+    console.error("[fetchSiteContent] showcaseCards mapping failed:", errMsg(e));
+    errors.push(`showcaseCards mapping failed: ${errMsg(e)}`);
   }
+  if (errors.length) out.error = errors.join("; ");
+  return out;
 }
 
 /* ------------------------------------------------------------------ */
