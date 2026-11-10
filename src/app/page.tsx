@@ -767,11 +767,11 @@ export default function Home() {
   const categoryTiles: { title: string; subtitle: string; num: string; img: string; color: string; tag: string; collection: string }[] = Array.isArray(homeSettings.categoryTiles ?? homeSettings.category_tiles) && (homeSettings.categoryTiles ?? homeSettings.category_tiles).length
     ? (homeSettings.categoryTiles ?? homeSettings.category_tiles).map((t: any, i: number) => ({ title: t.title || "", subtitle: t.subtitle || "", num: String(i + 1).padStart(2, "0"), img: tileImg(t.collection), color: t.color || "from-emerald-900/80 to-black/90", tag: t.tag || "", collection: t.collection || "" }))
     : [
-        { title: "JUUL", subtitle: "PODS & DEVICES", num: "01", img: tileImg("juul"), color: "from-blue-900/80 to-black/90", tag: "POPULAR", collection: "juul" },
-        { title: "Disposables", subtitle: "NEW ARRIVALS", num: "02", img: tileImg("disposable-vape"), color: "from-emerald-900/80 to-black/90", tag: "TRENDING", collection: "disposable-vape" },
-        { title: "E-Liquids", subtitle: "TOP RATED", num: "03", img: tileImg("e-liquids"), color: "from-amber-900/80 to-black/90", tag: "HOT", collection: "e-liquids" },
-        { title: "TEREA", subtitle: "HEATED TOBACCO", num: "04", img: tileImg("terea"), color: "from-purple-900/80 to-black/90", tag: "FEATURED", collection: "terea" },
-        { title: "IQOS", subtitle: "ILUMA DEVICES", num: "05", img: tileImg("iqos"), color: "from-teal-900/80 to-black/90", tag: "NEW", collection: "iqos" },
+        { title: "TEREA", subtitle: "HEATED TOBACCO", num: "01", img: tileImg("terea"), color: "from-purple-900/80 to-black/90", tag: "FEATURED", collection: "terea" },
+        { title: "IQOS", subtitle: "ILUMA DEVICES", num: "02", img: tileImg("iqos"), color: "from-teal-900/80 to-black/90", tag: "NEW", collection: "iqos" },
+        { title: "JUUL", subtitle: "PODS & DEVICES", num: "03", img: tileImg("juul"), color: "from-blue-900/80 to-black/90", tag: "POPULAR", collection: "juul" },
+        { title: "Disposables", subtitle: "NEW ARRIVALS", num: "04", img: tileImg("disposable-vape"), color: "from-emerald-900/80 to-black/90", tag: "TRENDING", collection: "disposable-vape" },
+        { title: "E-Liquids", subtitle: "TOP RATED", num: "05", img: tileImg("e-liquids"), color: "from-amber-900/80 to-black/90", tag: "HOT", collection: "e-liquids" },
         { title: "Shop All", subtitle: "FULL COLLECTION", num: "06", img: tileImg("frontpage"), color: "from-rose-900/80 to-black/90", tag: "EXPLORE", collection: "frontpage" },
       ];
   const HOME_FEATURE_ICONS: Record<string, any> = { Truck, Headset, RotateCcw, CreditCard, ShieldCheck, Zap, Clock, Star };
