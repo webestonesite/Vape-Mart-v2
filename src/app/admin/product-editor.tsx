@@ -321,7 +321,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
   const isNew = !productId;
   const [loading, setLoading] = useState(!isNew);
   const [form, setForm] = useState<any>({
-    title: "", handle: "", descriptionHtml: "", vendor: "", productType: "", tags: "", status: "DRAFT",
+    title: "", handle: "", descriptionHtml: "", vendor: "", productType: "", tags: "", status: "ACTIVE",
     price: "", compareAtPrice: "", sku: "", barcode: "", inventoryQuantity: "",
     seoTitle: "", seoDescription: "",
   });
@@ -528,6 +528,12 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
       notify("Title is required.");
       return;
     }
+    /* B6: a product with no collection shows on no category page — the
+       user must pick at least one (Section 9 tick boxes). */
+    if (!collectionIds.length) {
+      notify("Pick at least one collection — without one the product will not show on any category page.");
+      return;
+    }
     setSaving(true);
     // Specs: known keys write back to their vape.* metafields, free rows go
     // to vape.custom_specs JSON, removed known keys get deleted from Shopify.
@@ -642,7 +648,19 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
     }
     setSaving(false);
     if (r.ok) {
-      notify(r.message || "Saved");
+      /* B5: the toast must state the status — "Product created." alone
+         left users thinking a DRAFT product was live in the store. */
+      if (isNew) {
+        notify(
+          form.status === "ACTIVE"
+            ? "Product created and live in the store."
+            : form.status === "ARCHIVED"
+              ? "Product created as ARCHIVED — hidden from the store."
+              : "Product created as DRAFT — it will not show in the store until made live."
+        );
+      } else {
+        notify(r.message || "Saved");
+      }
       reload();
       back();
     } else notify("Error: " + (r.error || "save failed"));
@@ -998,7 +1016,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
           )}
         </Section>
 
-        <Section n={9} title="Collection" hint="Which category this product shows in — tap to tick.">
+        <Section n={9} title="Collection" hint="Which category this product shows in — tap to tick. Pick at least one, or the product shows nowhere.">
           <div className="flex flex-wrap gap-2 mb-3">
             {mainCollections.map((c: any) => {
               const on = collectionIds.includes(c.id);
