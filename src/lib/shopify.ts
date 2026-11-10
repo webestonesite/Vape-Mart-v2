@@ -722,7 +722,11 @@ const SHOP_META_QUERY = `
   }
 `;
 
-export async function fetchShopSettings(): Promise<ShopSettings> {
+/* B4 (2026-11-11): the panel re-read settings through the same 600 s
+   data cache, so a save looked like it did not happen for up to 10 min.
+   getPanelData() passes revalidate 0 (fresh read); the storefront keeps
+   the 600 s default. */
+export async function fetchShopSettings(revalidate = 600): Promise<ShopSettings> {
   const fallback: ShopSettings = {
     announcements: [], phone: "", footerText: "", logoUrl: "",
     checkout: { freeShippingThreshold: 0, deliveryFee: 0, vatNote: "", cityPromises: [], paymentLabels: [] },
@@ -745,7 +749,7 @@ export async function fetchShopSettings(): Promise<ShopSettings> {
         blog: { nodes: MetafieldNode[] };
         pages: { nodes: MetafieldNode[] };
       };
-    }>(SHOP_META_QUERY, {}, 600);
+    }>(SHOP_META_QUERY, {}, revalidate);
     const mf = mfMap([
       ...(data.shop.store?.nodes ?? []),
       ...(data.shop.checkout?.nodes ?? []),
