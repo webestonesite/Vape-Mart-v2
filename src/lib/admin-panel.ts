@@ -326,7 +326,9 @@ async function listAllCollections(): Promise<any[]> {
 }
 
 export async function getPanelData() {
-  const settings = await fetchShopSettings();
+  /* B4: fresh settings read (revalidate 0) so a save shows immediately
+     instead of the up-to-10-min stale cached copy. */
+  const settings = await fetchShopSettings(0);
   const [d, allProducts, allRedirects] = await Promise.all([
     gql<any>(PANEL_QUERY),
     listAllPanelProducts(),
