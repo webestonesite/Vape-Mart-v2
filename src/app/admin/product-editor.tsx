@@ -10,13 +10,69 @@ async function api(body: any): Promise<any> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  return res.json();
+  // Never let a non-JSON error page turn into a cryptic "Unexpected token"
+  // SyntaxError: callers check r.ok / r.error.
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { ok: false, error: text || `Request failed (HTTP ${res.status}).` };
+  }
+}
+
+/* Vercel rejects request bodies over ~4.5 MB before our code runs, so a
+   large phone photo can never upload through the route. Shrink images in
+   the browser first (same as panel-ui.tsx): downscale to at most 1600px
+   on the long edge and re-encode. Files under the threshold go untouched. */
+const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
+const COMPRESS_FROM_BYTES = 3.5 * 1024 * 1024;
+const MAX_IMAGE_EDGE = 1600;
+
+async function prepareImageFile(file: File): Promise<File> {
+  if (!file.type.startsWith("image/") || file.size <= COMPRESS_FROM_BYTES) return file;
+  try {
+    const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" } as any);
+    const scale = Math.min(1, MAX_IMAGE_EDGE / Math.max(bitmap.width, bitmap.height));
+    const width = Math.max(1, Math.round(bitmap.width * scale));
+    const height = Math.max(1, Math.round(bitmap.height * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return file;
+    ctx.drawImage(bitmap, 0, 0, width, height);
+    if (typeof bitmap.close === "function") bitmap.close();
+    const outType = file.type === "image/png" ? "image/png" : "image/jpeg";
+    const blob: Blob | null = await new Promise((resolve) => canvas.toBlob(resolve, outType, 0.82));
+    if (!blob || blob.size >= file.size) return file;
+    const name =
+      outType === "image/jpeg" && !/\.jpe?g$/i.test(file.name)
+        ? file.name.replace(/\.[^.]+$/, "") + ".jpg"
+        : file.name;
+    return new File([blob], name, { type: outType });
+  } catch {
+    return file;
+  }
 }
 
 async function uploadFile(file: File): Promise<string> {
+  const ready = await prepareImageFile(file);
+  if (ready.size > MAX_UPLOAD_BYTES)
+    throw new Error("This image is too large — please use an image under 4 MB.");
   const form = new FormData();
-  form.append("file", file);
+  form.append("file", ready);
   const res = await fetch("/api/admin-panel/upload", { method: "POST", body: form });
+  if (!res.ok) {
+    const text = await res.text();
+    let msg = text;
+    try {
+      const j = JSON.parse(text);
+      if (j && j.error) msg = j.error;
+    } catch {
+      /* keep the plain-text message */
+    }
+    throw new Error(msg || `Upload failed (HTTP ${res.status}).`);
+  }
   const j = await res.json();
   if (!j.ok) throw new Error(j.error || "Upload failed");
   return j.resourceUrl as string;
