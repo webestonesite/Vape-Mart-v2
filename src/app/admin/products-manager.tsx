@@ -39,14 +39,44 @@ function PrimaryBtn({ onClick, children }: { onClick: () => void; children: Reac
 /*  Products: list + full create/edit form                             */
 /* ------------------------------------------------------------------ */
 
+/* Category filter for the Products list: tap-to-pick, no typed handles.
+   Same families as the storefront (see src/data/products-shopify.ts):
+   TEREA / IQOS / JUUL are fixed handle lists, Disposables and E-Liquids
+   also match every brand collection ending -disposable / -e-liquid.
+   Shop All is the whole catalogue. */
+const CATEGORY_FILTERS = [
+  { value: "ALL", label: "All categories" },
+  { value: "TEREA", label: "TEREA" },
+  { value: "IQOS", label: "IQOS" },
+  { value: "JUUL", label: "JUUL" },
+  { value: "DISPOSABLES", label: "Disposables" },
+  { value: "ELIQUIDS", label: "E-Liquids" },
+  { value: "SHOPALL", label: "Shop All" },
+];
+const FAMILY_HANDLES: Record<string, { handles: string[]; suffix?: string }> = {
+  TEREA: { handles: ["terea", "terea-indonesia", "terea-japan", "terea-uzbekistan", "terea-kyrgyzstan", "terea-flavor", "terea-device", "terea-swiss", "terea-italy", "terea-kazakhstan"] },
+  IQOS: { handles: ["iqos", "iqos-iluma", "iqos-iluma-i", "iqos-terea"] },
+  JUUL: { handles: ["juul", "juul-1", "juul-2"] },
+  DISPOSABLES: { handles: ["disposable-vape"], suffix: "-disposable" },
+  ELIQUIDS: { handles: ["e-liquids", "e-liquid"], suffix: "-e-liquid" },
+};
+function inCategoryFamily(p: any, key: string): boolean {
+  if (key === "ALL" || key === "SHOPALL") return true;
+  const fam = FAMILY_HANDLES[key];
+  if (!fam) return true;
+  const handles = (p.collections || []).map((c: any) => String(c.handle || "").toLowerCase());
+  return handles.some((h: string) => fam.handles.includes(h) || (fam.suffix ? h.endsWith(fam.suffix) : false));
+}
+
 export function ProductsManager({ data, notify, reload, initialQuery }: any) {
   const [view, setView] = useState<any>({ name: "list" });
   const [q, setQ] = useState(initialQuery || "");
   const [status, setStatus] = useState("ALL");
+  const [category, setCategory] = useState("ALL");
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 100;
   const filtered = (data.products || [])
-    .filter((p: any) => (status === "ALL" || p.status === status) && (!q || p.title.toLowerCase().includes(q.toLowerCase())));
+    .filter((p: any) => (status === "ALL" || p.status === status) && (!q || p.title.toLowerCase().includes(q.toLowerCase())) && inCategoryFamily(p, category));
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, pageCount - 1);
   const shown = filtered.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE);
@@ -87,13 +117,18 @@ export function ProductsManager({ data, notify, reload, initialQuery }: any) {
       <div className="flex flex-wrap gap-3 mb-4">
         <div className="relative flex-1 min-w-[220px] max-w-md">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-          <input className={`${inputCls} pl-9`} placeholder="Search products…" value={q} onChange={(e) => setQ(e.target.value)} />
+          <input className={`${inputCls} pl-9`} placeholder="Search products…" value={q} onChange={(e) => { setQ(e.target.value); setPage(0); }} />
         </div>
-        <select className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm" value={status} onChange={(e) => setStatus(e.target.value)}>
+        <select className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm" value={status} onChange={(e) => { setStatus(e.target.value); setPage(0); }}>
           <option value="ALL">All statuses</option>
           <option value="ACTIVE">Active</option>
           <option value="DRAFT">Draft</option>
           <option value="ARCHIVED">Archived</option>
+        </select>
+        <select className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm" value={category} onChange={(e) => { setCategory(e.target.value); setPage(0); }} aria-label="Filter by category">
+          {CATEGORY_FILTERS.map((c) => (
+            <option key={c.value} value={c.value}>{c.label}</option>
+          ))}
         </select>
       </div>
       <div className="rounded-xl border border-neutral-200 bg-white shadow-sm overflow-hidden">
@@ -102,6 +137,7 @@ export function ProductsManager({ data, notify, reload, initialQuery }: any) {
             <tr className="border-b border-neutral-200 bg-neutral-50 text-left text-xs uppercase tracking-wide text-neutral-500">
               <th className="px-3 py-2.5 font-semibold">Product</th>
               <th className="px-3 py-2.5 font-semibold hidden sm:table-cell">Status</th>
+              <th className="px-3 py-2.5 font-semibold hidden md:table-cell">Collections</th>
               <th className="px-3 py-2.5 font-semibold hidden sm:table-cell">Inventory</th>
               <th className="px-3 py-2.5 font-semibold">Price</th>
             </tr>
@@ -129,13 +165,20 @@ export function ProductsManager({ data, notify, reload, initialQuery }: any) {
                     {p.status}
                   </span>
                 </td>
+                <td className="px-3 py-2.5 hidden md:table-cell text-neutral-600 max-w-[220px]">
+                  {(p.collections || []).length ? (
+                    <span className="text-xs leading-5">{(p.collections || []).map((c: any) => c.title).join(", ")}</span>
+                  ) : (
+                    <span className="text-xs text-neutral-400">No collection</span>
+                  )}
+                </td>
                 <td className="px-3 py-2.5 hidden sm:table-cell text-neutral-700">{p.inventoryQuantity}</td>
                 <td className="px-3 py-2.5 font-medium text-neutral-900">AED {p.price}</td>
               </tr>
             ))}
             {shown.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-3 py-6 text-center text-neutral-500">
+                <td colSpan={5} className="px-3 py-6 text-center text-neutral-500">
                   No products found.
                 </td>
               </tr>

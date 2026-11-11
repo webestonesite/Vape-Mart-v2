@@ -17,12 +17,14 @@ interface CollectionSlugPageProps {
 
 export async function generateMetadata({ params }: CollectionSlugPageProps): Promise<Metadata> {
   const { slug } = await params;
+  // Normalise first, so /collections/e-liquids resolves first-class as the
+  // e-liquid category instead of falling through to the brand branch.
+  const norm = normalizeCategorySlug(slug);
   const categories = await fetchCategories();
-  const category = categories.find((c) => c.slug === slug) || getCategoryBySlugSync(slug);
+  const category = categories.find((c) => c.slug === norm) || getCategoryBySlugSync(norm);
 
   if (!category) {
     /* B6: brand / unlisted collection — title it by the collection, not "Not Found". */
-    const norm = normalizeCategorySlug(slug);
     const all = await fetchAllProducts();
     const member = all.find((p) =>
       (p.shopifyCollections || []).some((c) => c.slug === norm) || p.categorySlug === norm
@@ -61,8 +63,11 @@ export async function generateMetadata({ params }: CollectionSlugPageProps): Pro
 
 export default async function CollectionSlugPage({ params }: CollectionSlugPageProps) {
   const { slug } = await params;
+  // Normalise first, so /collections/e-liquids resolves first-class as the
+  // e-liquid category instead of falling through to the brand branch.
+  const norm = normalizeCategorySlug(slug);
   const [categories, allProducts, settings] = await Promise.all([fetchCategories(), fetchAllProducts(), fetchShopSettings()]);
-  const category = categories.find((c) => c.slug === slug) || getCategoryBySlugSync(slug);
+  const category = categories.find((c) => c.slug === norm) || getCategoryBySlugSync(norm);
 
   if (!category) {
     /* B6: a brand / unlisted Shopify collection (e.g. /collections/lambda)
@@ -70,7 +75,6 @@ export default async function CollectionSlugPage({ params }: CollectionSlugPageP
        all-products list. If products are members of a collection with
        this handle, show that collection's products instead — filtered by
        membership, like the main categories. */
-    const norm = normalizeCategorySlug(slug);
     const member = allProducts.find((p) =>
       (p.shopifyCollections || []).some((c) => c.slug === norm) || p.categorySlug === norm
     );
@@ -99,8 +103,9 @@ export default async function CollectionSlugPage({ params }: CollectionSlugPageP
         />
       );
     }
-    // If not matching a category, fallback to all products
-    return <CollectionPageView allCategories={categories} products={allProducts} catalogProducts={allProducts} pageSettings={settings.collectionPage} />;
+    // Unknown slug with no member product: show the empty state, never
+    // the whole catalogue.
+    return <CollectionPageView allCategories={categories} products={[]} catalogProducts={allProducts} pageSettings={settings.collectionPage} />;
   }
 
   const categoryProducts = await fetchProductsByCategory(category.slug);
@@ -152,7 +157,7 @@ export default async function CollectionSlugPage({ params }: CollectionSlugPageP
         <CollectionPageView
           category={category}
           allCategories={categories}
-          products={categoryProducts.length > 0 ? categoryProducts : allProducts}
+          products={categoryProducts}
           catalogProducts={allProducts}
           pageSettings={settings.collectionPage}
         />

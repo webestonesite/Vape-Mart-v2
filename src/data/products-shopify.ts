@@ -72,10 +72,68 @@ export async function fetchProductsByCategory(categorySlug: string): Promise<Pro
   const all = await fetchAllProducts();
   if (!categorySlug || categorySlug === "all") return all;
   const norm = normalizeCategorySlug(categorySlug);
+  const family = await resolveFamilyHandles(norm, all);
+  const matchSlugs = family ?? new Set([norm]);
   const filtered = all.filter(
-    (p) => p.categorySlug === norm || (p.shopifyCollections || []).some((c) => c.slug === norm)
+    (p) => matchSlugs.has(p.categorySlug) || (p.shopifyCollections || []).some((c) => matchSlugs.has(c.slug))
   );
-  return filtered.length ? filtered : all;
+  // Empty stays empty: an empty or unknown category never falls back to
+  // the whole catalogue (that silent fallback hid miscategorised products).
+  return filtered;
+}
+
+/** The six shop families. A family page shows every ACTIVE product in any
+    of its collections, deduped (a product in two family collections still
+    appears once, because the filter runs per product). Fixed handle lists
+    for terea / iqos / juul; disposables and e-liquids also absorb every
+    live brand collection whose handle ends with -disposable / -e-liquid.
+    Handles are normalised through HANDLE_ALIASES before matching: the
+    products carry iqos-terea as heated-tobacco and e-liquids as e-liquid. */
+export const CATEGORY_FAMILIES: Record<string, { handles: string[]; suffix?: string }> = {
+  terea: {
+    handles: ["terea", "terea-indonesia", "terea-japan", "terea-uzbekistan", "terea-kyrgyzstan", "terea-flavor", "terea-device", "terea-swiss", "terea-italy", "terea-kazakhstan"],
+  },
+  iqos: { handles: ["iqos", "iqos-iluma", "iqos-iluma-i", "iqos-terea"] },
+  juul: { handles: ["juul", "juul-1", "juul-2"] },
+  "disposable-vape": { handles: ["disposable-vape"], suffix: "-disposable" },
+  "e-liquid": { handles: ["e-liquids", "e-liquid"], suffix: "-e-liquid" },
+};
+
+/** Canonical slugs of the six category cards, in tile order. Shop All is "all". */
+export const FAMILY_CATEGORY_SLUGS = ["terea", "iqos", "juul", "disposable-vape", "e-liquid", "all"];
+
+/** Resolve a family root slug to its full normalised handle set, or null
+    when the slug is not a family root (sub/brand slugs match exactly one
+    collection). Suffix families resolve against the live collections list
+    (collection metafields) plus the memberships seen on the products, so a
+    new brand collection is picked up without a code change. */
+export async function resolveFamilyHandles(
+  familySlug: string,
+  all?: ProductItem[]
+): Promise<Set<string> | null> {
+  const norm = normalizeCategorySlug(familySlug);
+  const family = CATEGORY_FAMILIES[norm];
+  if (!family) return null;
+  const handles = new Set(family.handles.map(normalizeCategorySlug));
+  if (family.suffix) {
+    const live = new Set<string>();
+    try {
+      const meta = await fetchCollectionMeta();
+      for (const h of Object.keys(meta.byHandle)) live.add(normalizeCategorySlug(h));
+    } catch { /* live list optional: memberships below still cover it */ }
+    const products = all ?? (await fetchAllProducts());
+    for (const p of products) {
+      for (const c of p.shopifyCollections || []) live.add(c.slug);
+      if (p.categorySlug) live.add(p.categorySlug);
+    }
+    for (const h of live) if (h.endsWith(family.suffix)) handles.add(h);
+  }
+  return handles;
+}
+
+/** Does a product belong to the given normalised handle set? */
+function productMatchesHandles(p: ProductItem, handles: Set<string>): boolean {
+  return handles.has(p.categorySlug) || (p.shopifyCollections || []).some((c) => handles.has(c.slug));
 }
 
 export async function fetchRelatedProducts(slug: string): Promise<ProductItem[]> {
@@ -94,24 +152,18 @@ export async function fetchRelatedProducts(slug: string): Promise<ProductItem[]>
   return all.filter((p) => p.slug !== slug).slice(0, 4);
 }
 
-/** Category cards on the shop pages follow the sheet-organised structure:
-    the main categories, their sub-categories and the brand collections.
-    Legacy collections (pod systems, vape kits, shisha, per-origin Terea,
-    Lambda, ...) stay in Shopify but no longer surface as cards. */
-const ORGANIZED_CATEGORY_SLUGS = new Set([
-  "juul", "terea", "iqos", "disposable-vape", "e-liquid",
-  "juul-1", "juul-2", "terea-device", "terea-flavor", "iqos-iluma",
-]);
+/** Category cards on the shop pages follow the six families: TEREA, IQOS,
+    JUUL, Disposables, E-Liquids and Shop All. Brand collections (the
+    *-disposable / *-e-liquid handles) stay reachable from the menu and from
+    their own /collections/<handle> pages, but they are not index cards.
+    A collection the owner flags show_as_card in the panel is still listed
+    as an extra card. Legacy local categories (pod systems, vape kits,
+    shisha) stay in Shopify but never surface as cards. */
 
-function isOrganizedCategory(slug: string): boolean {
-  return (
-    ORGANIZED_CATEGORY_SLUGS.has(slug) ||
-    slug.endsWith("-disposable") ||
-    slug.endsWith("-e-liquid")
-  );
-}
-
-/** Categories: local rich metadata first, then auto entries for new Shopify collections. */
+/** Categories: local rich metadata first, then auto entries for the
+    TEREA / IQOS / JUUL families, then the synthetic Shop All card. Counts
+    are family counts over the ACTIVE catalogue (deduped), not membership
+    counts, so a product in two family collections is counted once. */
 export async function fetchCategories(): Promise<CollectionCategory[]> {
   const [all, meta] = await Promise.all([fetchAllProducts(), fetchCollectionMeta()]);
   // Panel-managed collection meta, keyed by normalized slug (handles are aliased above).
@@ -133,10 +185,66 @@ export async function fetchCategories(): Promise<CollectionCategory[]> {
       seen.set(c.slug, s);
     }
   }
+  const familyEntry = async (slug: string): Promise<CollectionCategory | null> => {
+    const handles = await resolveFamilyHandles(slug, all);
+    if (!handles) return null;
+    const members = all.filter((p) => productMatchesHandles(p, handles));
+    const sample = members[0];
+    const title = seen.get(slug)?.title || slug;
+    return {
+      slug,
+      name: title,
+      title: `${title} | Vape Mart UAE`,
+      subtitle: metaBySlug[slug]?.heroSubtitle || `Shop authentic ${title.toLowerCase()} with same-day delivery across the UAE.`,
+      badge: metaBySlug[slug]?.badge || "NEW",
+      icon: "Flame",
+      image: sample?.primaryImage || "/images/prod_disposable.png",
+      count: members.length,
+      description: `Explore our ${title.toLowerCase()} collection, 100% authentic products with express delivery across Dubai and the UAE.`,
+      faqs: faqsBySlug[slug],
+    };
+  };
   const local = localCategories;
+  const familyCards: CollectionCategory[] = [];
+  // Local rich entries (Disposables, E-Liquids) keep their curated copy,
+  // with family counts instead of single-collection membership counts.
+  for (const c of local.filter((c) => c.slug === "disposable-vape" || c.slug === "e-liquid")) {
+    const handles = await resolveFamilyHandles(c.slug, all);
+    const count = handles ? all.filter((p) => productMatchesHandles(p, handles)).length : seen.get(c.slug)?.count ?? c.count;
+    const m = metaBySlug[c.slug];
+    familyCards.push({
+      ...c,
+      count,
+      badge: m?.badge || c.badge,
+      subtitle: m?.heroSubtitle || c.subtitle,
+      faqs: faqsBySlug[c.slug],
+    });
+  }
+  const familyBySlug = new Map(familyCards.map((c) => [c.slug, c]));
+  // Auto entries for the families with no local rich entry (TEREA, IQOS, JUUL).
+  for (const slug of ["terea", "iqos", "juul"]) {
+    const entry = await familyEntry(slug);
+    if (entry) familyBySlug.set(slug, entry);
+  }
+  // Shop All is the whole ACTIVE catalogue, not the frontpage collection.
+  familyBySlug.set("all", {
+    slug: "all",
+    name: "Shop All",
+    title: "Shop All Vapes | Vape Mart UAE",
+    subtitle: "Browse the full catalogue of authentic vapes, e-liquids and heated tobacco with same-day delivery across the UAE.",
+    badge: "EXPLORE",
+    icon: "Flame",
+    image: all[0]?.primaryImage || "/images/prod_disposable.png",
+    count: all.length,
+    description: "Browse the full catalogue of authentic vapes, e-liquids and heated tobacco with express delivery across Dubai and the UAE.",
+  });
+  const ordered = FAMILY_CATEGORY_SLUGS.map((s) => familyBySlug.get(s)).filter(
+    (c): c is CollectionCategory => !!c
+  );
+  // Panel-flagged collections surface as extra cards after the six families.
   const extra: CollectionCategory[] = [];
   for (const [slug, info] of seen) {
-    if (local.some((c) => c.slug === slug)) continue;
+    if (familyBySlug.has(slug) || !flagged.has(slug)) continue;
     const sample =
       all.find((p) => p.categorySlug === slug) ||
       all.find((p) => (p.shopifyCollections || []).some((c) => c.slug === slug));
@@ -149,23 +257,11 @@ export async function fetchCategories(): Promise<CollectionCategory[]> {
       icon: "Flame",
       image: sample?.primaryImage || "/images/prod_disposable.png",
       count: info.count,
-      description: `Explore our ${info.title.toLowerCase()} collection — 100% authentic products with express delivery across Dubai and the UAE.`,
+      description: `Explore our ${info.title.toLowerCase()} collection, 100% authentic products with express delivery across Dubai and the UAE.`,
       faqs: faqsBySlug[slug],
     });
   }
-  const withCounts = local
-    .filter((c) => isOrganizedCategory(c.slug))
-    .map((c) => {
-      const m = metaBySlug[c.slug];
-      return {
-        ...c,
-        count: seen.get(c.slug)?.count ?? c.count,
-        badge: m?.badge || c.badge,
-        subtitle: m?.heroSubtitle || c.subtitle,
-        faqs: faqsBySlug[c.slug],
-      };
-    });
-  return [...withCounts, ...extra.filter((c) => isOrganizedCategory(c.slug) || flagged.has(c.slug))];
+  return [...ordered, ...extra];
 }
 
 export function getCategoryBySlugSync(slug: string): CollectionCategory | undefined {

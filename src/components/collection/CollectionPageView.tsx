@@ -842,6 +842,15 @@ export function CollectionPageView({ category, allCategories, products, catalogP
                   {pageItems.map((p, i) => productCard(p, i))}
                 </div>
               </div>
+            ) : products.length === 0 ? (
+              <div className="rounded-3xl border-2 border-dashed border-emerald-900/15 bg-white py-16 px-6 text-center">
+                <Search size={36} className="mx-auto text-emerald-900/25 mb-4" />
+                <h3 className="font-luxury text-xl font-bold text-emerald-950">No products in this category</h3>
+                <p className="text-sm text-neutral-500 mt-2">This category does not have any products yet. Browse the full catalogue instead.</p>
+                <Link href="/collections" className="mt-5 inline-flex h-11 px-6 rounded-xl bg-emerald-800 text-white text-sm font-bold hover:bg-emerald-700 items-center">
+                  BROWSE ALL PRODUCTS
+                </Link>
+              </div>
             ) : (
               <div className="rounded-3xl border-2 border-dashed border-emerald-900/15 bg-white py-16 px-6 text-center">
                 <Search size={36} className="mx-auto text-emerald-900/25 mb-4" />
@@ -949,7 +958,7 @@ export function CollectionPageView({ category, allCategories, products, catalogP
                 <div className="absolute inset-0 bg-gradient-to-t from-[#022c22] via-[#022c22]/40 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-4">
                   <p className="font-luxury text-base sm:text-lg font-bold text-white leading-tight">{cat.name}</p>
-                  <p className="mt-1 text-xs font-semibold text-amber-300">{catalogCategoryCounts[cat.slug] || 0} products</p>
+                  <p className="mt-1 text-xs font-semibold text-amber-300">{cat.count ?? catalogCategoryCounts[cat.slug] ?? 0} products</p>
                 </div>
                 {cat.badge && (
                   <span className="absolute top-3 left-3 font-cinzel text-[9px] tracking-[0.18em] font-bold bg-amber-400 text-emerald-950 px-2.5 py-1 rounded-full">
