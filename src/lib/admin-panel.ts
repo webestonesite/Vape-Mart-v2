@@ -271,6 +271,7 @@ async function listAllPanelProducts(): Promise<any[]> {
          products(first: 100, after: $after) {
            nodes {
              id title handle status featuredImage { url }
+             collections(first: 20) { nodes { id title handle } }
              variants(first: 1) { nodes { id price compareAtPrice inventoryQuantity inventoryItem { id } } }
            }
            pageInfo { hasNextPage endCursor }
@@ -395,6 +396,11 @@ export async function getPanelData() {
       handle: p.handle as string,
       status: p.status as string,
       image: p.featuredImage?.url || "",
+      collections: (p.collections?.nodes ?? []).map((c: any) => ({
+        id: c.id as string,
+        title: c.title as string,
+        handle: c.handle as string,
+      })),
       variantId: v.id || "",
       price: v.price || "",
       compareAtPrice: parseFloat(String(v.compareAtPrice || "0")) > 0 ? v.compareAtPrice : "",

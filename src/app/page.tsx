@@ -764,6 +764,13 @@ export default function Home() {
     const url = collection ? collectionImages[collection] : "";
     return url ? cdnWidth(url, 800) : "";
   };
+  /* Tile destination: the tile's collection page. Shop All is the whole
+     ACTIVE catalogue at /collections/all, not the frontpage collection. */
+  const tileHref = (collection?: string) => {
+    if (!collection) return "/collections";
+    if (collection === "frontpage") return "/collections/all";
+    return `/collections/${collection}`;
+  };
   const categoryTiles: { title: string; subtitle: string; num: string; img: string; color: string; tag: string; collection: string }[] = Array.isArray(homeSettings.categoryTiles ?? homeSettings.category_tiles) && (homeSettings.categoryTiles ?? homeSettings.category_tiles).length
     ? (homeSettings.categoryTiles ?? homeSettings.category_tiles).map((t: any, i: number) => ({ title: t.title || "", subtitle: t.subtitle || "", num: String(i + 1).padStart(2, "0"), img: tileImg(t.collection), color: t.color || "from-emerald-900/80 to-black/90", tag: t.tag || "", collection: t.collection || "" }))
     : [
@@ -1275,8 +1282,8 @@ export default function Home() {
             variants={staggerContainer}
           >
             {categoryTiles.map((cat, idx) => (
+              <Link key={idx} href={tileHref(cat.collection)} aria-label={`Shop ${cat.title}`} className="block">
               <motion.div
-                key={idx}
                 variants={fadeInScale}
                 whileHover={{ y: -6, scale: 1.02, transition: { duration: 0.3 } }}
                 className="group relative h-[210px] sm:h-[280px] md:h-[340px] rounded-2xl sm:rounded-3xl overflow-hidden bg-neutral-900 cursor-pointer shadow-[0_4px_15px_rgba(0,0,0,0.06)] hover:shadow-[0_15px_35px_rgba(6,78,59,0.25)] transition-all duration-500 border border-neutral-200/60 flex flex-col justify-between p-3 sm:p-5"
@@ -1302,6 +1309,7 @@ export default function Home() {
                   </div>
                 </div>
               </motion.div>
+              </Link>
             ))}
           </motion.div>
       </motion.section>)}
