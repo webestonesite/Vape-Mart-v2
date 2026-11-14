@@ -2227,10 +2227,10 @@ export async function createProduct(p: any): Promise<SaveResult> {
   if (Array.isArray(p.mediaSources) && p.mediaSources.length) newMediaIds = await addMedia(id, p.mediaSources);
   if (Array.isArray(p.collectionIds) && p.collectionIds.length) {
     await gql<any>(
-      `mutation ProdColl($id: ID!, $product: ProductUpdateInput!) {
-         productUpdate(id: $id, product: $product) { product { id } userErrors { message } }
+      `mutation ProdColl($product: ProductUpdateInput!) {
+         productUpdate(product: $product) { product { id } userErrors { message } }
        }`,
-      { id, product: { collectionsToJoin: p.collectionIds } }
+      { product: { id, collectionsToJoin: p.collectionIds } }
     );
   }
   if (p.vape) await setProductMetafields(id, vapeMetafieldEntries(id, p.vape));
@@ -2274,10 +2274,10 @@ export async function updateProduct(p: any): Promise<SaveResult> {
   if (join.length) input.collectionsToJoin = join;
   if (leave.length) input.collectionsToLeave = leave;
   const d = await gql<any>(
-    `mutation ProdUpdate($id: ID!, $product: ProductUpdateInput!) {
-       productUpdate(id: $id, product: $product) { product { id } userErrors { message } }
+    `mutation ProdUpdate($product: ProductUpdateInput!) {
+       productUpdate(product: $product) { product { id } userErrors { message } }
      }`,
-    { id: p.id, product: input }
+    { product: { ...input, id: p.id } }
   );
   const errs = d.productUpdate?.userErrors ?? [];
   if (errs.length) throw new Error(errs.map((e: any) => e.message).join("; "));
