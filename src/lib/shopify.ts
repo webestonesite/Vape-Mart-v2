@@ -253,11 +253,23 @@ function toProductItem(node: ShopifyProductNode, flavorObjects: FlavorMetaobject
   });
 
   const puffsNum = parseInt(mf["vape.puffs"] || "0", 10) || undefined;
+  const rawPuffRange = mf["vape.puff_range"]?.trim();
   const specs: { label: string; value: string }[] = [];
-  if (puffsNum) specs.push({ label: "Puff Count", value: `${puffsNum.toLocaleString()} Puffs` });
-  if (mf["vape.nicotine_strength"]) specs.push({ label: "Nicotine", value: mf["vape.nicotine_strength"] });
-  if (mf["vape.e_liquid_capacity"]) specs.push({ label: "E-Liquid", value: mf["vape.e_liquid_capacity"] });
-  if (mf["vape.battery_capacity"]) specs.push({ label: "Battery", value: mf["vape.battery_capacity"] });
+  if (puffsNum) {
+    specs.push({ label: "Puff Count", value: `${puffsNum.toLocaleString()} Puffs` });
+  } else if (rawPuffRange) {
+    specs.push({ label: "Puff Count", value: rawPuffRange.toLowerCase().includes("puff") ? rawPuffRange : `${rawPuffRange} Puffs` });
+  }
+
+  const rawNic = mf["vape.nicotine_strength"]?.trim();
+  if (rawNic) specs.push({ label: "Nicotine", value: /^\d+$/.test(rawNic) ? `${rawNic}mg` : rawNic });
+
+  const rawLiq = mf["vape.e_liquid_capacity"]?.trim();
+  if (rawLiq) specs.push({ label: "E-Liquid", value: /^\d+$/.test(rawLiq) ? `${rawLiq}ml` : rawLiq });
+
+  const rawBat = mf["vape.battery_capacity"]?.trim();
+  if (rawBat) specs.push({ label: "Battery", value: /^\d+$/.test(rawBat) ? `${rawBat}mAh` : rawBat });
+
   if (mf["vape.charging_type"]) specs.push({ label: "Charging", value: mf["vape.charging_type"] });
   if (mf["vape.coil_type"]) specs.push({ label: "Coil", value: mf["vape.coil_type"] });
   if (mf["vape.activation"]) specs.push({ label: "Activation", value: mf["vape.activation"] });

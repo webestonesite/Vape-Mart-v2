@@ -124,49 +124,54 @@ export function buildProductFaqs(p: ProductItem): ProductFAQ[] {
   const faqs = p.faqs ?? [];
   const nicotineOptions = p.nicotineOptions ?? [];
   const nicotineStrength = p.nicotineStrength || "";
-  const puffsLabel = p.puffs ? `${p.puffs.toLocaleString()}` : p.puffRange || "high";
-  const generated: ProductFAQ[] = [
-    {
+  const puffsLabel = p.puffs ? `${p.puffs.toLocaleString()}` : p.puffRange || "";
+
+  const generated: ProductFAQ[] = [];
+
+  // Conditional product-specific questions only when data actually exists
+  if (puffsLabel) {
+    generated.push({
       q: `How long will the ${puffsLabel} puffs realistically last?`,
-      a: `It depends on how heavily you vape. At a moderate pace of 300–500 puffs a day, a ${puffsLabel}-puff device typically lasts several weeks; heavy vapers will go through it faster, light vapers slower. The rechargeable battery is sized to outlast the e-liquid, so you will not be left with juice and no power.`,
-    },
-    {
+      a: `It depends on personal usage. At a moderate pace of 300–500 puffs a day, a ${puffsLabel}-puff device typically lasts several weeks. Heavy vapers go through it faster, while light vapers enjoy it longer.`,
+    });
+  }
+
+  if (p.flavors && p.flavors.length > 0) {
+    generated.push({
       q: "Which flavour should I choose?",
-      a: `Start from the flavour notes on this page: fruity-ice blends are the most popular all-day choices, mint and menthol options suit vapers who like a cold hit, and richer dessert or shisha-inspired profiles work well for evenings. If you are unsure, our WhatsApp team will happily recommend based on what you currently vape.`,
-    },
-    {
+      a: `Start from the flavour notes above: fruity-ice blends are popular all-day choices, mint and menthol options suit vapers who like a crisp cold hit, and dessert profiles work well for evenings.`,
+    });
+  }
+
+  if (nicotineStrength || nicotineOptions.length > 0) {
+    generated.push({
       q: "What nicotine strength is right for me?",
-      a: `The device is available at ${nicotineStrength ? nicotineStrength : "a range of nicotine strengths"}${nicotineOptions.length > 1 ? ` (${nicotineOptions.join(" / ")})` : ""}. Heavier adult smokers usually prefer the higher strengths for satisfaction, while light or social smokers are often happier lower down. When in doubt, start lower — you can always adjust on your next order.`,
+      a: `The product is available at ${nicotineStrength ? nicotineStrength : "curated nicotine strengths"}${nicotineOptions.length > 1 ? ` (${nicotineOptions.join(" / ")})` : ""}. Transitioning smokers usually prefer standard strengths for satisfying throat hit, while social smokers often prefer lighter strengths.`,
+    });
+  }
+
+  if (p.chargingType || p.batteryCapacity) {
+    generated.push({
+      q: "How do I charge the device?",
+      a: `${p.chargingType ? `Connect a standard ${p.chargingType.split("(")[0].trim()} cable` : "Connect a standard charging cable"} with a regular 5V adapter. Avoid high-wattage fast chargers to protect battery longevity.`,
+    });
+  }
+
+  // Universal Store Guarantees (truthful for every product)
+  generated.push(
+    {
+      q: "How can I verify this product is 100% authentic?",
+      a: `Check the holographic seal on the box, scratch off the security panel and scan the QR code with your phone to confirm a genuine first-time scan. All Vape Mart inventory is sourced via licensed UAE channels.`,
     },
     {
-      q: "How do I charge the device, and how long does it take?",
-      a: `${p.chargingType ? `Connect any standard USB cable to the ${p.chargingType.split("(")[0].trim().toLowerCase()} port` : "Connect a standard USB cable"} and charge with a regular 5V adapter. A full top-up typically takes well under an hour. Avoid high-wattage fast chargers and overnight charging to keep the cell healthy for the life of the device.`,
-    },
-    {
-      q: "How can I verify my device is 100% authentic?",
-      a: `Check the holographic seal on the box, then scratch off the verification panel and scan the QR code with your phone. The manufacturer's verification page should confirm a genuine, first-time scan. Every unit we sell is sourced through licensed UAE import channels.`,
-    },
-    {
-      q: "How fast is delivery, and do you deliver to my Emirate?",
-      a: `We deliver across all seven Emirates. Dubai orders placed before 9 PM usually arrive within 2–3 hours; Sharjah and Ajman are same-day; Abu Dhabi, Ras Al Khaimah, Fujairah and Umm Al Quwain are next-day. Shipping is free on orders over AED 350.`,
+      q: "How fast is delivery across the UAE?",
+      a: `Dubai orders placed before 9 PM usually arrive within 2–3 hours; Sharjah and Ajman receive same-day delivery; Abu Dhabi and all other Emirates are next-day. Free shipping on orders over AED 350.`,
     },
     {
       q: "Can I pay Cash on Delivery?",
-      a: `Yes. Cash on Delivery is available everywhere in the UAE — pay cash or by card to the courier when your order arrives. No prepayment or account is required.`,
-    },
-    {
-      q: "Is this device suitable for beginners?",
-      a: `Absolutely. There are no buttons, settings or refilling involved — you simply inhale and the draw-activated sensor does the rest. It is one of the easiest possible ways for an adult smoker to switch.`,
-    },
-    {
-      q: "What if my order arrives damaged or faulty?",
-      a: `Message our WhatsApp support immediately with your order details and clear photos of the issue. Faulty or damaged items are replaced quickly — we do not leave customers stuck with a device that does not work as advertised.`,
-    },
-    {
-      q: "Can I return or exchange a flavour I do not like?",
-      a: `For hygiene reasons, opened e-liquid devices cannot be resold, so we cannot accept taste-preference returns. Unopened, sealed devices can be exchanged within our return window — contact support before opening if you change your mind and we will arrange it.`,
-    },
-  ];
+      a: `Yes. Cash on Delivery is available across all seven Emirates — pay cash or by card to the courier upon arrival.`,
+    }
+  );
 
   const seenTopics = new Set(faqs.map((f) => topicOf(f.q)));
   const merged: ProductFAQ[] = [...faqs];

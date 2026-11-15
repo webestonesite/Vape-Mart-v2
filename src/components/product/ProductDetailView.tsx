@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import { ProductItem, CartItem } from "@/types/product";
 import type { ProductPageSettings } from "@/lib/shopify";
-import { buildSeoSections, buildProductFaqs, SeoSection } from "./productSeo";
+import { buildProductFaqs } from "./productSeo";
 import dynamic from "next/dynamic";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -56,27 +56,6 @@ function Stars({ rating, size = 14 }: { rating: number; size?: number }) {
         <Star key={i} size={size} className={i <= Math.round(rating) ? "fill-amber-400 text-amber-400" : "fill-neutral-200 text-neutral-200"} />
       ))}
     </span>
-  );
-}
-
-function SeoBlock({ section }: { section: SeoSection }) {
-  return (
-    <div className="mt-8">
-      <h3 className="font-cinzel text-xs tracking-[0.2em] text-emerald-900 font-bold mb-4">{section.heading.toUpperCase()}</h3>
-      {section.paragraphs.map((para, i) => (
-        <p key={i} className="mt-3 first:mt-0 text-[15px] xl:text-[17px] leading-relaxed text-neutral-600">{para}</p>
-      ))}
-      {section.list && (
-        <ol className="mt-4 space-y-2.5">
-          {section.list.map((item, i) => (
-            <li key={i} className="flex gap-3 items-start text-neutral-600">
-              <span className="w-7 h-7 shrink-0 rounded-full bg-emerald-100 text-emerald-800 text-xs font-extrabold flex items-center justify-center mt-0.5">{i + 1}</span>
-              <span className="text-[15px] xl:text-[17px] leading-relaxed">{item}</span>
-            </li>
-          ))}
-        </ol>
-      )}
-    </div>
   );
 }
 
@@ -186,7 +165,6 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
       text
     );
 
-  const seoSections = useMemo(() => buildSeoSections(product), [product]);
   const allFaqs = useMemo(() => buildProductFaqs(product), [product]);
 
   const addToCart = (openDrawer = true) => {
@@ -631,8 +609,6 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
                   <p className="mt-4 text-[15px] xl:text-[17px] leading-relaxed text-neutral-600">{product.fullDescription}</p>
                 )}
 
-                <SeoBlock section={seoSections[0]} />
-
                 {product.highlights.length > 0 && (
                   <div className="mt-7">
                     <h3 className="font-cinzel text-xs tracking-[0.2em] text-emerald-900 font-bold mb-4">KEY FEATURES</h3>
@@ -652,9 +628,6 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
                   </div>
                 )}
 
-                <SeoBlock section={seoSections[1]} />
-                <SeoBlock section={seoSections[2]} />
-
                 {product.flavors.length > 0 && (
                   <div className="mt-7">
                     <h3 className="font-cinzel text-xs tracking-[0.2em] text-emerald-900 font-bold mb-4">FLAVOR NOTES</h3>
@@ -664,9 +637,11 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
                           <span className="w-8 h-8 shrink-0 rounded-full bg-amber-100 text-amber-800 text-sm font-extrabold flex items-center justify-center">{i + 1}</span>
                           <div className="min-w-0">
                             <p className="text-[15px] font-extrabold text-emerald-950 leading-snug">{f.name}</p>
-                            <p className="mt-1 text-sm text-neutral-500 leading-relaxed">
-                              {product.sensoryProfile.topNote}{product.sensoryProfile.heartNote ? `, ${product.sensoryProfile.heartNote}` : ""}{product.sensoryProfile.baseNote ? ` — ${product.sensoryProfile.baseNote}` : ""}
-                            </p>
+                            {product.sensoryProfile.topNote && (
+                              <p className="mt-1 text-sm text-neutral-500 leading-relaxed">
+                                {product.sensoryProfile.topNote}{product.sensoryProfile.heartNote ? `, ${product.sensoryProfile.heartNote}` : ""}{product.sensoryProfile.baseNote ? ` — ${product.sensoryProfile.baseNote}` : ""}
+                              </p>
+                            )}
                           </div>
                         </div>
                       ))}
@@ -674,29 +649,19 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
                   </div>
                 )}
 
-                <SeoBlock section={seoSections[3]} />
-                <SeoBlock section={seoSections[4]} />
-                <SeoBlock section={seoSections[5]} />
-                <SeoBlock section={seoSections[6]} />
-
-                <div className="mt-7">
-                  <h3 className="font-cinzel text-xs tracking-[0.2em] text-emerald-900 font-bold mb-4">KEY SPECIFICATIONS</h3>
-                  <ul className="rounded-2xl border border-emerald-900/10 bg-white divide-y divide-emerald-900/10 overflow-hidden">
-                    {orderedSpecs.slice(0, 8).map((s, i) => (
-                      <li key={i} className="flex gap-3 px-5 py-3.5 items-start">
-                        <Check size={16} className="text-amber-500 shrink-0 mt-1" strokeWidth={3} />
-                        <p className="text-[15px] text-neutral-600 leading-relaxed"><strong className="text-emerald-950 font-bold">{s.label}:</strong> {rich(s.value)}</p>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <SeoBlock section={seoSections[7]} />
-                <SeoBlock section={seoSections[8]} />
-
-                <p className="mt-7 text-[15px] xl:text-[17px] leading-relaxed text-neutral-600 border-l-4 border-amber-400 pl-4 italic">
-                  Final thoughts: {product.shortDescription} Order today from Vape Mart UAE — 100% authentic, express delivery across all Emirates.
-                </p>
+                {orderedSpecs.length > 0 && (
+                  <div className="mt-7">
+                    <h3 className="font-cinzel text-xs tracking-[0.2em] text-emerald-900 font-bold mb-4">KEY SPECIFICATIONS</h3>
+                    <ul className="rounded-2xl border border-emerald-900/10 bg-white divide-y divide-emerald-900/10 overflow-hidden">
+                      {orderedSpecs.map((s, i) => (
+                        <li key={i} className="flex gap-3 px-5 py-3.5 items-start">
+                          <Check size={16} className="text-amber-500 shrink-0 mt-1" strokeWidth={3} />
+                          <p className="text-[15px] text-neutral-600 leading-relaxed"><strong className="text-emerald-950 font-bold">{s.label}:</strong> {rich(s.value)}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </motion.div>
             )}
 
