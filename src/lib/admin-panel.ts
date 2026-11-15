@@ -1658,7 +1658,8 @@ export async function listBulkProducts(opts: { cursor?: string | null; search?: 
        products(${args.join(", ")}) {
          pageInfo { hasNextPage endCursor }
          nodes {
-           id title status
+           id title handle status
+           featuredImage { url }
            vapeMf: metafields(first: 30, namespace: "vape") { nodes { key value } }
            relMf: metafields(first: 10, namespace: "${RELATED_NAMESPACE}") { nodes { key value } }
          }
@@ -1693,6 +1694,8 @@ export async function listBulkProducts(opts: { cursor?: string | null; search?: 
       return {
         id: p.id as string,
         title: p.title as string,
+        handle: (p.handle || "") as string,
+        featuredImage: p.featuredImage?.url as string | undefined,
         status: p.status as string,
         vape,
         related: (relatedByProduct[p.id] || []).map((id) => ({
