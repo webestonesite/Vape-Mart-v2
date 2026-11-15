@@ -48,11 +48,19 @@ export default async function ProductPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  const related = await fetchRelatedProducts(product.slug);
-  const reviews = await fetchProductReviews(product.id);
-  const productFaqs = await fetchProductFaqs(product.id);
-  const settings = await fetchShopSettings();
-  const productWithReviews = { ...product, reviews, faqs: [...productFaqs, ...(product.faqs || [])] };
+  // Parallel fetch with individual error isolation (high-end resilience)
+  const [related, reviews, productFaqs, settings] = await Promise.all([
+    fetchRelatedProducts(product.slug).catch(() => []),
+    fetchProductReviews(product.id).catch(() => []),
+    fetchProductFaqs(product.id).catch(() => []),
+    fetchShopSettings().catch(() => null),
+  ]);
+
+  const productWithReviews = {
+    ...product,
+    reviews: reviews || [],
+    faqs: [...(productFaqs || []), ...(product.faqs || [])],
+  };
 
   // JSON-LD Structured Data for Google Rich Snippets & #1 Ranking
   const jsonLd = {
@@ -120,7 +128,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
-      <ProductDetailView product={productWithReviews} relatedProducts={related} pageSettings={settings.productPage} phone={settings.phone} />
+      <ProductDetailView product={productWithReviews} relatedProducts={related} pageSettings={settings?.productPage} phone={settings?.phone} />
     </>
   );
 }

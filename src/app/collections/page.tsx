@@ -25,7 +25,11 @@ export default async function AllCollectionsPage() {
     url: "https://vapemart.ae/collections"
   };
 
-  const [categories, allProducts, settings] = await Promise.all([fetchCategories(), fetchAllProducts(), fetchShopSettings()]);
+  const [categories, allProducts, settings] = await Promise.all([
+    fetchCategories().catch(() => []),
+    fetchAllProducts().catch(() => []),
+    fetchShopSettings().catch(() => null),
+  ]);
 
   return (
     <>
@@ -34,7 +38,7 @@ export default async function AllCollectionsPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <Suspense fallback={null}>
-        <CollectionPageView allCategories={categories} products={allProducts} catalogProducts={allProducts} pageSettings={settings.collectionPage} />
+        <CollectionPageView allCategories={categories} products={allProducts} catalogProducts={allProducts} pageSettings={settings?.collectionPage} />
       </Suspense>
     </>
   );

@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Outfit, Playfair_Display, Cinzel, Poppins } from "next/font/google";
 import ThemeStyle from "@/components/ThemeStyle";
+import { CartProvider } from "@/modules/cart/CartProvider";
+import { CartDrawer } from "@/modules/cart/components/CartDrawer";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -11,10 +13,6 @@ const playfair = Playfair_Display({
   weight: ["500", "600", "700", "800", "900"],
   style: ["normal", "italic"],
 });
-// Cinzel and Poppins used to load from Google Fonts CDN (plain <link> / CSS
-// @import) with display=swap and no size-adjusted fallback, so every swap
-// reflowed text and shifted the layout. Self-hosting them through next/font
-// gives them the same size-adjusted fallback metrics as the other fonts.
 const cinzel = Cinzel({
   subsets: ["latin"],
   variable: "--font-cinzel",
@@ -27,8 +25,8 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Vape Mart | Premium E-Cigarettes & E-Liquids",
-  description: "Discover premium vapes, exclusive e-liquids, and next-gen hardware. Designed for those who demand the best.",
+  title: "Vape Mart UAE | Premium E-Cigarettes & E-Liquids",
+  description: "Discover premium vapes, exclusive e-liquids, and next-gen hardware across Dubai, Abu Dhabi, and UAE with 2-3 hours express dispatch.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -48,10 +46,6 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-// Panel-managed content (including the ThemeStyle brand/font override in
-// <head>) refreshes from Shopify on this cadence without a redeploy.
-export const revalidate = 600;
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -62,8 +56,11 @@ export default function RootLayout({
       <head>
         <ThemeStyle />
       </head>
-      <body className={`${inter.variable} ${outfit.variable} ${playfair.variable} ${cinzel.variable} ${poppins.variable}`}>
-        {children}
+      <body className={`${inter.variable} ${outfit.variable} ${playfair.variable} ${cinzel.variable} ${poppins.variable} min-h-screen bg-background text-foreground antialiased`}>
+        <CartProvider>
+          {children}
+          <CartDrawer />
+        </CartProvider>
       </body>
     </html>
   );
