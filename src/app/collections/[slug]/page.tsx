@@ -74,6 +74,22 @@ export default async function CollectionSlugPage({ params }: CollectionSlugPageP
   ]);
   const category = categories.find((c) => c.slug === norm) || getCategoryBySlugSync(norm);
 
+  // Lightweight catalog projection for discovery counts to eliminate huge RSC payload
+  const catalogProjection = allProducts.map((p) => ({
+    id: p.id,
+    slug: p.slug,
+    title: p.title,
+    brand: p.brand,
+    category: p.category,
+    categorySlug: p.categorySlug,
+    shopifyCollections: p.shopifyCollections,
+    flavorFamily: p.flavorFamily,
+    primaryImage: p.primaryImage,
+    price: p.price,
+    inStock: p.inStock,
+    reviews: [],
+  })) as unknown as typeof allProducts;
+
   if (!category) {
     /* Brand or unlisted Shopify collection: fetch products matching this collection handle */
     const brandProducts = await fetchProductsByCategory(slug);
@@ -101,13 +117,13 @@ export default async function CollectionSlugPage({ params }: CollectionSlugPageP
           category={brandCategory}
           allCategories={categories}
           products={brandProducts}
-          catalogProducts={allProducts}
+          catalogProducts={catalogProjection}
           pageSettings={settings?.collectionPage}
         />
       );
     }
     // Unknown slug with no products: show empty state
-    return <CollectionPageView allCategories={categories} products={[]} catalogProducts={allProducts} pageSettings={settings?.collectionPage} />;
+    return <CollectionPageView allCategories={categories} products={[]} catalogProducts={catalogProjection} pageSettings={settings?.collectionPage} />;
   }
 
   const categoryProducts = await fetchProductsByCategory(category.slug);
@@ -160,7 +176,7 @@ export default async function CollectionSlugPage({ params }: CollectionSlugPageP
           category={category}
           allCategories={categories}
           products={categoryProducts}
-          catalogProducts={allProducts}
+          catalogProducts={catalogProjection}
           pageSettings={settings?.collectionPage}
         />
       </Suspense>

@@ -100,12 +100,10 @@ async function shopifyAdmin<T>(query: string, variables: Record<string, unknown>
     res.status === 429 || (json?.errors && /throttl/i.test(JSON.stringify(json.errors)));
 
   let { res, json } = await once();
-  if (isThrottle(res, json)) {
-    // The bucket refills over seconds, so wait briefly and try once more
-    // instead of failing the whole read. (2026-11-09: the live
-    // /api/site-content went empty for hours because a throttled meta/blog
-    // read had no retry and the empty result kept being served.)
-    await new Promise((r) => setTimeout(r, 2500));
+  for (let retry = 0; retry < 2 && isThrottle(res, json); retry++) {
+    const delay = (retry + 1) * 3200;
+    console.warn(`[shopifyAdmin] Throttled by Shopify, backing off for ${delay}ms (attempt ${retry + 1}/2)...`);
+    await new Promise((r) => setTimeout(r, delay));
     ({ res, json } = await once());
   }
   if (!res.ok) throw new Error(`Shopify Admin API HTTP ${res.status}`);
@@ -195,6 +193,22 @@ interface FlavorMetaobject {
   id: string;
   fields: { key: string; value: string | null }[];
 }
+
+const PRODUCT_LIST_FRAGMENT = `
+  id title handle status vendor productType tags descriptionHtml
+  seo { title description }
+  priceRangeV2 { minVariantPrice { amount } }
+  images(first: 6) { nodes { url altText } }
+  options { name values }
+  variants(first: 20) { nodes { id title sku price compareAtPrice inventoryQuantity selectedOptions { name value } } }
+  collections(first: 10) { nodes { id title handle } }
+  metafields(first: 25, namespace: "vape") {
+    nodes { namespace key type value }
+  }
+  relMf: metafields(first: 10, namespace: "shopify--discovery--product_recommendation") {
+    nodes { key value }
+  }
+`;
 
 const PRODUCT_FRAGMENT = `
   id title handle status vendor productType tags descriptionHtml
@@ -395,45 +409,81 @@ const LIST_QUERY = `
   query ProductsList($first: Int!, $after: String) {
     products(first: $first, after: $after, sortKey: TITLE) {
       pageInfo { hasNextPage endCursor }
-      nodes { ${PRODUCT_FRAGMENT} }
+      nodes { ${PRODUCT_LIST_FRAGMENT} }
     }
   }
 `;
 
+let catalogCache: { products: ProductItem[]; timestamp: number } | null = null;
+let catalogInFlight: Promise<ProductItem[]> | null = null;
+const CATALOG_CACHE_TTL_MS = 60 * 1000; // 60s memory cache
+let lastSuccessfulCatalog: ProductItem[] = [];
+
+export function invalidateCatalogCache(): void {
+  catalogCache = null;
+}
+
 export async function fetchAllShopifyProducts(): Promise<ProductItem[]> {
-  const nodes: ShopifyProductNode[] = [];
-  let after: string | null = null;
-  for (let page = 0; page < 6; page++) {
-    const data: { products: { pageInfo: { hasNextPage: boolean; endCursor: string | null }; nodes: ShopifyProductNode[] } } =
-      await shopifyAdmin<{ products: { pageInfo: { hasNextPage: boolean; endCursor: string | null }; nodes: ShopifyProductNode[] } }>(
-        LIST_QUERY, { first: 100, after }
-      );
-    // Include ACTIVE and DRAFT products so merchant-imported catalog displays fully; only ARCHIVED stay hidden
-    nodes.push(...data.products.nodes.filter((n: ShopifyProductNode) => n.status !== "ARCHIVED"));
-    if (!data.products.pageInfo.hasNextPage) break;
-    after = data.products.pageInfo.endCursor;
+  if (catalogCache && Date.now() - catalogCache.timestamp < CATALOG_CACHE_TTL_MS) {
+    return catalogCache.products;
   }
-  // Resolve panel-picked related products (discovery GIDs -> handles) in one
-  // nodes query, so the storefront prefers them over same-category picks.
-  const relatedIds = new Set<string>();
-  for (const n of nodes) {
-    const rel = (n.relMf?.nodes ?? []).find((m) => m.key === "related_products");
+  if (catalogInFlight) {
+    return catalogInFlight;
+  }
+
+  catalogInFlight = (async () => {
     try {
-      const ids = JSON.parse(rel?.value || "[]");
-      if (Array.isArray(ids)) for (const id of ids) relatedIds.add(String(id));
-    } catch { /* ignore malformed related metafield */ }
-  }
-  const relatedById: Record<string, string> = {};
-  if (relatedIds.size) {
-    try {
-      const d = await shopifyAdmin<{ nodes: ({ id: string; handle: string } | null)[] }>(
-        `query RelHandles($ids: [ID!]!) { nodes(ids: $ids) { ... on Product { id handle } } }`,
-        { ids: [...relatedIds] }
-      );
-      for (const n of d.nodes ?? []) if (n?.id && n?.handle) relatedById[n.id] = n.handle;
-    } catch { /* related handles optional — same-category fallback covers it */ }
-  }
-  return nodes.map((n: ShopifyProductNode) => toProductItem(n, [], relatedById));
+      const nodes: ShopifyProductNode[] = [];
+      let after: string | null = null;
+      for (let page = 0; page < 8; page++) {
+        const data: { products: { pageInfo: { hasNextPage: boolean; endCursor: string | null }; nodes: ShopifyProductNode[] } } =
+          await shopifyAdmin<{ products: { pageInfo: { hasNextPage: boolean; endCursor: string | null }; nodes: ShopifyProductNode[] } }>(
+            LIST_QUERY, { first: 50, after }
+          );
+        // Include ACTIVE and DRAFT products so merchant-imported catalog displays fully; only ARCHIVED stay hidden
+        nodes.push(...data.products.nodes.filter((n: ShopifyProductNode) => n.status !== "ARCHIVED"));
+        if (!data.products.pageInfo.hasNextPage) break;
+        after = data.products.pageInfo.endCursor;
+      }
+      // Resolve panel-picked related products (discovery GIDs -> handles) in one
+      // nodes query, so the storefront prefers them over same-category picks.
+      const relatedIds = new Set<string>();
+      for (const n of nodes) {
+        const rel = (n.relMf?.nodes ?? []).find((m) => m.key === "related_products");
+        try {
+          const ids = JSON.parse(rel?.value || "[]");
+          if (Array.isArray(ids)) for (const id of ids) relatedIds.add(String(id));
+        } catch { /* ignore malformed related metafield */ }
+      }
+      const relatedById: Record<string, string> = {};
+      if (relatedIds.size) {
+        try {
+          const d = await shopifyAdmin<{ nodes: ({ id: string; handle: string } | null)[] }>(
+            `query RelHandles($ids: [ID!]!) { nodes(ids: $ids) { ... on Product { id handle } } }`,
+            { ids: [...relatedIds] }
+          );
+          for (const n of d.nodes ?? []) if (n?.id && n?.handle) relatedById[n.id] = n.handle;
+        } catch { /* related handles optional — same-category fallback covers it */ }
+      }
+      const products = nodes.map((n: ShopifyProductNode) => toProductItem(n, [], relatedById));
+      if (products.length > 0) {
+        lastSuccessfulCatalog = products;
+        catalogCache = { products, timestamp: Date.now() };
+      }
+      return products;
+    } catch (err) {
+      console.error("[fetchAllShopifyProducts] Error fetching catalog:", err);
+      if (lastSuccessfulCatalog.length > 0) {
+        console.warn(`[fetchAllShopifyProducts] Returning fallback cached catalog (${lastSuccessfulCatalog.length} items)`);
+        return lastSuccessfulCatalog;
+      }
+      throw err;
+    } finally {
+      catalogInFlight = null;
+    }
+  })();
+
+  return catalogInFlight;
 }
 
 const DETAIL_QUERY = `

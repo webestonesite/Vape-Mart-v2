@@ -31,6 +31,21 @@ export default async function AllCollectionsPage() {
     fetchShopSettings().catch(() => null),
   ]);
 
+  const catalogProjection = allProducts.map((p) => ({
+    id: p.id,
+    slug: p.slug,
+    title: p.title,
+    brand: p.brand,
+    category: p.category,
+    categorySlug: p.categorySlug,
+    shopifyCollections: p.shopifyCollections,
+    flavorFamily: p.flavorFamily,
+    primaryImage: p.primaryImage,
+    price: p.price,
+    inStock: p.inStock,
+    reviews: [],
+  })) as unknown as typeof allProducts;
+
   return (
     <>
       <script
@@ -38,7 +53,7 @@ export default async function AllCollectionsPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <Suspense fallback={null}>
-        <CollectionPageView allCategories={categories} products={allProducts} catalogProducts={allProducts} pageSettings={settings?.collectionPage} />
+        <CollectionPageView allCategories={categories} products={allProducts} catalogProducts={catalogProjection} pageSettings={settings?.collectionPage} />
       </Suspense>
     </>
   );
