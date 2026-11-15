@@ -1,7 +1,29 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Search, Plus, Trash2, Save, X, Upload, Link2 } from "lucide-react";
+import Image from "next/image";
+import {
+  Search,
+  Plus,
+  Trash2,
+  Save,
+  X,
+  Upload,
+  Link2,
+  Copy,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  Layers,
+  Tag,
+  Droplets,
+  Zap,
+  HelpCircle,
+  Star,
+  ExternalLink,
+  Sliders,
+  ArrowLeft,
+} from "lucide-react";
 import { RichText } from "./rich-text";
 
 async function api(body: any): Promise<any> {
@@ -10,8 +32,6 @@ async function api(body: any): Promise<any> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  // Never let a non-JSON error page turn into a cryptic "Unexpected token"
-  // SyntaxError: callers check r.ok / r.error.
   const text = await res.text();
   try {
     return JSON.parse(text);
@@ -20,10 +40,6 @@ async function api(body: any): Promise<any> {
   }
 }
 
-/* Vercel rejects request bodies over ~4.5 MB before our code runs, so a
-   large phone photo can never upload through the route. Shrink images in
-   the browser first (same as panel-ui.tsx): downscale to at most 1600px
-   on the long edge and re-encode. Files under the threshold go untouched. */
 const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
 const COMPRESS_FROM_BYTES = 3.5 * 1024 * 1024;
 const MAX_IMAGE_EDGE = 1600;
@@ -69,7 +85,7 @@ async function uploadFile(file: File): Promise<string> {
       const j = JSON.parse(text);
       if (j && j.error) msg = j.error;
     } catch {
-      /* keep the plain-text message */
+      /* keep plain text */
     }
     throw new Error(msg || `Upload failed (HTTP ${res.status}).`);
   }
@@ -80,7 +96,7 @@ async function uploadFile(file: File): Promise<string> {
 
 const inputCls =
   "w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600";
-const labelCls = "block text-xs font-semibold text-neutral-600 mb-1";
+const labelCls = "block text-xs font-semibold text-neutral-700 mb-1";
 
 function Lbl({ children }: { children: React.ReactNode }) {
   return <label className={labelCls}>{children}</label>;
@@ -91,31 +107,8 @@ function Inp(props: React.InputHTMLAttributes<HTMLInputElement>) {
 function Sel(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
   return <select {...props} className={inputCls} />;
 }
-function PrimaryBtn({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      onClick={onClick}
-      className="inline-flex items-center gap-1.5 rounded-md bg-neutral-900 px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-700 transition"
-    >
-      {children}
-    </button>
-  );
-}
-function Section({ n, title, hint, children }: any) {
-  return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
-      <h2 className="font-bold text-neutral-900 mb-1">
-        {n}. {title}
-      </h2>
-      {hint && <p className="text-xs text-neutral-500 mb-3">{hint}</p>}
-      {children}
-    </div>
-  );
-}
 
-/* Spec rows. flavor_family / nicotine_strength / badge have preset choices
-   in Shopify (set 2026-10-28), so the panel offers them as dropdowns —
-   typing anything else would be rejected on save. */
+/* Quick specs presets */
 const KNOWN_SPECS: { key: string; label: string; type?: string }[] = [
   { key: "badge", label: "Badge" },
   { key: "subtitle", label: "Subtitle" },
@@ -137,17 +130,29 @@ const KNOWN_SPECS: { key: string; label: string; type?: string }[] = [
   { key: "heart_note", label: "Heart note" },
   { key: "base_note", label: "Base note" },
 ];
+
 const PRESET_CHOICES: Record<string, { value: string; label: string }[]> = {
   flavor_family: [
     { value: "fruit_ice", label: "Fruit Ice" },
     { value: "menthol", label: "Menthol" },
     { value: "tobacco", label: "Tobacco" },
     { value: "dessert", label: "Dessert" },
+    { value: "beverage", label: "Beverage" },
   ],
-  nicotine_strength: ["2%", "20mg", "30mg", "3mg", "50mg", "5%", "50mg (5%)"].map((v) => ({ value: v, label: v })),
-  badge: [{ value: "BEST SELLER", label: "BEST SELLER" }],
+  nicotine_strength: ["0mg", "20mg", "30mg", "50mg", "2%", "5%"].map((v) => ({ value: v, label: v })),
+  badge: [
+    { value: "BEST SELLER", label: "BEST SELLER" },
+    { value: "NEW ARRIVAL", label: "NEW ARRIVAL" },
+    { value: "TOP RATED", label: "TOP RATED" },
+    { value: "HOT", label: "HOT" },
+  ],
 };
+
 const NICOTINE_PRESETS = ["0mg", "20mg", "30mg", "50mg"];
+const PUFF_PRESETS = ["5000", "8000", "10000", "15000", "20000", "50000"];
+const CAPACITY_PRESETS = ["2ml", "10ml", "14ml", "16ml", "18ml", "20ml"];
+const BATTERY_PRESETS = ["500mAh", "650mAh", "850mAh", "1000mAh", "Rechargeable"];
+const CHARGING_PRESETS = ["Type-C", "Micro-USB", "Fast Charging"];
 
 function cartesian(lists: string[][]): string[][] {
   if (!lists.length) return [[]];
@@ -177,8 +182,7 @@ function stripTags(s: string): string {
   return String(s || "").replace(/<[^>]*>/g, "");
 }
 
-/* Small link builder for short spec values: pick link text + URL, and the
-   value becomes a real hyperlink (the product page renders it as a link). */
+/* Link builder */
 function LinkHelper({ value, onApply }: { value: string; onApply: (html: string) => void }) {
   const [open, setOpen] = useState(false);
   const [url, setUrl] = useState("");
@@ -240,11 +244,11 @@ function FlavourPicker({ flavors, selected, onToggle }: any) {
             key={fl.id}
             type="button"
             onClick={() => onToggle(fl.id, on)}
-            className={`rounded-full px-3 py-1.5 text-xs font-semibold border ${
-              on ? "bg-neutral-900 text-white border-neutral-900" : "bg-white text-neutral-700 border-neutral-300"
+            className={`rounded-full px-3 py-1.5 text-xs font-semibold border transition ${
+              on ? "bg-neutral-900 text-white border-neutral-900" : "bg-white text-neutral-700 border-neutral-300 hover:bg-neutral-50"
             }`}
           >
-            {fl.name}
+            {fl.name} {on ? "✓" : "+"}
           </button>
         );
       })}
@@ -253,9 +257,6 @@ function FlavourPicker({ flavors, selected, onToggle }: any) {
   );
 }
 
-/* Tap-to-add chips — one value at a time, never a comma-joined text box.
-   Used for variant option values and tags, so a simple person never has
-   to type commas. The saved data is unchanged (arrays / comma string). */
 function ValueChips({
   values,
   onChange,
@@ -278,7 +279,7 @@ function ValueChips({
     <div>
       <div className="flex flex-wrap gap-1.5 mb-2">
         {(values || []).map((v: string) => (
-          <span key={v} className="inline-flex items-center gap-1 rounded-full bg-neutral-900 text-white px-3 py-1.5 text-xs font-semibold">
+          <span key={v} className="inline-flex items-center gap-1 rounded-full bg-neutral-900 text-white px-3 py-1 text-xs font-semibold">
             {v}
             <button type="button" onClick={() => onChange((values || []).filter((x: string) => x !== v))}>
               <X size={12} />
@@ -312,19 +313,120 @@ function ValueChips({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Unified product entry page — every field on one page, in order.    */
-/*  Nothing here is demo: empty means empty, and every field really    */
-/*  saves to Shopify through the single Save button.                   */
+/*  Progressive Disclosure Collapsible Card                            */
 /* ------------------------------------------------------------------ */
 
-export function ProductEditor({ productId, data, notify, reload, back }: any) {
+function CollapsibleCard({
+  icon: Icon,
+  title,
+  subtitle,
+  badge,
+  enabled,
+  onToggle,
+  children,
+}: {
+  icon: any;
+  title: string;
+  subtitle: string;
+  badge?: string;
+  enabled: boolean;
+  onToggle: (v: boolean) => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      className={`rounded-xl border transition-all ${
+        enabled ? "border-neutral-300 bg-white shadow-2xs" : "border-neutral-200 bg-neutral-50/60 hover:bg-neutral-50"
+      }`}
+    >
+      <div
+        className="flex items-center justify-between p-4 cursor-pointer select-none"
+        onClick={() => onToggle(!enabled)}
+      >
+        <div className="flex items-center gap-3">
+          <input
+            type="checkbox"
+            checked={enabled}
+            onChange={(e) => onToggle(e.target.checked)}
+            onClick={(e) => e.stopPropagation()}
+            className="h-4 w-4 rounded border-neutral-300 text-emerald-600 focus:ring-emerald-500 accent-emerald-600 cursor-pointer"
+          />
+          <div className="flex items-center gap-2">
+            <Icon size={16} className={enabled ? "text-emerald-700" : "text-neutral-500"} />
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-neutral-900">{title}</span>
+                {badge && (
+                  <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
+                    {badge}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-neutral-500">{subtitle}</p>
+            </div>
+          </div>
+        </div>
+        <span
+          className={`text-xs font-semibold px-2.5 py-1 rounded-md border transition ${
+            enabled
+              ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+              : "bg-white text-neutral-600 border-neutral-200"
+          }`}
+        >
+          {enabled ? "Active (Hide)" : "+ Enable / Expand"}
+        </span>
+      </div>
+      {enabled && (
+        <div className="p-4 border-t border-neutral-200 animate-in fade-in duration-150 space-y-3">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Product Editor: Streamlined 80/20 Entry + Progressive Disclosure   */
+/* ------------------------------------------------------------------ */
+
+export function ProductEditor({ productId, cloneFromId, data, notify, reload, back }: any) {
   const isNew = !productId;
-  const [loading, setLoading] = useState(!isNew);
+  const isCloning = !productId && !!cloneFromId;
+  const fetchId = productId || cloneFromId;
+  const [loading, setLoading] = useState(!!fetchId);
+
+  // Progressive Disclosure Toggles
+  const [showVariants, setShowVariants] = useState(false);
+  const [showTaste, setShowTaste] = useState(false);
+  const [showSeo, setShowSeo] = useState(false);
+  const [showInventory, setShowInventory] = useState(false);
+  const [showFaqs, setShowFaqs] = useState(false);
+  const [showReviews, setShowReviews] = useState(false);
+  const [showRelated, setShowRelated] = useState(false);
+  const [showCustomSpecs, setShowCustomSpecs] = useState(false);
+
   const [form, setForm] = useState<any>({
-    title: "", handle: "", descriptionHtml: "", vendor: "", productType: "", tags: "", status: "ACTIVE",
-    price: "", compareAtPrice: "", sku: "", barcode: "", inventoryQuantity: "",
-    seoTitle: "", seoDescription: "",
+    title: "",
+    handle: "",
+    descriptionHtml: "",
+    vendor: "",
+    productType: "",
+    tags: "",
+    status: "ACTIVE",
+    price: "",
+    compareAtPrice: "",
+    sku: "",
+    barcode: "",
+    inventoryQuantity: "",
+    cost: "",
+    weightKg: "",
+    taxable: true,
+    requiresShipping: true,
+    tracked: true,
+    seoTitle: "",
+    seoDescription: "",
   });
+
   const [variants, setVariants] = useState<any[]>([]);
   const [newVariants, setNewVariants] = useState<any[]>([]);
   const [deleteVariantIds, setDeleteVariantIds] = useState<string[]>([]);
@@ -352,8 +454,8 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
   const [variantImages, setVariantImages] = useState<Record<string, any>>({});
 
   useEffect(() => {
-    if (isNew) return;
-    api({ action: "productDetail", id: productId }).then((r) => {
+    if (!fetchId) return;
+    api({ action: "productDetail", id: fetchId }).then((r) => {
       if (!r.ok) {
         notify("Error: " + (r.error || "could not load product"));
         back();
@@ -361,15 +463,53 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
       }
       const d = r.detail;
       setForm({
-        title: d.title, handle: d.handle, descriptionHtml: d.descriptionHtml, vendor: d.vendor,
-        productType: d.productType, tags: d.tags, status: d.status,
-        price: "", compareAtPrice: "", sku: "", barcode: "", inventoryQuantity: "",
-        seoTitle: d.seoTitle || "", seoDescription: d.seoDescription || "",
+        title: isCloning ? `${d.title} (Copy)` : d.title,
+        handle: isCloning ? "" : d.handle,
+        descriptionHtml: d.descriptionHtml,
+        vendor: d.vendor,
+        productType: d.productType,
+        tags: d.tags,
+        status: isCloning ? "DRAFT" : d.status,
+        price: isCloning ? (d.variants?.[0]?.price || "") : "",
+        compareAtPrice: isCloning ? (d.variants?.[0]?.compareAtPrice || "") : "",
+        sku: isCloning ? "" : (d.variants?.[0]?.sku || ""),
+        barcode: isCloning ? "" : (d.variants?.[0]?.barcode || ""),
+        inventoryQuantity: isCloning ? (d.variants?.[0]?.inventoryQuantity ?? "50") : "",
+        cost: isCloning ? "" : (d.variants?.[0]?.cost || ""),
+        weightKg: isCloning ? "" : (d.variants?.[0]?.weightKg || ""),
+        taxable: d.variants?.[0]?.taxable !== false,
+        requiresShipping: d.variants?.[0]?.requiresShipping !== false,
+        tracked: d.variants?.[0]?.tracked !== false,
+        seoTitle: isCloning ? "" : (d.seoTitle || ""),
+        seoDescription: isCloning ? "" : (d.seoDescription || ""),
       });
-      setVariants(d.variants);
-      setMedia(d.media);
-      setCollectionIds(d.collections);
+
+      if (isCloning) {
+        setVariants([]);
+        setNewVariants(
+          (d.variants || []).map((v: any) => ({
+            options: (v.selectedOptions || []).map((s: any) => s.value),
+            price: v.price,
+            compareAtPrice: v.compareAtPrice,
+            sku: "",
+            barcode: "",
+            inventoryQuantity: v.inventoryQuantity ?? "50",
+            cost: v.cost || "",
+            weightKg: v.weightKg || "",
+            taxable: v.taxable ?? true,
+            requiresShipping: v.requiresShipping ?? true,
+            tracked: v.tracked ?? true,
+          }))
+        );
+        setMedia(d.media || []);
+      } else {
+        setVariants(d.variants || []);
+        setMedia(d.media || []);
+      }
+
+      setCollectionIds(d.collections || []);
       setOptions((d.options || []).map((o: any) => ({ name: o.name, values: [...(o.values || [])] })));
+
       const rows: any[] = [];
       const presentKeys: string[] = [];
       for (const f of KNOWN_SPECS) {
@@ -381,38 +521,71 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
       }
       try {
         const custom = JSON.parse(d.vape?.custom_specs || "[]");
-        if (Array.isArray(custom))
-          for (const r of custom)
-            if (r?.name && r?.value) rows.push({ key: null, label: String(r.name), value: String(r.value) });
-      } catch { /* ignore malformed custom specs */ }
+        if (Array.isArray(custom)) {
+          for (const r of custom) {
+            if (r?.name && r?.value) {
+              rows.push({ key: null, label: String(r.name), value: String(r.value) });
+              setShowCustomSpecs(true);
+            }
+          }
+        }
+      } catch {
+        /* ignore */
+      }
       setSpecRows(rows);
-      setOrigSpecKeys(presentKeys);
+      setOrigSpecKeys(isCloning ? [] : presentKeys);
       setNicOpts(parseJsonList(d.vape?.nicotine_options).join(", "));
       setSelFlavors(parseJsonList(d.vape?.flavors));
-      setFaqs((d.faqs || []).map((f: any) => ({ id: f.id, question: f.question, answer: f.answer })));
-      setReviews((d.reviews || []).map((rv: any) => ({
-        id: rv.id, author: rv.author, rating: rv.rating, title: rv.title, body: rv.body, verified: rv.verified,
-      })));
+      setFaqs((d.faqs || []).map((f: any) => ({ id: isCloning ? undefined : f.id, question: f.question, answer: f.answer })));
+      setReviews(
+        (d.reviews || []).map((rv: any) => ({
+          id: isCloning ? undefined : rv.id,
+          author: rv.author,
+          rating: rv.rating,
+          title: rv.title,
+          body: rv.body,
+          verified: rv.verified,
+        }))
+      );
       setRelated(d.related || []);
+
       const vi: Record<string, any> = {};
       for (const v of d.variants || []) {
         const t = (v.selectedOptions || []).map((s: any) => s.value);
-        vi[tupleKey(t)] = (v.media && v.media[0]) ? { mediaId: v.media[0].id } : null;
+        vi[tupleKey(t)] = v.media && v.media[0] ? { mediaId: v.media[0].id } : null;
       }
       setVariantImages(vi);
+
+      // Auto-detect & expand active modules
+      if ((d.options || []).length > 0) setShowVariants(true);
+      if (!isCloning && (d.seoTitle || d.seoDescription || (d.handle && d.handle !== ""))) setShowSeo(true);
+      if (
+        d.vape?.flavor_family ||
+        d.vape?.sweetness ||
+        d.vape?.cooling ||
+        d.vape?.throat_hit ||
+        d.vape?.top_note ||
+        (d.vape?.flavors && d.vape.flavors !== "[]")
+      ) {
+        setShowTaste(true);
+      }
+      if (d.variants?.some((v: any) => v.sku || v.barcode || v.cost || v.weightKg)) setShowInventory(true);
+      if ((d.faqs || []).length > 0) setShowFaqs(true);
+      if ((d.reviews || []).length > 0) setShowReviews(true);
+      if ((d.related || []).length > 0) setShowRelated(true);
+
       setLoading(false);
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [productId]);
+  }, [fetchId, isCloning, notify, back]);
 
   const set = (k: string, v: any) => setForm({ ...form, [k]: v });
 
-  const MAIN_HANDLES = ["juul", "terea", "iqos", "disposable-vape", "e-liquids"];
+  const MAIN_HANDLES = ["disposable-vape", "e-liquids", "terea", "iqos", "juul"];
   const mainCollections = (data.collections || []).filter((c: any) => MAIN_HANDLES.includes(c.handle));
   const toggleCollection = (id: string) =>
     setCollectionIds(collectionIds.includes(id) ? collectionIds.filter((x) => x !== id) : [...collectionIds, id]);
 
-  // ---- Variant helpers (Shopify-style, max 3 options) ----
+  // Variant calculations
   const liveOptions = options
     .map((o: any) => ({ name: String(o.name || "").trim(), values: (o.values || []).map((v: string) => String(v).trim()).filter(Boolean) }))
     .filter((o: any) => o.name && o.values.length);
@@ -421,6 +594,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
     return cartesian(liveOptions.map((o: any) => o.values));
   };
   const visibleCombos = (): string[][] => combos().filter((t) => !hiddenTuples.includes(tupleKey(t)));
+
   const matchVariant = (tuple: string[]) =>
     variants.find((v: any) => {
       const sel = (v.selectedOptions || []).map((o: any) => o.value);
@@ -428,8 +602,10 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
     });
   const newVariantFor = (tuple: string[]) =>
     newVariants.find((nv: any) => tupleKey(nv.options || []) === tupleKey(tuple));
+
   const basePrice = isNew ? form.price : (variants[0]?.price ?? "");
   const baseStock = isNew ? form.inventoryQuantity : (variants[0]?.inventoryQuantity ?? "");
+
   const rowFor = (tuple: string[]) => {
     const m = matchVariant(tuple);
     if (m) return { kind: "existing" as const, v: m };
@@ -437,9 +613,22 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
     if (nv) return { kind: "new" as const, v: nv };
     return {
       kind: "fresh" as const,
-      v: { options: tuple, price: basePrice, compareAtPrice: isNew ? form.compareAtPrice : "", sku: "", barcode: "", inventoryQuantity: baseStock, cost: "", weightKg: "", taxable: true, requiresShipping: true, tracked: true },
+      v: {
+        options: tuple,
+        price: basePrice,
+        compareAtPrice: isNew ? form.compareAtPrice : "",
+        sku: "",
+        barcode: "",
+        inventoryQuantity: baseStock,
+        cost: "",
+        weightKg: "",
+        taxable: true,
+        requiresShipping: true,
+        tracked: true,
+      },
     };
   };
+
   const setRowField = (tuple: string[], field: string, value: any) => {
     const row = rowFor(tuple);
     if (row.kind === "existing") {
@@ -450,6 +639,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
       setNewVariants([...newVariants, { ...row.v, [field]: value }]);
     }
   };
+
   const deleteTuple = (tuple: string[]) => {
     if (visibleCombos().length <= 1 && tuple.length === 0) {
       notify("Keep at least one variant — you cannot delete them all.");
@@ -464,9 +654,11 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
     }
     setHiddenTuples([...hiddenTuples, tupleKey(tuple)]);
   };
+
   const firstVariant = variants[0];
-  const setFirstVariant = (field: string, value: string) =>
+  const setFirstVariant = (field: string, value: any) =>
     setVariants(variants.map((x: any, i: number) => (i === 0 ? { ...x, [field]: value } : x)));
+
   const simplePrice = isNew ? form.price : (firstVariant?.price ?? "");
   const simpleCompare = isNew ? form.compareAtPrice : (firstVariant?.compareAtPrice ?? "");
   const simpleStock = isNew ? form.inventoryQuantity : (firstVariant?.inventoryQuantity ?? "");
@@ -475,15 +667,16 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
   const simpleTaxable = isNew ? (form.taxable !== false) : (firstVariant?.taxable !== false);
   const simpleRequiresShipping = isNew ? (form.requiresShipping !== false) : (firstVariant?.requiresShipping !== false);
   const simpleTracked = isNew ? (form.tracked !== false) : (firstVariant?.tracked !== false);
+
+  const setSimplePrice = (v: string) => (isNew ? set("price", v) : setFirstVariant("price", v));
+  const setSimpleCompare = (v: string) => (isNew ? set("compareAtPrice", v) : setFirstVariant("compareAtPrice", v));
+  const setSimpleStock = (v: string) => (isNew ? set("inventoryQuantity", v) : setFirstVariant("inventoryQuantity", v));
   const setSimpleCost = (v: string) => (isNew ? set("cost", v) : setFirstVariant("cost", v));
   const setSimpleWeightKg = (v: string) => (isNew ? set("weightKg", v) : setFirstVariant("weightKg", v));
   const setSimpleFlag = (field: string, v: boolean) =>
     isNew ? set(field, v) : setVariants(variants.map((x: any, i: number) => (i === 0 ? { ...x, [field]: v } : x)));
-  const setSimplePrice = (v: string) => (isNew ? set("price", v) : setFirstVariant("price", v));
-  const setSimpleCompare = (v: string) => (isNew ? set("compareAtPrice", v) : setFirstVariant("compareAtPrice", v));
-  const setSimpleStock = (v: string) => (isNew ? set("inventoryQuantity", v) : setFirstVariant("inventoryQuantity", v));
 
-  // ---- Spec-row helpers ----
+  // Specs helper
   const specValue = (key: string) => specRows.find((r: any) => r.key === key)?.value ?? "";
   const setSpec = (key: string, value: string, label: string) => {
     const i = specRows.findIndex((r: any) => r.key === key);
@@ -499,7 +692,7 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
         const resourceUrl = await uploadFile(f);
         setNewMedia((prev) => [...prev, { preview: URL.createObjectURL(f), source: resourceUrl, alt: "" }]);
       }
-      notify("Image uploaded — save the product to attach it.");
+      notify("Image uploaded — click Save to attach.");
     } catch (e: any) {
       notify("Upload error: " + e.message);
     } finally {
@@ -525,18 +718,15 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
 
   const doSave = async () => {
     if (!form.title.trim()) {
-      notify("Title is required.");
+      notify("Product title is required.");
       return;
     }
-    /* B6: a product with no collection shows on no category page — the
-       user must pick at least one (Section 9 tick boxes). */
     if (!collectionIds.length) {
-      notify("Pick at least one collection — without one the product will not show on any category page.");
+      notify("Select at least one collection so this product shows in the store.");
       return;
     }
     setSaving(true);
-    // Specs: known keys write back to their vape.* metafields, free rows go
-    // to vape.custom_specs JSON, removed known keys get deleted from Shopify.
+
     const vapePayload: any = {};
     const customSpecs: any[] = [];
     for (const r of specRows) {
@@ -547,13 +737,16 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
     vapePayload.custom_specs = customSpecs;
     vapePayload.nicotine_options = nicList();
     vapePayload.flavors = selFlavors;
+
     const vapeDeleteKeys = origSpecKeys.filter(
       (k) => !specRows.some((r: any) => r.key === k && r.value && String(r.value).trim() !== "")
     );
+
     const liveMedia = media.filter((m: any) => !deleteMediaIds.includes(m.id));
     const mediaAltUpdates = liveMedia
       .filter((m: any) => mediaAltEdits[m.id] !== undefined && mediaAltEdits[m.id] !== (m.altText || ""))
       .map((m: any) => ({ id: m.id, alt: mediaAltEdits[m.id] }));
+
     const variantMedia = visibleCombos()
       .map((t) => {
         const picked = variantImages[tupleKey(t)];
@@ -567,103 +760,155 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
         };
       })
       .filter(Boolean);
+
     const base = {
-      title: form.title, handle: form.handle || undefined, descriptionHtml: form.descriptionHtml,
-      vendor: form.vendor, productType: form.productType, tags: form.tags, status: form.status,
-      seoTitle: form.seoTitle, seoDescription: form.seoDescription,
-      collectionIds, vape: vapePayload, vapeDeleteKeys, locationId: data.locationId,
+      title: form.title,
+      handle: form.handle || undefined,
+      descriptionHtml: form.descriptionHtml,
+      vendor: form.vendor,
+      productType: form.productType,
+      tags: form.tags,
+      status: form.status,
+      seoTitle: form.seoTitle,
+      seoDescription: form.seoDescription,
+      collectionIds,
+      vape: vapePayload,
+      vapeDeleteKeys,
+      locationId: data.locationId,
       mediaSources: newMedia.map((m) => m.source),
       mediaAlts: newMedia.map((m) => m.alt || ""),
       mediaAltUpdates,
       variantMedia,
       faqs: faqs.map((f: any, i: number) => ({ id: f.id, question: f.question, answer: f.answer, position: i })),
       reviews: reviews.map((r: any, i: number) => ({
-        id: r.id, author: r.author, rating: r.rating, title: r.title, body: r.body, verified: r.verified, position: i,
+        id: r.id,
+        author: r.author,
+        rating: r.rating,
+        title: r.title,
+        body: r.body,
+        verified: r.verified,
+        position: i,
       })),
       relatedHandles: related.map((r: any) => r.handle),
     };
+
     let r: any;
     if (isNew) {
-      const cleanOptions = liveOptions.map((o: any) => ({ name: o.name, values: o.values }));
-      const comboList = visibleCombos();
+      const cleanOptions = showVariants ? liveOptions.map((o: any) => ({ name: o.name, values: o.values })) : [];
+      const comboList = showVariants ? visibleCombos() : [[]];
       const payload: any = {
         ...base,
-        price: form.price, compareAtPrice: form.compareAtPrice, sku: form.sku, barcode: form.barcode,
+        price: form.price,
+        compareAtPrice: form.compareAtPrice,
+        sku: form.sku,
+        barcode: form.barcode,
         inventoryQuantity: form.inventoryQuantity,
-        cost: form.cost, weightKg: form.weightKg,
-        taxable: form.taxable, requiresShipping: form.requiresShipping, tracked: form.tracked,
+        cost: form.cost,
+        weightKg: form.weightKg,
+        taxable: form.taxable,
+        requiresShipping: form.requiresShipping,
+        tracked: form.tracked,
         options: cleanOptions,
       };
+
       if (cleanOptions.length) {
-        const toOptionValues = (t: string[]) => t.map((val: string, i: number) => ({ optionName: cleanOptions[i].name, name: val }));
+        const toOptionValues = (t: string[]) =>
+          t.map((val: string, i: number) => ({ optionName: cleanOptions[i].name, name: val }));
         payload.variants = comboList.map((t) => {
           const nv = newVariantFor(t);
           return {
+            options: t,
             optionValues: toOptionValues(t),
-            price: nv?.price ?? form.price,
-            compareAtPrice: nv?.compareAtPrice ?? form.compareAtPrice,
-            sku: nv?.sku ?? "",
-            barcode: nv?.barcode ?? "",
-            inventoryQuantity: nv?.inventoryQuantity ?? form.inventoryQuantity,
-            cost: nv?.cost ?? "",
-            weightKg: nv?.weightKg ?? "",
-            taxable: nv?.taxable ?? true,
-            requiresShipping: nv?.requiresShipping ?? true,
-            tracked: nv?.tracked ?? true,
+            price: nv ? nv.price : form.price || "0",
+            compareAtPrice: nv ? nv.compareAtPrice : form.compareAtPrice || "",
+            sku: nv ? nv.sku : "",
+            barcode: nv ? nv.barcode : "",
+            inventoryQuantity: nv ? nv.inventoryQuantity : form.inventoryQuantity || "0",
+            cost: nv ? nv.cost : form.cost || "",
+            weightKg: nv ? nv.weightKg : form.weightKg || "",
+            taxable: nv ? nv.taxable : form.taxable ?? true,
+            requiresShipping: nv ? nv.requiresShipping : form.requiresShipping ?? true,
+            tracked: nv ? nv.tracked : form.tracked ?? true,
           };
         });
       }
+
       r = await api({ action: "product.create", payload });
     } else {
-      const comboList = visibleCombos();
+      const comboList = showVariants ? visibleCombos() : [[]];
       const matchedIds = new Set<string>();
       const newFromCombos: any[] = [];
       for (const t of comboList) {
         const m = matchVariant(t);
-        if (m) { matchedIds.add(m.id); continue; }
+        if (m) {
+          matchedIds.add(m.id);
+          continue;
+        }
         const nv = newVariantFor(t);
-        if (nv) { if (nv.price !== "") newFromCombos.push(nv); continue; }
-        newFromCombos.push({ options: t, price: variants[0]?.price || "0", compareAtPrice: "", sku: "", barcode: "", inventoryQuantity: variants[0]?.inventoryQuantity ?? "", cost: variants[0]?.cost ?? "", weightKg: variants[0]?.weightKg ?? "", taxable: variants[0]?.taxable ?? true, requiresShipping: variants[0]?.requiresShipping ?? true, tracked: variants[0]?.tracked ?? true });
+        if (nv) {
+          if (nv.price !== "") newFromCombos.push(nv);
+          continue;
+        }
+        newFromCombos.push({
+          options: t,
+          price: variants[0]?.price || "0",
+          compareAtPrice: "",
+          sku: "",
+          barcode: "",
+          inventoryQuantity: variants[0]?.inventoryQuantity ?? "",
+          cost: variants[0]?.cost ?? "",
+          weightKg: variants[0]?.weightKg ?? "",
+          taxable: variants[0]?.taxable ?? true,
+          requiresShipping: variants[0]?.requiresShipping ?? true,
+          tracked: variants[0]?.tracked ?? true,
+        });
       }
+
       const kept = variants.filter((v: any) => matchedIds.has(v.id));
       const orphans = variants.filter((v: any) => !matchedIds.has(v.id));
-      const toOptionValues = (t: string[]) => t.map((val: string, i: number) => ({ optionName: liveOptions[i]?.name || "", name: val })).filter((x: any) => x.optionName);
-      const newWithValues = newFromCombos.map((nv: any) => ({ ...nv, optionValues: toOptionValues(nv.options || []) }));
-      if (kept.length === 0 && newFromCombos.length === 0) {
-        setSaving(false);
-        notify("Keep at least one variant — set a price for a combination first.");
-        return;
-      }
+      const toOptionValues = (t: string[]) =>
+        t.map((val: string, i: number) => ({ optionName: liveOptions[i]?.name || "", name: val })).filter((x: any) => x.optionName);
+      const newWithValues = newFromCombos.map((nv: any) => ({
+        ...nv,
+        optionValues: toOptionValues(nv.options || []),
+      }));
+
       r = await api({
         action: "product.update",
         payload: {
-          ...base, id: productId,
+          ...base,
+          id: productId,
           variantUpdates: kept.map((v: any) => ({
-            id: v.id, price: v.price, compareAtPrice: v.compareAtPrice, sku: v.sku, barcode: v.barcode, taxable: v.taxable,
+            id: v.id,
+            price: v.price,
+            compareAtPrice: v.compareAtPrice,
+            sku: v.sku,
+            barcode: v.barcode,
+            taxable: v.taxable,
           })),
-          inventoryUpdates: kept.map((v: any) => ({ inventoryItemId: v.inventoryItemId, quantity: v.inventoryQuantity, cost: v.cost, weightKg: v.weightKg, requiresShipping: v.requiresShipping, tracked: v.tracked })),
-          newVariants: newWithValues, deleteVariantIds: [...deleteVariantIds, ...orphans.map((v: any) => v.id)], deleteMediaIds,
+          inventoryUpdates: kept.map((v: any) => ({
+            inventoryItemId: v.inventoryItemId,
+            quantity: v.inventoryQuantity,
+            cost: v.cost,
+            weightKg: v.weightKg,
+            requiresShipping: v.requiresShipping,
+            tracked: v.tracked,
+          })),
+          newVariants: newWithValues,
+          deleteVariantIds: [...deleteVariantIds, ...orphans.map((v: any) => v.id)],
+          deleteMediaIds,
         },
       });
     }
+
     setSaving(false);
     if (r.ok) {
-      /* B5: the toast must state the status — "Product created." alone
-         left users thinking a DRAFT product was live in the store. */
-      if (isNew) {
-        notify(
-          form.status === "ACTIVE"
-            ? "Product created and live in the store."
-            : form.status === "ARCHIVED"
-              ? "Product created as ARCHIVED — hidden from the store."
-              : "Product created as DRAFT — it will not show in the store until made live."
-        );
-      } else {
-        notify(r.message || "Saved");
-      }
+      notify(r.message || "Product saved successfully.");
       reload();
       back();
-    } else notify("Error: " + (r.error || "save failed"));
+    } else {
+      notify("Error: " + (r.error || "Save failed"));
+    }
   };
 
   const doDelete = async () => {
@@ -673,18 +918,18 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
       notify(r.message);
       reload();
       back();
-    } else notify("Error: " + (r.error || "delete failed"));
+    } else {
+      notify("Error: " + (r.error || "delete failed"));
+    }
   };
 
-  if (loading) return <p className="text-neutral-500">Loading product…</p>;
+  if (loading) return <p className="text-neutral-500 py-8 text-center">Loading product data…</p>;
 
   const liveMedia = media.filter((m: any) => !deleteMediaIds.includes(m.id));
   const imageOptions = [
     ...liveMedia.map((m: any) => ({ key: `id:${m.id}`, label: m.altText || m.url.split("/").pop(), url: m.url })),
     ...newMedia.map((m: any) => ({ key: `src:${m.source}`, label: m.source.split("/").pop(), url: m.preview })),
   ];
-  // Key of the image picked for a variant combination ("id:…" / "src:…"),
-  // or "" when no image is picked. Used by the thumbnail picker grid.
   const variantImageKey = (t: string[]) => {
     const p = variantImages[tupleKey(t)];
     if (!p) return "";
@@ -694,330 +939,97 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
   };
 
   return (
-    <div>
-      <button onClick={back} className="text-sm font-medium text-neutral-600 hover:text-neutral-900 mb-3">
-        ← Back to products
-      </button>
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <h1 className="text-xl font-bold text-neutral-900">{isNew ? "Add product" : form.title}</h1>
-        <div className="flex gap-2">
+    <div className="space-y-4 max-w-4xl mx-auto pb-16">
+      {/* Sticky Top Action Bar */}
+      <div className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 bg-white/95 backdrop-blur-md p-4 rounded-xl border border-neutral-200 shadow-sm">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={back}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50"
+          >
+            <ArrowLeft size={14} /> Back
+          </button>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-lg font-bold text-neutral-900 truncate max-w-sm sm:max-w-md">
+                {isNew ? (isCloning ? "Duplicate Product" : "New Product") : form.title}
+              </h1>
+              <span
+                className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                  form.status === "ACTIVE"
+                    ? "bg-emerald-100 text-emerald-800"
+                    : form.status === "DRAFT"
+                      ? "bg-amber-100 text-amber-800"
+                      : "bg-neutral-200 text-neutral-700"
+                }`}
+              >
+                {form.status}
+              </span>
+            </div>
+            <p className="text-[11px] text-neutral-400">
+              {isCloning ? "Prefilled with clone specs. Update title and save." : "80/20 Express Entry: Core specs ready in 30 seconds."}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
           {!isNew && (
             <button
+              type="button"
               onClick={doDelete}
-              className="inline-flex items-center gap-1.5 rounded-md border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100"
+              className="inline-flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-100"
             >
-              <Trash2 size={15} /> Delete
+              <Trash2 size={13} /> Delete
             </button>
           )}
-          <PrimaryBtn onClick={doSave}>
-            <Save size={15} /> {saving ? "Saving…" : "Save product"}
-          </PrimaryBtn>
+          <button
+            type="button"
+            onClick={doSave}
+            disabled={saving}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-700 px-5 py-2 text-sm font-bold text-white shadow-sm hover:bg-emerald-800 transition disabled:opacity-50"
+          >
+            <Save size={15} /> {saving ? "Saving…" : isNew ? "Create Product" : "Save Changes"}
+          </button>
         </div>
       </div>
 
-      <div className="max-w-3xl space-y-4">
-        <Section n={1} title="Title">
-          <Inp value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="Product name" />
-        </Section>
-
-        <Section n={2} title="Description" hint="Shows on the product page in the store. Use the toolbar for bold, lists and links.">
-          <RichText value={form.descriptionHtml} onChange={(v) => set("descriptionHtml", v)} placeholder="What is this product, and why is it good — write 2–3 lines" minHeight={140} />
-        </Section>
-
-        <Section n={3} title="Meta title" hint="The title shown in Google search. Leave blank to use the product name.">
-          <Inp value={form.seoTitle} onChange={(e) => set("seoTitle", e.target.value)} placeholder="Search title" />
-        </Section>
-
-        <Section n={4} title="Meta description" hint="The short text shown under the title in Google search.">
-          <Inp value={form.seoDescription} onChange={(e) => set("seoDescription", e.target.value)} placeholder="Search short description" />
-        </Section>
-
-        <Section n={5} title="Product image" hint="The first image shows large in the store. Add alt text for each image — for Google and screen readers.">
-          <div className="space-y-3 mb-3">
-            {liveMedia.map((m: any) => (
-              <div key={m.id} className="flex items-center gap-3">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={m.url} alt="" className="h-16 w-16 rounded-lg object-cover border border-neutral-200 shrink-0" />
-                <Inp
-                  placeholder="Alt text — what is in the image"
-                  value={mediaAltEdits[m.id] !== undefined ? mediaAltEdits[m.id] : m.altText || ""}
-                  onChange={(e) => setMediaAltEdits({ ...mediaAltEdits, [m.id]: e.target.value })}
-                />
-                <button
-                  onClick={() => setDeleteMediaIds([...deleteMediaIds, m.id])}
-                  className="rounded-md border border-red-200 bg-red-50 px-2 py-2 text-red-700 hover:bg-red-100 shrink-0"
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
-            ))}
-            {newMedia.map((m: any, i: number) => (
-              <div key={i} className="flex items-center gap-3">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={m.preview} alt="" className="h-16 w-16 rounded-lg object-cover border border-emerald-300 shrink-0" />
-                <Inp
-                  placeholder="Alt text — what is in the image"
-                  value={m.alt}
-                  onChange={(e) => setNewMedia(newMedia.map((x: any, j: number) => (j === i ? { ...x, alt: e.target.value } : x)))}
-                />
-                <button
-                  onClick={() => setNewMedia(newMedia.filter((_: any, j: number) => j !== i))}
-                  className="rounded-md border border-red-200 bg-red-50 px-2 py-2 text-red-700 hover:bg-red-100 shrink-0"
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
-            ))}
+      {/* ========================================================================= */}
+      {/* 1. PRIMARY ESSENTIALS CARD (Above the fold - what 80% of entries need) */}
+      {/* ========================================================================= */}
+      <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-2xs space-y-5">
+        <div className="flex items-center justify-between border-b pb-3">
+          <div className="flex items-center gap-2">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-neutral-900 text-white text-xs font-bold">1</span>
+            <h2 className="text-base font-bold text-neutral-900">Core Product Information</h2>
           </div>
-          <label className="inline-flex items-center gap-2 rounded-md border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-800 hover:bg-neutral-50 cursor-pointer">
-            <Upload size={15} /> {uploading ? "Uploading…" : "Add image"}
-            <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => onUpload(e.target.files)} />
-          </label>
-          <div className="flex gap-2 mt-3">
-            <Inp placeholder="Or paste an image URL…" value={imgUrl} onChange={(e) => setImgUrl(e.target.value)} />
-            <button
-              onClick={() => {
-                if (imgUrl.trim()) {
-                  setNewMedia([...newMedia, { preview: imgUrl.trim(), source: imgUrl.trim(), alt: "" }]);
-                  setImgUrl("");
-                }
-              }}
-              className="shrink-0 rounded-md border border-neutral-300 px-3 py-2 text-sm font-semibold text-neutral-800 hover:bg-neutral-50"
-            >
-              Add URL
-            </button>
+          <span className="text-xs text-neutral-500 font-medium">Standard E-Commerce Fields</span>
+        </div>
+
+        {/* Title & Category */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="md:col-span-2 space-y-1">
+            <Lbl>Product Title *</Lbl>
+            <Inp
+              placeholder="e.g. Elfbar BC10000 Puffs Disposable Vape"
+              value={form.title}
+              onChange={(e) => set("title", e.target.value)}
+            />
           </div>
-        </Section>
-
-        <Section n={6} title="Variant" hint="Add an option (Flavour, Colour, Pack Size — anything you like, up to 3). Each combination gets its own price, old price, SKU, stock and image.">
-          {options.map((o: any, oi: number) => (
-            <div key={oi} className="grid sm:grid-cols-[160px_1fr_auto] gap-2 mb-2">
-              <Inp
-                value={o.name}
-                placeholder="Option name"
-                onChange={(e) => setOptions(options.map((x: any, j: number) => (j === oi ? { ...x, name: e.target.value } : x)))}
-              />
-              <ValueChips
-                values={o.values || []}
-                onChange={(next) => setOptions(options.map((x: any, j: number) => (j === oi ? { ...x, values: next } : x)))}
-                placeholder="Type a value (e.g. Mango Ice)"
-                emptyText="No values yet — type below and press Add to make a chip."
-              />
-              <button
-                onClick={() => setOptions(options.filter((_: any, j: number) => j !== oi))}
-                className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-red-700 hover:bg-red-100"
-              >
-                <Trash2 size={15} />
-              </button>
-            </div>
-          ))}
-          <button
-            onClick={() => options.length < 3 && setOptions([...options, { name: "", values: [] }])}
-            disabled={options.length >= 3}
-            className="inline-flex items-center gap-1.5 rounded-md border border-neutral-300 px-3 py-2 text-sm font-semibold text-neutral-800 hover:bg-neutral-50 disabled:opacity-40 mt-1"
-          >
-            <Plus size={14} /> Add option {options.length >= 3 ? "(sorbochcho 3-ta)" : ""}
-          </button>
-
-          <div className="mt-4 space-y-3">
-            {visibleCombos().map((t) => {
-              const v = rowFor(t).v;
-              const pickedKey = variantImageKey(t);
-              return (
-                <div key={tupleKey(t)} className="rounded-lg border border-neutral-200 p-3">
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <span className="text-sm font-bold text-neutral-800">{tupleLabel(t)}</span>
-                    <button
-                      onClick={() => deleteTuple(t)}
-                      className="rounded-md border border-red-200 bg-red-50 px-2 py-1.5 text-red-700 hover:bg-red-100"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                    <div>
-                      <Lbl>Price</Lbl>
-                      <Inp type="number" value={v.price ?? ""} onChange={(e) => setRowField(t, "price", e.target.value)} placeholder="Price" />
-                    </div>
-                    <div>
-                      <Lbl>Old price</Lbl>
-                      <Inp type="number" value={v.compareAtPrice ?? ""} onChange={(e) => setRowField(t, "compareAtPrice", e.target.value)} placeholder="Old price" />
-                    </div>
-                    <div>
-                      <Lbl>SKU</Lbl>
-                      <Inp value={v.sku ?? ""} onChange={(e) => setRowField(t, "sku", e.target.value)} placeholder="SKU" />
-                    </div>
-                    <div>
-                      <Lbl>Barcode</Lbl>
-                      <Inp value={v.barcode ?? ""} onChange={(e) => setRowField(t, "barcode", e.target.value)} placeholder="Barcode" />
-                    </div>
-                    <div>
-                      <Lbl>Stock</Lbl>
-                      <Inp type="number" value={v.inventoryQuantity ?? ""} onChange={(e) => setRowField(t, "inventoryQuantity", e.target.value)} placeholder="Stock" />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-2">
-                    <div>
-                      <Lbl>Cost (what it costs to buy)</Lbl>
-                      <Inp type="number" value={v.cost ?? ""} onChange={(e) => setRowField(t, "cost", e.target.value)} placeholder="Cost" />
-                    </div>
-                    <div>
-                      <Lbl>Weight (kg)</Lbl>
-                      <Inp type="number" value={v.weightKg ?? ""} onChange={(e) => setRowField(t, "weightKg", e.target.value)} placeholder="kg" />
-                    </div>
-                    <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600 self-end pb-2.5">
-                      <input type="checkbox" checked={v.taxable !== false} onChange={(e) => setRowField(t, "taxable", e.target.checked)} />
-                      Charge tax
-                    </label>
-                    <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600 self-end pb-2.5">
-                      <input type="checkbox" checked={v.requiresShipping !== false} onChange={(e) => setRowField(t, "requiresShipping", e.target.checked)} />
-                      Needs shipping
-                    </label>
-                    <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600 self-end pb-2.5">
-                      <input type="checkbox" checked={v.tracked !== false} onChange={(e) => setRowField(t, "tracked", e.target.checked)} />
-                      Track stock
-                    </label>
-                  </div>
-                  <div className="mt-2">
-                    <Lbl>Variant image — tap an image to pick it</Lbl>
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setVariantImages({ ...variantImages, [tupleKey(t)]: null })}
-                        className={`flex h-16 w-16 items-center justify-center rounded-lg border text-xs font-semibold ${
-                          pickedKey === ""
-                            ? "border-neutral-900 ring-2 ring-neutral-900 bg-neutral-50 text-neutral-900"
-                            : "border-dashed border-neutral-300 text-neutral-500"
-                        }`}
-                      >
-                        No image
-                      </button>
-                      {imageOptions.map((o: any) => {
-                        const selected = pickedKey === o.key;
-                        return (
-                          <button
-                            key={o.key}
-                            type="button"
-                            title={o.label}
-                            onClick={() => {
-                              if (o.key.startsWith("id:"))
-                                setVariantImages({ ...variantImages, [tupleKey(t)]: { mediaId: o.key.slice(3) } });
-                              else if (o.key.startsWith("src:"))
-                                setVariantImages({ ...variantImages, [tupleKey(t)]: { mediaSource: o.key.slice(4) } });
-                            }}
-                            className={`relative h-16 w-16 overflow-hidden rounded-lg border ${
-                              selected ? "border-neutral-900 ring-2 ring-neutral-900" : "border-neutral-200"
-                            }`}
-                          >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={o.url} alt={o.label} className="h-full w-full object-cover" />
-                            {selected && (
-                              <span className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-neutral-900 text-white text-[11px] font-bold">
-                                ✓
-                              </span>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                    {!imageOptions.length && (
-                      <p className="text-xs text-neutral-500 mt-1">
-                        First add images in section 5, then pick one here by looking at the image.
-                      </p>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-            {!visibleCombos().length && (
-              <p className="text-xs text-neutral-500">Add a value to the option — then you can set each combination's price, stock and image here.</p>
-            )}
+          <div className="space-y-1">
+            <Lbl>Store Status</Lbl>
+            <Sel value={form.status} onChange={(e) => set("status", e.target.value)}>
+              <option value="ACTIVE">Active (Live in store)</option>
+              <option value="DRAFT">Draft (Staff only)</option>
+              <option value="ARCHIVED">Archived (Hidden)</option>
+            </Sel>
           </div>
-          <p className="text-xs text-neutral-500 mt-2">
-            Changing an option name or value deletes the old variants and creates new combinations.
-          </p>
-        </Section>
+        </div>
 
-        <Section n={7} title="Slug" hint="Last part of the product link. Leave blank to auto-generate from the name.">
-          <Inp value={form.handle} onChange={(e) => set("handle", e.target.value)} placeholder="Leave blank to auto-generate" />
-          <p className="text-xs text-neutral-500 mt-1">URL: /products/{form.handle || "…"}</p>
-        </Section>
-
-        {/* Section 8 always renders (2026-11-07 audit: it used to hide when
-            the product had variant options, so the numbering jumped 7 → 9
-            and looked like a missing section). With options, it shows a
-            read-only price summary — prices are edited in section 6. */}
-        <Section n={8} title="Price" hint={liveOptions.length === 0 ? "With no variant options, this price is the product price." : "There are variant options — change prices in section 6 (Variants); this only shows them here."}>
-          {liveOptions.length === 0 ? (
-            <div className="grid sm:grid-cols-2 gap-3">
-              <div>
-                <Lbl>Selling price (AED) *</Lbl>
-                <Inp type="number" value={simplePrice} onChange={(e) => setSimplePrice(e.target.value)} placeholder="Price" />
-              </div>
-              <div>
-                <Lbl>Old price (shown crossed out — optional)</Lbl>
-                <Inp type="number" value={simpleCompare} onChange={(e) => setSimpleCompare(e.target.value)} placeholder="Old price" />
-              </div>
-              <div>
-                <Lbl>Stock — how many are left</Lbl>
-                <Inp type="number" value={simpleStock} onChange={(e) => setSimpleStock(e.target.value)} placeholder="Stock" />
-              </div>
-              <div>
-                <Lbl>Cost (what it costs to buy — AED)</Lbl>
-                <Inp type="number" value={simpleCost} onChange={(e) => setSimpleCost(e.target.value)} placeholder="Cost" />
-              </div>
-              <div>
-                <Lbl>Weight (kg)</Lbl>
-                <Inp type="number" value={simpleWeightKg} onChange={(e) => setSimpleWeightKg(e.target.value)} placeholder="kg" />
-              </div>
-              <label className="flex items-center gap-2 text-sm font-semibold text-neutral-700">
-                <input type="checkbox" checked={simpleTaxable} onChange={(e) => setSimpleFlag("taxable", e.target.checked)} />
-                Charge tax
-              </label>
-              <label className="flex items-center gap-2 text-sm font-semibold text-neutral-700">
-                <input type="checkbox" checked={simpleRequiresShipping} onChange={(e) => setSimpleFlag("requiresShipping", e.target.checked)} />
-                Needs shipping
-              </label>
-              <label className="flex items-center gap-2 text-sm font-semibold text-neutral-700">
-                <input type="checkbox" checked={simpleTracked} onChange={(e) => setSimpleFlag("tracked", e.target.checked)} />
-                Track stock
-              </label>
-              {isNew && (
-                <>
-                  <div>
-                    <Lbl>SKU</Lbl>
-                    <Inp value={form.sku} onChange={(e) => set("sku", e.target.value)} placeholder="SKU" />
-                  </div>
-                  <div>
-                    <Lbl>Barcode</Lbl>
-                    <Inp value={form.barcode} onChange={(e) => set("barcode", e.target.value)} placeholder="Barcode" />
-                  </div>
-                </>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-1.5">
-              {visibleCombos().map((t: string[]) => {
-                const row = rowFor(t);
-                const v: any = row.v;
-                const cat = parseFloat(String(v.compareAtPrice || "0")) || 0;
-                return (
-                  <div key={tupleKey(t)} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm">
-                    <span className="font-semibold text-neutral-800">{t.join(" / ") || "Default"}</span>
-                    <span className="text-neutral-600">
-                      AED {v.price || "0"}
-                      {cat > 0 ? <span className="text-neutral-400 line-through ml-2">AED {v.compareAtPrice}</span> : null}
-                      <span className="ml-3">Stock: {v.inventoryQuantity ?? 0}</span>
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </Section>
-
-        <Section n={9} title="Collection" hint="Which category this product shows in — tap to tick. Pick at least one, or the product shows nowhere.">
-          <div className="flex flex-wrap gap-2 mb-3">
+        {/* Collections / Categories */}
+        <div className="space-y-2">
+          <Lbl>Collections & Categories * (Tap to pick)</Lbl>
+          <div className="flex flex-wrap gap-1.5">
             {mainCollections.map((c: any) => {
               const on = collectionIds.includes(c.id);
               return (
@@ -1025,198 +1037,451 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
                   key={c.id}
                   type="button"
                   onClick={() => toggleCollection(c.id)}
-                  className={`rounded-full px-4 py-2 text-sm font-bold border ${on ? "bg-emerald-700 text-white border-emerald-700" : "bg-white text-neutral-700 border-neutral-300"}`}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-bold border transition ${
+                    on
+                      ? "bg-emerald-700 text-white border-emerald-700 shadow-2xs"
+                      : "bg-white text-neutral-700 border-neutral-300 hover:bg-neutral-50"
+                  }`}
                 >
-                  {c.title}
+                  {c.title} {on ? "✓" : "+"}
                 </button>
               );
             })}
           </div>
-          <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1 border-t border-neutral-100 pt-3">
-            {(data.collections || []).map((c: any) => (
-              <label key={c.id} className="flex items-center gap-2 text-sm text-neutral-800 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={collectionIds.includes(c.id)}
-                  onChange={(e) =>
-                    setCollectionIds(e.target.checked ? [...collectionIds, c.id] : collectionIds.filter((x) => x !== c.id))
-                  }
-                  className="accent-neutral-900"
-                />
-                {c.title} <span className="text-neutral-400 text-xs">({c.productCount})</span>
-              </label>
-            ))}
-          </div>
-        </Section>
+        </div>
 
-        <Section n={10} title="Brand" hint="Brand, type and tags — leaving them blank is fine.">
-          <div className="grid sm:grid-cols-2 gap-3">
+        {/* Pricing & Stock */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
+          <div className="space-y-1">
+            <Lbl>Selling Price (AED) *</Lbl>
+            <Inp
+              type="number"
+              placeholder="e.g. 120"
+              value={liveOptions.length === 0 ? simplePrice : (form.price || variants[0]?.price || "")}
+              onChange={(e) => setSimplePrice(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1">
+            <Lbl>Old / Strikethrough Price (Optional)</Lbl>
+            <Inp
+              type="number"
+              placeholder="e.g. 150"
+              value={liveOptions.length === 0 ? simpleCompare : (form.compareAtPrice || variants[0]?.compareAtPrice || "")}
+              onChange={(e) => setSimpleCompare(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1">
+            <Lbl>Stock Quantity (Inventory)</Lbl>
+            <Inp
+              type="number"
+              placeholder="e.g. 50"
+              value={liveOptions.length === 0 ? simpleStock : (form.inventoryQuantity || variants[0]?.inventoryQuantity || "")}
+              onChange={(e) => setSimpleStock(e.target.value)}
+            />
+          </div>
+        </div>
+
+        {/* Photos */}
+        <div className="space-y-2 pt-1 border-t border-neutral-100">
+          <Lbl>Product Photos</Lbl>
+          <div className="flex flex-wrap items-center gap-3">
+            {liveMedia.map((m: any) => (
+              <div key={m.id} className="relative group h-20 w-20 rounded-xl overflow-hidden border border-neutral-200 bg-white">
+                <Image src={m.url} alt="" fill sizes="80px" className="object-cover" />
+                <button
+                  type="button"
+                  onClick={() => setDeleteMediaIds([...deleteMediaIds, m.id])}
+                  className="absolute inset-0 bg-red-900/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                  title="Remove image"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            ))}
+            {newMedia.map((m: any, i: number) => (
+              <div key={i} className="relative group h-20 w-20 rounded-xl overflow-hidden border-2 border-emerald-500 bg-white">
+                <Image src={m.preview} alt="" fill sizes="80px" className="object-cover" />
+                <button
+                  type="button"
+                  onClick={() => setNewMedia(newMedia.filter((_: any, j: number) => j !== i))}
+                  className="absolute inset-0 bg-red-900/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            ))}
+
+            <label className="flex h-20 w-32 flex-col items-center justify-center rounded-xl border border-dashed border-neutral-300 bg-neutral-50 hover:bg-neutral-100 cursor-pointer transition">
+              <Upload size={16} className="text-neutral-500 mb-1" />
+              <span className="text-[11px] font-bold text-neutral-700">{uploading ? "Uploading…" : "+ Add Image"}</span>
+              <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => onUpload(e.target.files)} />
+            </label>
+          </div>
+        </div>
+
+        {/* Essential Hardware Specs */}
+        <div className="space-y-3 pt-3 border-t border-neutral-100">
+          <div className="flex items-center gap-2">
+            <Zap size={14} className="text-emerald-600" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-800">Key Vape Specifications</h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
             <div>
-              <Lbl>Brand</Lbl>
-              <Inp value={form.vendor} onChange={(e) => set("vendor", e.target.value)} placeholder="Brand name" />
+              <Lbl>Puff Count</Lbl>
+              <Inp
+                placeholder="e.g. 10000"
+                value={specValue("puffs")}
+                onChange={(e) => setSpec("puffs", e.target.value, "Puff count")}
+              />
+              <div className="flex flex-wrap gap-1 mt-1">
+                {PUFF_PRESETS.slice(0, 4).map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setSpec("puffs", p, "Puff count")}
+                    className="text-[10px] bg-neutral-100 hover:bg-neutral-200 rounded px-1 text-neutral-600"
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
             </div>
+
             <div>
-              <Lbl>Product type</Lbl>
-              <Inp value={form.productType} onChange={(e) => set("productType", e.target.value)} placeholder="Type" />
+              <Lbl>Nicotine Strength</Lbl>
+              <Inp
+                placeholder="e.g. 50mg"
+                value={specValue("nicotine_strength")}
+                onChange={(e) => setSpec("nicotine_strength", e.target.value, "Nicotine strength")}
+              />
+              <div className="flex flex-wrap gap-1 mt-1">
+                {NICOTINE_PRESETS.map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setSpec("nicotine_strength", p, "Nicotine strength")}
+                    className="text-[10px] bg-neutral-100 hover:bg-neutral-200 rounded px-1 text-neutral-600"
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="sm:col-span-2">
-              <Lbl>Tag</Lbl>
+
+            <div>
+              <Lbl>E-liquid Capacity</Lbl>
+              <Inp
+                placeholder="e.g. 16ml"
+                value={specValue("e_liquid_capacity")}
+                onChange={(e) => setSpec("e_liquid_capacity", e.target.value, "E-liquid")}
+              />
+              <div className="flex flex-wrap gap-1 mt-1">
+                {CAPACITY_PRESETS.slice(0, 3).map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setSpec("e_liquid_capacity", p, "E-liquid")}
+                    className="text-[10px] bg-neutral-100 hover:bg-neutral-200 rounded px-1 text-neutral-600"
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <Lbl>Battery & Charging</Lbl>
+              <Inp
+                placeholder="e.g. 650mAh (Type-C)"
+                value={specValue("battery_capacity")}
+                onChange={(e) => setSpec("battery_capacity", e.target.value, "Battery")}
+              />
+              <div className="flex flex-wrap gap-1 mt-1">
+                {BATTERY_PRESETS.slice(0, 3).map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setSpec("battery_capacity", p, "Battery")}
+                    className="text-[10px] bg-neutral-100 hover:bg-neutral-200 rounded px-1 text-neutral-600"
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Description */}
+        <div className="space-y-1 pt-2 border-t border-neutral-100">
+          <Lbl>Product Description</Lbl>
+          <RichText
+            value={form.descriptionHtml}
+            onChange={(v) => set("descriptionHtml", v)}
+            placeholder="Authentic manufacturer description and feature points…"
+            minHeight={110}
+          />
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 2. PROGRESSIVE DISCLOSURE: OPTIONAL MODULES (Collapsed by default)       */}
+      {/* ========================================================================= */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between px-1">
+          <div className="flex items-center gap-2">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-neutral-200 text-neutral-800 text-xs font-bold">2</span>
+            <h2 className="text-sm font-bold uppercase tracking-wider text-neutral-700">Optional & Advanced Modules</h2>
+          </div>
+          <span className="text-xs text-neutral-400">Enable only what this product needs</span>
+        </div>
+
+        {/* 1. Variants Module */}
+        <CollapsibleCard
+          icon={Layers}
+          title="Product Variants & Multi-Option Matrix"
+          subtitle="Add options like Flavors, Colors, or Pack Sizes with distinct price & stock"
+          badge={liveOptions.length ? `${liveOptions.length} Options (${visibleCombos().length} Combos)` : undefined}
+          enabled={showVariants}
+          onToggle={setShowVariants}
+        >
+          {options.map((o: any, oi: number) => (
+            <div key={oi} className="grid sm:grid-cols-[160px_1fr_auto] gap-2 mb-2">
+              <Inp
+                value={o.name}
+                placeholder="Option name (e.g. Flavor)"
+                onChange={(e) => setOptions(options.map((x: any, j: number) => (j === oi ? { ...x, name: e.target.value } : x)))}
+              />
               <ValueChips
-                values={form.tags.split(",").map((s: string) => s.trim()).filter(Boolean)}
-                onChange={(next) => set("tags", next.join(", "))}
-                placeholder="Type a tag"
-                emptyText="No tags yet — type below and press Add to make a chip."
+                values={o.values || []}
+                onChange={(next) => setOptions(options.map((x: any, j: number) => (j === oi ? { ...x, values: next } : x)))}
+                placeholder="Type a value and press Enter"
+                emptyText="No values yet."
+              />
+              <button
+                type="button"
+                onClick={() => setOptions(options.filter((_: any, j: number) => j !== oi))}
+                className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-red-700 hover:bg-red-100"
+              >
+                <Trash2 size={15} />
+              </button>
+            </div>
+          ))}
+
+          <button
+            type="button"
+            onClick={() => options.length < 3 && setOptions([...options, { name: "", values: [] }])}
+            disabled={options.length >= 3}
+            className="inline-flex items-center gap-1.5 rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-800 hover:bg-neutral-50 disabled:opacity-40"
+          >
+            <Plus size={14} /> Add option {options.length >= 3 ? "(Max 3)" : ""}
+          </button>
+
+          {visibleCombos().length > 0 && (
+            <div className="mt-4 space-y-2 border-t pt-3">
+              <span className="text-xs font-bold text-neutral-700">Variant Matrix ({visibleCombos().length}):</span>
+              {visibleCombos().map((t) => {
+                const v = rowFor(t).v;
+                return (
+                  <div key={tupleKey(t)} className="flex flex-wrap items-center justify-between gap-3 p-2.5 rounded-lg border border-neutral-200 bg-neutral-50">
+                    <span className="font-bold text-neutral-900 text-xs min-w-[120px]">{tupleLabel(t)}</span>
+                    <div className="flex items-center gap-2">
+                      <div className="w-24">
+                        <Inp
+                          type="number"
+                          placeholder="Price"
+                          value={v.price ?? ""}
+                          onChange={(e) => setRowField(t, "price", e.target.value)}
+                        />
+                      </div>
+                      <div className="w-24">
+                        <Inp
+                          type="number"
+                          placeholder="Stock"
+                          value={v.inventoryQuantity ?? ""}
+                          onChange={(e) => setRowField(t, "inventoryQuantity", e.target.value)}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => deleteTuple(t)}
+                        className="rounded p-1 text-neutral-400 hover:text-red-600"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CollapsibleCard>
+
+        {/* 2. Sensory & Taste Profile Module */}
+        <CollapsibleCard
+          icon={Droplets}
+          title="Sensory & Taste Profile"
+          subtitle="Sweetness, cooling, throat hit scores, notes & flavor links"
+          badge={specValue("flavor_family") ? "Taste Active" : undefined}
+          enabled={showTaste}
+          onToggle={setShowTaste}
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+            <div>
+              <Lbl>Flavor Family</Lbl>
+              <Sel
+                value={specValue("flavor_family")}
+                onChange={(e) => setSpec("flavor_family", e.target.value, "Flavor family")}
+              >
+                <option value="">Select…</option>
+                {PRESET_CHOICES.flavor_family.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </Sel>
+            </div>
+            <div>
+              <Lbl>Sweetness (1-5)</Lbl>
+              <Inp
+                type="number"
+                min={1}
+                max={5}
+                placeholder="1-5"
+                value={specValue("sweetness")}
+                onChange={(e) => setSpec("sweetness", e.target.value, "Sweetness")}
+              />
+            </div>
+            <div>
+              <Lbl>Cooling (1-5)</Lbl>
+              <Inp
+                type="number"
+                min={1}
+                max={5}
+                placeholder="1-5"
+                value={specValue("cooling")}
+                onChange={(e) => setSpec("cooling", e.target.value, "Cooling")}
+              />
+            </div>
+            <div>
+              <Lbl>Throat Hit (1-5)</Lbl>
+              <Inp
+                type="number"
+                min={1}
+                max={5}
+                placeholder="1-5"
+                value={specValue("throat_hit")}
+                onChange={(e) => setSpec("throat_hit", e.target.value, "Throat hit")}
               />
             </div>
           </div>
-        </Section>
 
-        <Section n={11} title="Show in the store?" hint="Live shows it in the store, draft is only visible to you, archived hides it from the store but does not delete it.">
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => set("status", "ACTIVE")}
-              className={`rounded-full px-4 py-2 text-sm font-bold border ${form.status === "ACTIVE" ? "bg-emerald-700 text-white border-emerald-700" : "bg-white text-neutral-700 border-neutral-300"}`}
-            >
-              Yes, make it live
-            </button>
-            <button
-              type="button"
-              onClick={() => set("status", "DRAFT")}
-              className={`rounded-full px-4 py-2 text-sm font-bold border ${form.status === "DRAFT" ? "bg-neutral-900 text-white border-neutral-900" : "bg-white text-neutral-700 border-neutral-300"}`}
-            >
-              No, keep it as a draft
-            </button>
-            <button
-              type="button"
-              onClick={() => set("status", "ARCHIVED")}
-              className={`rounded-full px-4 py-2 text-sm font-bold border ${form.status === "ARCHIVED" ? "bg-neutral-900 text-white border-neutral-900" : "bg-white text-neutral-700 border-neutral-300"}`}
-            >
-              Archive it
-            </button>
+          <div className="pt-2">
+            <Lbl>Connected Flavors from Library</Lbl>
+            <FlavourPicker
+              flavors={data.flavors}
+              selected={selFlavors}
+              onToggle={(id: string, on: boolean) =>
+                setSelFlavors(on ? selFlavors.filter((x) => x !== id) : [...selFlavors, id])
+              }
+            />
           </div>
-        </Section>
+        </CollapsibleCard>
 
-        <Section n={12} title="Spec table" hint="Not every product has the same specs — keep only what you need and delete the rest. These show in the spec table on the product page. Use the link icon to add a link to a value.">
-          <div className="space-y-2">
-            {specRows.map((r: any, i: number) => {
-              const preset = r.key ? PRESET_CHOICES[r.key] : null;
-              const isNumber = KNOWN_SPECS.find((f) => f.key === r.key)?.type === "number";
-              // Links belong on free-form spec rows only: short labels and
-              // SEO-fed fields (subtitle, short description) stay plain text.
-              const showLink = r.key === null;
-              return (
-                <div key={i} className="grid grid-cols-[1fr_1fr_auto] gap-2 items-start">
-                  {r.key ? (
-                    <span className="flex items-center text-sm font-semibold text-neutral-700 pt-2">{r.label}</span>
-                  ) : (
-                    <Inp
-                      value={r.label}
-                      placeholder="Spec name"
-                      onChange={(e) => setSpecRows(specRows.map((x: any, j: number) => (j === i ? { ...x, label: e.target.value } : x)))}
-                    />
-                  )}
-                  {preset ? (
-                    <Sel
-                      value={r.value}
-                      onChange={(e) => setSpecRows(specRows.map((x: any, j: number) => (j === i ? { ...x, value: e.target.value } : x)))}
-                    >
-                      <option value="">Select…</option>
-                      {preset.map((o: any) => (
-                        <option key={o.value} value={o.value}>
-                          {o.label}
-                        </option>
-                      ))}
-                      {r.value && !preset.some((o: any) => o.value === r.value) && <option value={r.value}>{r.value}</option>}
-                    </Sel>
-                  ) : (
-                    <Inp
-                      type={isNumber ? "number" : "text"}
-                      value={r.value}
-                      placeholder="Value"
-                      onChange={(e) => setSpecRows(specRows.map((x: any, j: number) => (j === i ? { ...x, value: e.target.value } : x)))}
-                    />
-                  )}
-                  <div className="flex gap-1">
-                    {showLink && (
-                      <LinkHelper
-                        value={r.value}
-                        onApply={(html) => setSpecRows(specRows.map((x: any, j: number) => (j === i ? { ...x, value: html } : x)))}
-                      />
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => setSpecRows(specRows.filter((_: any, j: number) => j !== i))}
-                      className="rounded-md border border-red-200 bg-red-50 px-2 py-2 text-red-700 hover:bg-red-100"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+        {/* 3. SEO & Search Engine Listing Module */}
+        <CollapsibleCard
+          icon={Tag}
+          title="SEO & Search Engine Listing"
+          subtitle="Custom meta title, meta description, and URL slug"
+          badge={form.seoTitle ? "Custom SEO" : undefined}
+          enabled={showSeo}
+          onToggle={setShowSeo}
+        >
+          <div className="space-y-3">
+            <div>
+              <Lbl>Search Page Title (Meta Title)</Lbl>
+              <Inp
+                placeholder="Leave blank to use product title"
+                value={form.seoTitle}
+                onChange={(e) => set("seoTitle", e.target.value)}
+              />
+            </div>
+            <div>
+              <Lbl>Search Short Description (Meta Description)</Lbl>
+              <Inp
+                placeholder="Brief summary for Google snippets"
+                value={form.seoDescription}
+                onChange={(e) => set("seoDescription", e.target.value)}
+              />
+            </div>
+            <div>
+              <Lbl>Custom URL Slug (Handle)</Lbl>
+              <Inp
+                placeholder="e.g. elfbar-bc10000-disposable-vape"
+                value={form.handle}
+                onChange={(e) => set("handle", e.target.value)}
+              />
+              <span className="text-[11px] text-neutral-400 mt-0.5 block">
+                URL: /products/{form.handle || "…"}
+              </span>
+            </div>
           </div>
-          <button
-            type="button"
-            onClick={() => setSpecRows([...specRows, { key: null, label: "", value: "" }])}
-            className="inline-flex items-center gap-1.5 rounded-md border border-neutral-300 px-3 py-2 text-sm font-semibold text-neutral-800 hover:bg-neutral-50 mt-2"
-          >
-            <Plus size={14} /> Add spec
-          </button>
-        </Section>
+        </CollapsibleCard>
 
-        <Section n={13} title="Flavor" hint="Tap the flavours that are available. Tap the nicotine strengths too, or type to add a new one.">
-          <FlavourPicker flavors={data.flavors} selected={selFlavors} onToggle={(id: string, on: boolean) => setSelFlavors(on ? selFlavors.filter((x) => x !== id) : [...selFlavors, id])} />
-          <p className="text-xs text-neutral-500 mt-2 mb-2">To add a new flavour, go to the Flavours tab.</p>
-          <Lbl>Nicotine strength</Lbl>
-          <div className="flex flex-wrap gap-2">
-            {NICOTINE_PRESETS.map((v: string) => {
-              const on = nicList().includes(v);
-              return (
-                <button
-                  key={v}
-                  type="button"
-                  onClick={() => toggleNic(v)}
-                  className={`rounded-full px-3 py-1.5 text-xs font-semibold border ${on ? "bg-neutral-900 text-white border-neutral-900" : "bg-white text-neutral-700 border-neutral-300"}`}
-                >
-                  {v}
-                </button>
-              );
-            })}
-            {nicList()
-              .filter((v: string) => !NICOTINE_PRESETS.includes(v))
-              .map((v: string) => (
-                <button
-                  key={v}
-                  type="button"
-                  onClick={() => toggleNic(v)}
-                  className="rounded-full px-3 py-1.5 text-xs font-semibold border bg-neutral-900 text-white border-neutral-900"
-                >
-                  {v} ×
-                </button>
-              ))}
+        {/* 4. Detailed Inventory & Shipping */}
+        <CollapsibleCard
+          icon={Sliders}
+          title="Detailed Inventory, Shipping & Tax"
+          subtitle="SKU, barcode, unit cost, weight, tax & tracking flags"
+          badge={form.sku ? `SKU: ${form.sku}` : undefined}
+          enabled={showInventory}
+          onToggle={setShowInventory}
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+            <div>
+              <Lbl>SKU</Lbl>
+              <Inp value={form.sku} onChange={(e) => set("sku", e.target.value)} placeholder="SKU" />
+            </div>
+            <div>
+              <Lbl>Barcode</Lbl>
+              <Inp value={form.barcode} onChange={(e) => set("barcode", e.target.value)} placeholder="Barcode" />
+            </div>
+            <div>
+              <Lbl>Cost per item (AED)</Lbl>
+              <Inp type="number" value={simpleCost} onChange={(e) => setSimpleCost(e.target.value)} placeholder="Cost" />
+            </div>
+            <div>
+              <Lbl>Weight (kg)</Lbl>
+              <Inp type="number" value={simpleWeightKg} onChange={(e) => setSimpleWeightKg(e.target.value)} placeholder="kg" />
+            </div>
           </div>
-          <div className="flex gap-2 mt-2">
-            <Inp placeholder="Type another strength" value={nicCustom} onChange={(e) => setNicCustom(e.target.value)} />
-            <button
-              type="button"
-              onClick={() => {
-                const v = nicCustom.trim();
-                if (v && !nicList().includes(v)) setNicOpts([...nicList(), v].join(", "));
-                setNicCustom("");
-              }}
-              className="shrink-0 rounded-md border border-neutral-300 px-3 py-2 text-sm font-semibold text-neutral-800 hover:bg-neutral-50"
-            >
-              Add
-            </button>
+          <div className="flex flex-wrap gap-4 pt-2">
+            <label className="flex items-center gap-2 text-xs font-semibold text-neutral-700 cursor-pointer">
+              <input type="checkbox" checked={simpleTaxable} onChange={(e) => setSimpleFlag("taxable", e.target.checked)} />
+              Charge tax on this product
+            </label>
+            <label className="flex items-center gap-2 text-xs font-semibold text-neutral-700 cursor-pointer">
+              <input type="checkbox" checked={simpleRequiresShipping} onChange={(e) => setSimpleFlag("requiresShipping", e.target.checked)} />
+              Physical product (Requires shipping)
+            </label>
+            <label className="flex items-center gap-2 text-xs font-semibold text-neutral-700 cursor-pointer">
+              <input type="checkbox" checked={simpleTracked} onChange={(e) => setSimpleFlag("tracked", e.target.checked)} />
+              Track inventory quantity
+            </label>
           </div>
-        </Section>
+        </CollapsibleCard>
 
-        <Section n={14} title="FAQ" hint="This product's own questions and answers. They show first in the FAQ section on the product page. You can add a link in an answer.">
+        {/* 5. Product FAQs */}
+        <CollapsibleCard
+          icon={HelpCircle}
+          title="Product FAQs"
+          subtitle="Specific questions and answers for this product accordion"
+          badge={faqs.length ? `${faqs.length} FAQs` : undefined}
+          enabled={showFaqs}
+          onToggle={setShowFaqs}
+        >
           <div className="space-y-3">
             {faqs.map((f: any, i: number) => (
-              <div key={f.id || `new-${i}`} className="rounded-lg border border-neutral-200 p-3">
-                <div className="flex items-center gap-2 mb-2">
+              <div key={f.id || `faq-${i}`} className="rounded-lg border border-neutral-200 p-3 bg-neutral-50 space-y-2">
+                <div className="flex items-center justify-between gap-2">
                   <Inp
                     placeholder="Question"
                     value={f.question}
@@ -1225,37 +1490,45 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
                   <button
                     type="button"
                     onClick={() => setFaqs(faqs.filter((_: any, j: number) => j !== i))}
-                    className="rounded-md border border-red-200 bg-red-50 px-2 py-2 text-red-700 hover:bg-red-100 shrink-0"
+                    className="p-1 text-neutral-400 hover:text-red-600"
                   >
-                    <Trash2 size={14} />
+                    <Trash2 size={15} />
                   </button>
                 </div>
                 <RichText
                   value={f.answer}
                   onChange={(v) => setFaqs(faqs.map((x: any, j: number) => (j === i ? { ...x, answer: v } : x)))}
-                  placeholder="Answer"
-                  minHeight={80}
+                  placeholder="Answer…"
+                  minHeight={70}
                 />
               </div>
             ))}
+            <button
+              type="button"
+              onClick={() => setFaqs([...faqs, { question: "", answer: "" }])}
+              className="inline-flex items-center gap-1 rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50"
+            >
+              <Plus size={13} /> Add FAQ
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => setFaqs([...faqs, { question: "", answer: "" }])}
-            className="inline-flex items-center gap-1.5 rounded-md border border-neutral-300 px-3 py-2 text-sm font-semibold text-neutral-800 hover:bg-neutral-50 mt-2"
-          >
-            <Plus size={14} /> Add FAQ
-          </button>
-        </Section>
+        </CollapsibleCard>
 
-        <Section n={15} title="Review" hint="This product's reviews. They show in the review carousel on the product page. You can add a link in the text.">
+        {/* 6. Customer Reviews */}
+        <CollapsibleCard
+          icon={Star}
+          title="Customer Testimonials & Reviews"
+          subtitle="Manual review entries and buyer ratings"
+          badge={reviews.length ? `${reviews.length} Reviews` : undefined}
+          enabled={showReviews}
+          onToggle={setShowReviews}
+        >
           <div className="space-y-3">
             {reviews.map((r: any, i: number) => (
-              <div key={r.id || `new-${i}`} className="rounded-lg border border-neutral-200 p-3">
-                <div className="flex items-center gap-2 mb-2">
+              <div key={r.id || `rev-${i}`} className="rounded-lg border border-neutral-200 p-3 bg-neutral-50 space-y-2">
+                <div className="flex items-center justify-between gap-2">
                   <div className="grid grid-cols-2 gap-2 flex-1">
                     <Inp
-                      placeholder="Name"
+                      placeholder="Author name"
                       value={r.author}
                       onChange={(e) => setReviews(reviews.map((x: any, j: number) => (j === i ? { ...x, author: e.target.value } : x)))}
                     />
@@ -1264,18 +1537,16 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
                       onChange={(e) => setReviews(reviews.map((x: any, j: number) => (j === i ? { ...x, rating: parseInt(e.target.value, 10) } : x)))}
                     >
                       {[5, 4, 3, 2, 1].map((n) => (
-                        <option key={n} value={n}>
-                          {n} star
-                        </option>
+                        <option key={n} value={n}>{n} Stars</option>
                       ))}
                     </Sel>
                   </div>
                   <button
                     type="button"
                     onClick={() => setReviews(reviews.filter((_: any, j: number) => j !== i))}
-                    className="rounded-md border border-red-200 bg-red-50 px-2 py-2 text-red-700 hover:bg-red-100 shrink-0"
+                    className="p-1 text-neutral-400 hover:text-red-600"
                   >
-                    <Trash2 size={14} />
+                    <Trash2 size={15} />
                   </button>
                 </div>
                 <Inp
@@ -1283,98 +1554,103 @@ export function ProductEditor({ productId, data, notify, reload, back }: any) {
                   value={r.title}
                   onChange={(e) => setReviews(reviews.map((x: any, j: number) => (j === i ? { ...x, title: e.target.value } : x)))}
                 />
-                <div className="mt-2">
-                  <RichText
-                    value={r.body}
-                    onChange={(v) => setReviews(reviews.map((x: any, j: number) => (j === i ? { ...x, body: v } : x)))}
-                    placeholder="Review text"
-                    minHeight={80}
-                  />
-                </div>
-                <label className="flex items-center gap-2 text-sm text-neutral-800 cursor-pointer mt-2">
-                  <input
-                    type="checkbox"
-                    checked={r.verified !== false}
-                    onChange={(e) => setReviews(reviews.map((x: any, j: number) => (j === i ? { ...x, verified: e.target.checked } : x)))}
-                    className="accent-neutral-900"
-                  />
-                  Verified buyer
-                </label>
+                <RichText
+                  value={r.body}
+                  onChange={(v) => setReviews(reviews.map((x: any, j: number) => (j === i ? { ...x, body: v } : x)))}
+                  placeholder="Review comment…"
+                  minHeight={70}
+                />
               </div>
             ))}
-          </div>
-          <button
-            type="button"
-            onClick={() => setReviews([...reviews, { author: "", rating: 5, title: "", body: "", verified: true }])}
-            className="inline-flex items-center gap-1.5 rounded-md border border-neutral-300 px-3 py-2 text-sm font-semibold text-neutral-800 hover:bg-neutral-50 mt-2"
-          >
-            <Plus size={14} /> Add review
-          </button>
-        </Section>
-
-        <Section n={16} title="Related product" hint="The products shown under this product — search by name, then tap to add.">
-          <div className="flex flex-wrap gap-2 mb-3">
-            {related.map((r: any) => (
-              <span key={r.handle} className="inline-flex items-center gap-1 rounded-full bg-neutral-900 text-white px-3 py-1.5 text-xs font-semibold">
-                {r.title}
-                <button type="button" onClick={() => setRelated(related.filter((x: any) => x.handle !== r.handle))}>
-                  <X size={12} />
-                </button>
-              </span>
-            ))}
-            {!related.length && <span className="text-xs text-neutral-500">No related products.</span>}
-          </div>
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-              <input
-                className={`${inputCls} pl-9`}
-                placeholder="Type the product name"
-                value={relQuery}
-                onChange={(e) => setRelQuery(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    searchRelated();
-                  }
-                }}
-              />
-            </div>
             <button
               type="button"
-              onClick={searchRelated}
-              className="shrink-0 rounded-md border border-neutral-300 px-3 py-2 text-sm font-semibold text-neutral-800 hover:bg-neutral-50"
+              onClick={() => setReviews([...reviews, { author: "", rating: 5, title: "", body: "", verified: true }])}
+              className="inline-flex items-center gap-1 rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50"
             >
-              {relSearching ? "Searching…" : "Search"}
+              <Plus size={13} /> Add Review
             </button>
           </div>
-          {relResults.length > 0 && (
-            <div className="mt-2 rounded-lg border border-neutral-200 divide-y divide-neutral-100">
-              {relResults.map((p: any) => {
-                const added = related.some((x: any) => x.handle === p.handle);
-                return (
-                  <div key={p.handle} className="flex items-center justify-between gap-2 px-3 py-2">
-                    <span className="text-sm text-neutral-800">{p.title}</span>
-                    <button
-                      type="button"
-                      disabled={added}
-                      onClick={() => {
-                        if (!added) setRelated([...related, { handle: p.handle, title: p.title }]);
-                      }}
-                      className="shrink-0 rounded-md border border-neutral-300 px-3 py-1.5 text-xs font-semibold text-neutral-800 hover:bg-neutral-50 disabled:opacity-40"
-                    >
-                      {added ? "Added" : "Add"}
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </Section>
+        </CollapsibleCard>
 
-        <PrimaryBtn onClick={doSave}>
-          <Save size={15} /> {saving ? "Saving…" : "Save product"}
-        </PrimaryBtn>
+        {/* 7. Related Products */}
+        <CollapsibleCard
+          icon={ExternalLink}
+          title="Related Products & Recommendations"
+          subtitle="Hand-picked cross-sells shown on the product page"
+          badge={related.length ? `${related.length} Products` : undefined}
+          enabled={showRelated}
+          onToggle={setShowRelated}
+        >
+          <div className="space-y-3">
+            <div className="flex flex-wrap gap-1.5">
+              {related.map((r: any) => (
+                <span key={r.handle} className="inline-flex items-center gap-1 rounded-md bg-neutral-900 text-white px-2.5 py-1 text-xs font-semibold">
+                  {r.title}
+                  <button type="button" onClick={() => setRelated(related.filter((x: any) => x.handle !== r.handle))}>
+                    <X size={12} />
+                  </button>
+                </span>
+              ))}
+              {!related.length && <span className="text-xs text-neutral-500">No related products selected.</span>}
+            </div>
+
+            <div className="flex gap-2">
+              <Inp
+                placeholder="Search product by title…"
+                value={relQuery}
+                onChange={(e) => setRelQuery(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && searchRelated()}
+              />
+              <button
+                type="button"
+                onClick={searchRelated}
+                className="shrink-0 rounded-md bg-neutral-900 px-3 py-2 text-xs font-bold text-white"
+              >
+                {relSearching ? "Searching…" : "Search"}
+              </button>
+            </div>
+
+            {relResults.length > 0 && (
+              <div className="rounded-lg border border-neutral-200 divide-y divide-neutral-100 max-h-40 overflow-y-auto">
+                {relResults.map((p: any) => {
+                  const added = related.some((x: any) => x.handle === p.handle);
+                  return (
+                    <div key={p.handle} className="flex items-center justify-between p-2 text-xs">
+                      <span className="font-medium text-neutral-800">{p.title}</span>
+                      <button
+                        type="button"
+                        disabled={added}
+                        onClick={() => !added && setRelated([...related, { handle: p.handle, title: p.title }])}
+                        className="rounded px-2 py-1 font-semibold text-emerald-700 hover:bg-emerald-50 disabled:opacity-40"
+                      >
+                        {added ? "✓ Added" : "+ Add"}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </CollapsibleCard>
+      </div>
+
+      {/* Sticky Bottom Bar on Mobile/Desktop */}
+      <div className="flex items-center justify-between pt-4 border-t border-neutral-200">
+        <button
+          type="button"
+          onClick={back}
+          className="text-xs font-semibold text-neutral-600 hover:text-neutral-900"
+        >
+          Cancel & Return to list
+        </button>
+        <button
+          type="button"
+          onClick={doSave}
+          disabled={saving}
+          className="inline-flex items-center gap-2 rounded-xl bg-neutral-900 px-6 py-2.5 text-sm font-bold text-white shadow-md hover:bg-neutral-800 transition disabled:opacity-50"
+        >
+          <Save size={16} /> {saving ? "Saving…" : isNew ? "Create Product" : "Save Changes"}
+        </button>
       </div>
     </div>
   );

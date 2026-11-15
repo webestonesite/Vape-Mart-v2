@@ -96,51 +96,54 @@ function StatCard({ label, value, sub }: { label: string; value: string; sub?: s
 }
 
 const NAV = [
-  { group: "Home", items: [{ key: "dashboard", label: "Dashboard", icon: LayoutDashboard }] },
   {
-    group: "Catalog",
+    group: "Overview",
+    items: [{ key: "dashboard", label: "Dashboard", icon: LayoutDashboard }],
+  },
+  {
+    group: "📦 Products & Catalog",
     items: [
-      { key: "products", label: "Products", icon: Package },
+      { key: "products", label: "Products & Inventory", icon: Package },
       { key: "collections", label: "Collections", icon: FolderOpen },
-      { key: "flavors", label: "Flavors", icon: Droplets },
+      { key: "flavors", label: "Flavors & Taste", icon: Droplets },
       { key: "product-reviews", label: "Product Reviews", icon: MessageSquare },
     ],
   },
   {
-    group: "Content",
+    group: "🛒 Orders & Operations",
     items: [
-      { key: "settings", label: "Top Bar & Footer", icon: Megaphone },
+      { key: "orders", label: "Orders & Fulfillment", icon: ShoppingBag },
+      { key: "drafts", label: "Draft Orders", icon: ShoppingBag },
+      { key: "customers", label: "Customers", icon: User },
+      { key: "discounts", label: "Discounts & Promo", icon: Tag },
+    ],
+  },
+  {
+    group: "🎨 Storefront & Content",
+    items: [
       { key: "hero", label: "Hero Slides", icon: ImageIcon },
       { key: "sections", label: "Home Sections", icon: Layers },
       { key: "showcase", label: "TEREA / JUUL Cards", icon: Star },
       { key: "reviews", label: "Testimonials", icon: Star },
-      { key: "faq", label: "FAQ", icon: HelpCircle },
+      { key: "faq", label: "FAQ Items", icon: HelpCircle },
+      { key: "blog", label: "Blog Posts", icon: PenLine },
+      { key: "pages", label: "Pages", icon: FileText },
+      { key: "menu", label: "Navigation Menu", icon: MenuIcon },
       { key: "media", label: "Media Library", icon: ImageIcon },
     ],
   },
   {
-    group: "Store",
-    items: [
-      { key: "blog", label: "Blog Posts", icon: PenLine },
-      { key: "pages", label: "Pages", icon: FileText },
-      { key: "menu", label: "Menu", icon: MenuIcon },
-      { key: "orders", label: "Orders", icon: ShoppingBag },
-      { key: "drafts", label: "Draft Orders", icon: ShoppingBag },
-      { key: "customers", label: "Customers", icon: User },
-      { key: "discounts", label: "Discounts", icon: Tag },
-      { key: "redirects", label: "Redirects", icon: ArrowRight },
-    ],
-  },
-  {
-    group: "Site Settings",
+    group: "⚙️ Site Settings & Brand",
     items: [
       { key: "theme", label: "Theme & Brand", icon: Palette },
-      { key: "home", label: "Home Page", icon: LayoutGrid },
+      { key: "settings", label: "Top Bar & Footer", icon: Megaphone },
+      { key: "home", label: "Home Page Settings", icon: LayoutGrid },
       { key: "cart", label: "Cart & Checkout", icon: ShoppingCart },
-      { key: "product-page", label: "Product Page", icon: LayoutTemplate },
-      { key: "collection-page", label: "Collection Page", icon: LayoutGrid },
+      { key: "product-page", label: "Product Page Layout", icon: LayoutTemplate },
+      { key: "collection-page", label: "Collection Page Layout", icon: LayoutGrid },
       { key: "blog-settings", label: "Blog Settings", icon: PenLine },
       { key: "info-pages", label: "Info Pages", icon: FileText },
+      { key: "redirects", label: "URL Redirects", icon: ArrowRight },
     ],
   },
 ];

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Plus, Table } from "lucide-react";
+import { Search, Plus, Table, Copy, Edit, ExternalLink } from "lucide-react";
 import { BulkSheet } from "./bulk-sheet";
 import { ProductEditor } from "./product-editor";
 
@@ -85,11 +85,12 @@ export function ProductsManager({ data, notify, reload, initialQuery }: any) {
     return <BulkSheet notify={notify} back={() => setView({ name: "list" })} flavors={data.flavors} />;
   }
 
-  if (view.name === "edit" || view.name === "new") {
+  if (view.name === "edit" || view.name === "new" || view.name === "duplicate") {
     return (
       <ProductEditor
-        key={view.id || "new"}
-        productId={view.id}
+        key={view.id || view.cloneFromId || "new"}
+        productId={view.name === "edit" ? view.id : undefined}
+        cloneFromId={view.name === "duplicate" ? view.cloneFromId : undefined}
         data={data}
         notify={notify}
         reload={reload}
@@ -97,6 +98,26 @@ export function ProductsManager({ data, notify, reload, initialQuery }: any) {
       />
     );
   }
+
+  const toggleStatus = async (e: React.MouseEvent, p: any) => {
+    e.stopPropagation();
+    const nextStatus = p.status === "ACTIVE" ? "DRAFT" : "ACTIVE";
+    p.status = nextStatus;
+    notify(`Updated "${p.title}" to ${nextStatus}.`);
+    const r = await api({
+      action: "product.update",
+      payload: { id: p.id, status: nextStatus },
+    });
+    if (!r.ok) {
+      notify(`Status update failed: ${r.error || "error"}`);
+      reload();
+    }
+  };
+
+  const duplicateProduct = (e: React.MouseEvent, p: any) => {
+    e.stopPropagation();
+    setView({ name: "duplicate", cloneFromId: p.id });
+  };
 
   return (
     <div>
@@ -140,30 +161,36 @@ export function ProductsManager({ data, notify, reload, initialQuery }: any) {
               <th className="px-3 py-2.5 font-semibold hidden md:table-cell">Collections</th>
               <th className="px-3 py-2.5 font-semibold hidden sm:table-cell">Inventory</th>
               <th className="px-3 py-2.5 font-semibold">Price</th>
+              <th className="px-3 py-2.5 font-semibold text-right">Quick Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-neutral-100">
             {shown.map((p: any) => (
-              <tr key={p.id} className="hover:bg-neutral-50 cursor-pointer" onClick={() => setView({ name: "edit", id: p.id })}>
+              <tr key={p.id} className="hover:bg-neutral-50 cursor-pointer transition" onClick={() => setView({ name: "edit", id: p.id })}>
                 <td className="px-3 py-2.5">
                   <div className="flex items-center gap-3">
                     {p.image ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={p.image} alt="" className="h-10 w-10 rounded-md object-cover border border-neutral-200" />
                     ) : (
-                      <div className="h-10 w-10 rounded-md bg-neutral-100 border border-neutral-200" />
+                      <div className="h-10 w-10 rounded-md bg-neutral-100 border border-neutral-200 flex items-center justify-center text-xs text-neutral-400">VP</div>
                     )}
                     <span className="font-medium text-neutral-900">{p.title}</span>
                   </div>
                 </td>
                 <td className="px-3 py-2.5 hidden sm:table-cell">
-                  <span
-                    className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                      p.status === "ACTIVE" ? "bg-emerald-100 text-emerald-800" : "bg-neutral-200 text-neutral-700"
+                  <button
+                    type="button"
+                    onClick={(e) => toggleStatus(e, p)}
+                    title="Click to toggle Active / Draft"
+                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition hover:scale-105 ${
+                      p.status === "ACTIVE"
+                        ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
+                        : "bg-neutral-200 text-neutral-700 hover:bg-neutral-300"
                     }`}
                   >
                     {p.status}
-                  </span>
+                  </button>
                 </td>
                 <td className="px-3 py-2.5 hidden md:table-cell text-neutral-600 max-w-[220px]">
                   {(p.collections || []).length ? (
@@ -174,11 +201,42 @@ export function ProductsManager({ data, notify, reload, initialQuery }: any) {
                 </td>
                 <td className="px-3 py-2.5 hidden sm:table-cell text-neutral-700">{p.inventoryQuantity}</td>
                 <td className="px-3 py-2.5 font-medium text-neutral-900">AED {p.price}</td>
+                <td className="px-3 py-2.5 text-right" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex items-center justify-end gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setView({ name: "edit", id: p.id })}
+                      className="inline-flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs font-medium text-neutral-700 hover:bg-neutral-100 shadow-2xs"
+                      title="Edit Product"
+                    >
+                      <Edit size={12} /> Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => duplicateProduct(e, p)}
+                      className="inline-flex items-center gap-1 rounded-md border border-emerald-300 bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 shadow-2xs"
+                      title="Duplicate as new flavor / product"
+                    >
+                      <Copy size={12} /> Clone
+                    </button>
+                    {p.handle && (
+                      <a
+                        href={`/product/${p.handle}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center h-6 w-6 rounded-md border border-neutral-200 bg-white text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100"
+                        title="View in storefront"
+                      >
+                        <ExternalLink size={12} />
+                      </a>
+                    )}
+                  </div>
+                </td>
               </tr>
             ))}
             {shown.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-3 py-6 text-center text-neutral-500">
+                <td colSpan={6} className="px-3 py-6 text-center text-neutral-500">
                   No products found.
                 </td>
               </tr>
