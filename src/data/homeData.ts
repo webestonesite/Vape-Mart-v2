@@ -480,7 +480,7 @@ export   const HERO_SLIDES = [
       buttonLink: "/collections/juul",
     },
     {
-      title: "Disposable Vapes\nReady to Go, no refilling",
+      title: "Disposable Vapes\nReady to Go, Zero Refilling",
       desc: "Open the pack and you're set. From a compact ELFBAR for the weekend to a big Waka Blade 50K for daily use, you'll find high-performance disposables at Vape Mart, the best vape shop in Dubai for disposable vapes, with cash on delivery across the UAE.",
       badge: "Disposable Vapes in the UAE",
       image: "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/slider_disposable.webp?v=1794773120",

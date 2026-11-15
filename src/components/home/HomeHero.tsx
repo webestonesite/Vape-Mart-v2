@@ -141,26 +141,26 @@ export function HomeHero({ cmsHeroSlides = [], order = 1 }: HomeHeroProps) {
               className="h-full flex items-center relative"
               style={{ width: `${100 / slides.length}%` }}
             >
-              <div className="max-w-[1520px] mx-auto px-4 sm:px-8 md:px-12 w-full flex flex-col md:flex-row items-center justify-between pb-8 md:pb-0">
+              <div className="max-w-[1520px] mx-auto px-4 sm:px-8 md:px-12 w-full flex flex-col md:flex-row items-center justify-between pb-12 sm:pb-16 md:pb-24 lg:pb-28">
                 {/* Content */}
                 <div className="w-full md:w-1/2 flex flex-col items-center md:items-start text-center md:text-left z-20">
-                  <div className="inline-flex items-center gap-2 px-3.5 py-1 sm:px-4 sm:py-1.5 rounded-full bg-gradient-to-r from-amber-500/15 via-emerald-400/15 to-amber-500/15 border border-amber-400/30 mb-3 sm:mb-6 shadow-sm backdrop-blur-md">
+                  <div className="inline-flex items-center gap-2 px-3.5 py-1 sm:px-4 sm:py-1.5 rounded-full bg-gradient-to-r from-amber-500/15 via-emerald-400/15 to-amber-500/15 border border-amber-400/30 mb-2 sm:mb-3.5 shadow-sm backdrop-blur-md">
                     <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
                     <span className="font-cinzel text-amber-300 font-bold text-[10px] sm:text-[11px] tracking-[0.25em] uppercase">
                       {slide.badge}
                     </span>
                   </div>
 
-                  <h1 className="font-luxury text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-[68px] font-extrabold text-white leading-[1.12] mb-3 sm:mb-6 tracking-tight drop-shadow-[0_4px_30px_rgba(0,0,0,0.6)]">
+                  <h1 className="font-luxury text-3xl sm:text-4xl md:text-5xl lg:text-[52px] xl:text-[60px] font-extrabold text-white leading-[1.1] mb-2 sm:mb-4 tracking-tight drop-shadow-[0_4px_30px_rgba(0,0,0,0.6)]">
                     {slide.title.split("\n")[0]}
                     {slide.title.split("\n")[1] && (
-                      <span className="block mt-1 sm:mt-2 font-luxury italic font-semibold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-100 drop-shadow-[0_2px_15px_rgba(245,158,11,0.3)]">
+                      <span className="block mt-1 sm:mt-1.5 font-luxury italic font-semibold text-xl sm:text-2xl md:text-3xl lg:text-[34px] xl:text-[40px] leading-snug text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-100 drop-shadow-[0_2px_15px_rgba(245,158,11,0.3)]">
                         {slide.title.split("\n")[1]}
                       </span>
                     )}
                   </h1>
 
-                  <p className="text-xs sm:text-sm md:text-base lg:text-lg text-emerald-50/85 leading-relaxed mb-6 sm:mb-10 max-w-sm sm:max-w-lg font-normal tracking-wide line-clamp-3 sm:line-clamp-none">
+                  <p className="text-xs sm:text-sm md:text-base text-emerald-50/85 leading-relaxed mb-4 sm:mb-6 max-w-sm sm:max-w-xl font-normal tracking-wide line-clamp-3">
                     {slide.desc}
                   </p>
 
