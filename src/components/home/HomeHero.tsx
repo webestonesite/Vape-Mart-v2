@@ -7,22 +7,50 @@ import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 import { HERO_SLIDES } from "@/data/homeData";
 import { cdnWidth } from "@/lib/cdn";
 
+export interface CmsHeroSlide {
+  title?: string;
+  description?: string;
+  desc?: string;
+  badge?: string;
+  imageUrl?: string;
+  image?: string;
+  buttonText?: string;
+  buttonLink?: string;
+  position?: number | string;
+}
+
 interface HomeHeroProps {
-  cmsHeroSlides?: Array<{ position?: number | string; imageUrl?: string }>;
+  cmsHeroSlides?: CmsHeroSlide[];
   order?: number;
 }
 
 export function HomeHero({ cmsHeroSlides = [], order = 1 }: HomeHeroProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  const cmsHeroByPos = new Map(
-    (cmsHeroSlides || []).map((s) => [Number(s.position) || 0, s.imageUrl || ""])
-  );
+  // 100% Dynamic from Shopify CMS: updates live without redeploying
+  const hasCms = Array.isArray(cmsHeroSlides) && cmsHeroSlides.length > 0;
+  const sourceSlides = hasCms
+    ? [...cmsHeroSlides].sort((a, b) => (Number(a.position) || 0) - (Number(b.position) || 0))
+    : HERO_SLIDES;
 
-  const slides = HERO_SLIDES.map((s, i) => {
-    const cmsImg = cmsHeroByPos.get(i + 1) || "";
-    const img = cmsImg || s.image;
-    return { ...s, image: cdnWidth(img, 800) };
+  const slides = sourceSlides.map((s: any, i: number) => {
+    const fallback = HERO_SLIDES[i] || HERO_SLIDES[0];
+    const rawTitle = s.title || fallback.title;
+    const title = rawTitle.includes(" // ") ? rawTitle.replace(" // ", "\n") : rawTitle;
+    const desc = s.description || s.desc || fallback.desc;
+    const badge = s.badge || fallback.badge;
+    const img = s.imageUrl || s.image || fallback.image;
+    const buttonText = s.buttonText || fallback.buttonText;
+    const buttonLink = s.buttonLink || fallback.buttonLink;
+
+    return {
+      title,
+      desc,
+      badge,
+      image: cdnWidth(img, 800),
+      buttonText,
+      buttonLink,
+    };
   });
 
   const nextSlide = useCallback(() => {
@@ -68,7 +96,7 @@ export function HomeHero({ cmsHeroSlides = [], order = 1 }: HomeHeroProps) {
 
   return (
     <section
-      className="relative w-full h-[580px] sm:h-[640px] md:h-[650px] lg:h-[700px] overflow-hidden bg-gradient-to-br from-[#064e3b] via-[#022c22] to-[#064e3b] select-none"
+      className="relative w-full h-[580px] sm:h-[640px] md:h-[680px] lg:h-[720px] overflow-hidden bg-gradient-to-br from-[#064e3b] via-[#022c22] to-[#064e3b] select-none"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       style={{ order }}
@@ -113,9 +141,9 @@ export function HomeHero({ cmsHeroSlides = [], order = 1 }: HomeHeroProps) {
               className="h-full flex items-center relative"
               style={{ width: `${100 / slides.length}%` }}
             >
-              <div className="max-w-[1400px] mx-auto px-4 sm:px-8 md:px-16 w-full flex flex-col md:flex-row items-center justify-between pb-12 md:pb-0">
+              <div className="max-w-[1520px] mx-auto px-4 sm:px-8 md:px-12 w-full flex flex-col md:flex-row items-center justify-between pb-8 md:pb-0">
                 {/* Content */}
-                <div className="w-full md:w-1/2 flex flex-col items-center md:items-start text-center md:text-left z-20 pt-4 md:pt-10">
+                <div className="w-full md:w-1/2 flex flex-col items-center md:items-start text-center md:text-left z-20">
                   <div className="inline-flex items-center gap-2 px-3.5 py-1 sm:px-4 sm:py-1.5 rounded-full bg-gradient-to-r from-amber-500/15 via-emerald-400/15 to-amber-500/15 border border-amber-400/30 mb-3 sm:mb-6 shadow-sm backdrop-blur-md">
                     <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
                     <span className="font-cinzel text-amber-300 font-bold text-[10px] sm:text-[11px] tracking-[0.25em] uppercase">
@@ -151,14 +179,14 @@ export function HomeHero({ cmsHeroSlides = [], order = 1 }: HomeHeroProps) {
                 </div>
 
                 {/* Image Showcase */}
-                <div className="w-full md:w-1/2 h-[220px] sm:h-[320px] md:h-[460px] lg:h-[560px] relative z-10 flex items-center justify-center mt-4 md:mt-0 px-2 sm:px-4">
-                  <div className="relative w-full max-w-[260px] sm:max-w-[360px] md:max-w-[480px] aspect-square rounded-[24px] sm:rounded-[36px] overflow-hidden shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] border-2 border-emerald-400/20 group/heroImg backdrop-blur-sm bg-black/20">
+                <div className="w-full md:w-1/2 h-[260px] sm:h-[360px] md:h-[480px] lg:h-[540px] relative z-10 flex items-center justify-center mt-4 md:mt-0 px-2 sm:px-4">
+                  <div className="relative w-full max-w-[280px] sm:max-w-[380px] md:max-w-[480px] lg:max-w-[500px] aspect-square rounded-[24px] sm:rounded-[36px] overflow-hidden shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] border-2 border-emerald-400/20 group/heroImg backdrop-blur-sm bg-black/20">
                     <Image
                       src={slide.image}
                       alt={slide.title}
                       fill
                       priority={idx === 0}
-                      sizes="(max-width: 640px) 260px, (max-width: 1024px) 360px, 480px"
+                      sizes="(max-width: 640px) 280px, (max-width: 1024px) 380px, 500px"
                       className="object-cover transform group-hover/heroImg:scale-105 transition-transform duration-700 ease-out"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#022c22]/60 via-transparent to-transparent pointer-events-none" />
