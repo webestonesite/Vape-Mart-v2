@@ -113,18 +113,19 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
   const nicotineDropRef = useRef<HTMLDivElement>(null);
   const reviewTrackRef = useRef<HTMLDivElement>(null);
 
-  // Enhanced luxury description HTML formatting: wraps raw tables in responsive cards & sanitizes heights
+  // Enhanced luxury description HTML formatting: strips all conflicting inline styles & wraps tables in responsive luxury cards
   const formattedDescription = useMemo(() => {
     if (!product.fullDescription) return "";
     let html = product.fullDescription;
     // Replace old competitor branding if present in imported Shopify descriptions
     html = html.replace(/Vapor\s*UAE/gi, "Vape Mart UAE");
-    // Wrap raw tables in responsive luxury card containers and strip conflicting Shopify heights
-    html = html.replace(/<table([\s\S]*?)<\/table>/gi, (match) => {
-      const cleaned = match
-        .replace(/height\s*:\s*[^;"']+[;]?/gi, "")
-        .replace(/width\s*:\s*[^;"']+[;]?/gi, "width: 100%;");
-      return `<div class="desc-table-card my-6 overflow-x-auto rounded-2xl border-2 border-emerald-900/15 shadow-[0_4px_24px_-10px_rgba(6,78,59,0.12)] bg-white w-full">${cleaned}</div>`;
+    // Clean and wrap all tables: remove inline width, height, style, cellpadding, etc.
+    html = html.replace(/<table[\s\S]*?<\/table>/gi, (tableHtml) => {
+      let cleanTable = tableHtml
+        .replace(/\s*(?:style|width|height|cellpadding|cellspacing|border)=["'][^"']*["']/gi, "")
+        .replace(/<colgroup[\s\S]*?<\/colgroup>/gi, "");
+      cleanTable = cleanTable.replace(/<table/i, '<table class="w-full text-left border-collapse table-auto"');
+      return `<div class="desc-table-card my-6 overflow-x-auto rounded-2xl border-2 border-emerald-900/15 shadow-[0_4px_24px_-10px_rgba(6,78,59,0.12)] bg-white w-full">${cleanTable}</div>`;
     });
     return html;
   }, [product.fullDescription]);
@@ -665,11 +666,11 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
                     <div
                       className="desc-prose-content text-[15px] xl:text-[16px] leading-relaxed text-neutral-700
                         [&_.desc-table-card]:my-6 [&_.desc-table-card]:overflow-x-auto [&_.desc-table-card]:rounded-2xl [&_.desc-table-card]:border-2 [&_.desc-table-card]:border-emerald-900/15 [&_.desc-table-card]:shadow-[0_4px_24px_-10px_rgba(6,78,59,0.12)] [&_.desc-table-card]:bg-white
-                        [&_table]:w-full [&_table]:border-collapse [&_table]:text-sm [&_table]:min-w-[480px]
+                        [&_table]:w-full [&_table]:border-collapse [&_table]:text-sm [&_table]:table-auto
                         [&_thead]:bg-emerald-950 [&_thead_tr]:!h-auto
-                        [&_th]:bg-emerald-950 [&_th]:!text-amber-300 [&_th]:font-cinzel [&_th]:text-[11px] [&_th]:sm:text-xs [&_th]:tracking-[0.16em] [&_th]:font-bold [&_th]:px-5 [&_th]:py-3.5 [&_th]:border-b [&_th]:border-emerald-900/20 [&_th]:!h-auto [&_th]:text-left
+                        [&_th]:bg-emerald-950 [&_th]:!text-amber-300 [&_th]:font-cinzel [&_th]:text-[11px] [&_th]:sm:text-xs [&_th]:tracking-[0.16em] [&_th]:font-bold [&_th]:px-4 [&_th]:sm:px-6 [&_th]:py-3.5 [&_th]:border-b [&_th]:border-emerald-900/20 [&_th]:!h-auto [&_th]:text-left
                         [&_tbody_tr]:!h-auto [&_tbody_tr]:transition-colors [&_tbody_tr:nth-child(even)]:bg-emerald-50/40 [&_tbody_tr:nth-child(odd)]:bg-white [&_tbody_tr:hover]:bg-amber-50/60 [&_tbody_tr]:border-b [&_tbody_tr]:border-emerald-900/10 [&_tbody_tr:last-child]:border-b-0
-                        [&_td]:px-5 [&_td]:py-3.5 [&_td]:text-sm [&_td]:text-neutral-700 [&_td]:!h-auto
+                        [&_td]:px-4 [&_td]:sm:px-6 [&_td]:py-3.5 [&_td]:text-sm [&_td]:text-neutral-700 [&_td]:!h-auto [&_td]:align-middle
                         [&_td:first-child]:font-bold [&_td:first-child]:text-emerald-950
                         [&_h2]:font-luxury [&_h2]:text-2xl [&_h2]:sm:text-3xl [&_h2]:font-bold [&_h2]:text-emerald-950 [&_h2]:mt-8 [&_h2]:mb-4 [&_h2]:border-b [&_h2]:border-emerald-900/10 [&_h2]:pb-2.5
                         [&_h3]:font-luxury [&_h3]:text-xl [&_h3]:sm:text-2xl [&_h3]:font-bold [&_h3]:text-emerald-950 [&_h3]:mt-7 [&_h3]:mb-3.5
