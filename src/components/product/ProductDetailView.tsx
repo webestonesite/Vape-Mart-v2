@@ -600,14 +600,41 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
             {tab === "desc" && (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="w-full">
                 <h2 className="font-luxury text-2xl sm:text-3xl xl:text-[40px] font-bold text-emerald-950">{product.title}</h2>
-                {/<[a-z][\s>]/.test(product.fullDescription) ? (
-                  <div
-                    className="mt-4 text-[15px] xl:text-[17px] leading-relaxed text-neutral-600 [&_a]:text-emerald-700 [&_a]:underline"
-                    dangerouslySetInnerHTML={{ __html: product.fullDescription }}
-                  />
-                ) : (
-                  <p className="mt-4 text-[15px] xl:text-[17px] leading-relaxed text-neutral-600">{product.fullDescription}</p>
+                {product.subtitle && (
+                  <p className="mt-1 text-sm sm:text-base font-medium text-emerald-800/80">{product.subtitle}</p>
                 )}
+
+                {/* Quick Specs / Key Specifications BEFORE description */}
+                {orderedSpecs.length > 0 && (
+                  <div className="mt-6 mb-8">
+                    <h3 className="font-cinzel text-xs tracking-[0.2em] text-emerald-900 font-bold mb-3.5">
+                      QUICK SPECIFICATIONS
+                    </h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
+                      {orderedSpecs.map((s, i) => (
+                        <div key={i} className="rounded-xl border border-emerald-900/10 bg-emerald-50/40 p-3.5 transition hover:bg-emerald-50/70">
+                          <p className="text-[10px] font-bold tracking-wider uppercase text-neutral-400">{s.label}</p>
+                          <p className="mt-1 text-[13px] sm:text-sm font-bold text-emerald-950 leading-snug">{rich(s.value)}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Product Description */}
+                <div>
+                  <h3 className="font-cinzel text-xs tracking-[0.2em] text-emerald-900 font-bold mb-3">
+                    PRODUCT OVERVIEW
+                  </h3>
+                  {/<[a-z][\s>]/.test(product.fullDescription) ? (
+                    <div
+                      className="text-[15px] xl:text-[17px] leading-relaxed text-neutral-600 [&_a]:text-emerald-700 [&_a]:underline"
+                      dangerouslySetInnerHTML={{ __html: product.fullDescription }}
+                    />
+                  ) : (
+                    <p className="text-[15px] xl:text-[17px] leading-relaxed text-neutral-600">{product.fullDescription}</p>
+                  )}
+                </div>
 
                 {product.highlights.length > 0 && (
                   <div className="mt-7">
@@ -646,20 +673,6 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
                         </div>
                       ))}
                     </div>
-                  </div>
-                )}
-
-                {orderedSpecs.length > 0 && (
-                  <div className="mt-7">
-                    <h3 className="font-cinzel text-xs tracking-[0.2em] text-emerald-900 font-bold mb-4">KEY SPECIFICATIONS</h3>
-                    <ul className="rounded-2xl border border-emerald-900/10 bg-white divide-y divide-emerald-900/10 overflow-hidden">
-                      {orderedSpecs.map((s, i) => (
-                        <li key={i} className="flex gap-3 px-5 py-3.5 items-start">
-                          <Check size={16} className="text-amber-500 shrink-0 mt-1" strokeWidth={3} />
-                          <p className="text-[15px] text-neutral-600 leading-relaxed"><strong className="text-emerald-950 font-bold">{s.label}:</strong> {rich(s.value)}</p>
-                        </li>
-                      ))}
-                    </ul>
                   </div>
                 )}
               </motion.div>
