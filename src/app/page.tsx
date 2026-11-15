@@ -271,7 +271,12 @@ export default function Home() {
 
         {/* 7. Signature Flavor Arc Dial */}
         <SectionErrorBoundary sectionName="Signature Flavors Arc Dial">
-          <HomeFlavorArcDial order={homeSecOrder("flavors")} />
+          <HomeFlavorArcDial
+            order={homeSecOrder("flavors")}
+            title={secText("flavors", "title", (themeData as any).flavors?.title || "Signature Flavours")}
+            subtitle={secText("flavors", "subtitle", (themeData as any).flavors?.subtitle || "Turn the dial and find your flavour. If you're not sure where to start, pick the one that sounds like you and go from there.")}
+            badge={secText("flavors", "badge", (themeData as any).flavors?.badge)}
+          />
         </SectionErrorBoundary>
 
         {/* 8. FAQ Accordion */}

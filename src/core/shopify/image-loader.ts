@@ -14,20 +14,23 @@ export default function shopifyImageLoader({
 }): string {
   if (!src) return '';
 
+  // Cap max resolution to prevent unnecessary bandwidth consumption
+  const safeWidth = Math.min(width || 800, 1200);
+  // Default quality to 75 (optimal sweet spot for crisp HD with minimal KB)
+  const safeQuality = quality && quality > 0 ? Math.min(quality, 80) : 75;
+
   // Only rewrite Shopify CDN URLs
   if (src.includes('cdn.shopify.com')) {
     try {
       const url = new URL(src);
-      url.searchParams.set('width', width.toString());
+      url.searchParams.set('width', safeWidth.toString());
       url.searchParams.set('format', 'webp');
-      if (quality) {
-        url.searchParams.set('quality', quality.toString());
-      }
+      url.searchParams.set('quality', safeQuality.toString());
       return url.toString();
     } catch {
       // If URL parsing fails, append query params cleanly
       const separator = src.includes('?') ? '&' : '?';
-      return `${src}${separator}width=${width}&format=webp${quality ? `&quality=${quality}` : ''}`;
+      return `${src}${separator}width=${safeWidth}&format=webp&quality=${safeQuality}`;
     }
   }
 

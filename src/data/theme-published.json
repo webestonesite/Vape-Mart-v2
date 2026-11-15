@@ -486,5 +486,10 @@
         "img": "/images/juul_product.jpg"
       }
     ]
+  },
+  "flavors": {
+    "title": "Signature Flavours",
+    "subtitle": "Turn the dial and find your flavour. If you're not sure where to start, pick the one that sounds like you and go from there.",
+    "badge": "TASTE THE EXTRAORDINARY • 11 ARTISAN BLENDS"
   }
 }

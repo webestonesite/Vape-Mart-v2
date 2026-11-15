@@ -6,12 +6,24 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, Pause, Play, ArrowRight } from "lucide-react";
 import { staggerContainer } from "./animations";
 import { flavorsData, type FlavorItem } from "@/data/homeData";
+import { cdnWidth } from "@/lib/cdn";
 
 interface HomeFlavorArcDialProps {
   order?: number;
+  flavors?: FlavorItem[];
+  title?: string;
+  subtitle?: string;
+  badge?: string;
 }
 
-export function HomeFlavorArcDial({ order = 6 }: HomeFlavorArcDialProps) {
+export function HomeFlavorArcDial({
+  order = 6,
+  flavors: customFlavors,
+  title = "Signature Flavours",
+  subtitle = "Turn the dial and find your flavour. If you're not sure where to start, pick the one that sounds like you and go from there.",
+  badge,
+}: HomeFlavorArcDialProps) {
+  const flavors = Array.isArray(customFlavors) && customFlavors.length > 0 ? customFlavors : flavorsData;
   const [activeArcIdx, setActiveArcIdx] = useState<number>(0);
   const [isArcAutoplay, setIsArcAutoplay] = useState<boolean>(true);
   const isArcHovered = useRef<boolean>(false);
@@ -33,13 +45,13 @@ export function HomeFlavorArcDial({ order = 6 }: HomeFlavorArcDialProps) {
     if (!isArcAutoplay || !isFlavorsVisible) return;
     const timer = setInterval(() => {
       if (!isArcHovered.current) {
-        setActiveArcIdx((prev) => (prev + 1) % flavorsData.length);
+        setActiveArcIdx((prev) => (prev + 1) % flavors.length);
       }
     }, 1300);
     return () => clearInterval(timer);
-  }, [isArcAutoplay, isFlavorsVisible]);
+  }, [isArcAutoplay, isFlavorsVisible, flavors.length]);
 
-  const currentArcFlavor = flavorsData[activeArcIdx] || flavorsData[0];
+  const currentArcFlavor = flavors[activeArcIdx] || flavors[0];
 
   return (
     <motion.section
@@ -55,13 +67,13 @@ export function HomeFlavorArcDial({ order = 6 }: HomeFlavorArcDialProps) {
       {/* Section Header with Site Royal Emerald & Amber Accents */}
       <div className="flex flex-col items-center text-center mb-6 sm:mb-10">
         <span className="font-cinzel text-xs font-black tracking-[0.25em] text-[#064e3b] bg-emerald-50 border border-emerald-200/80 px-4 py-1.5 rounded-full uppercase mb-3 shadow-2xs">
-          TASTE THE EXTRAORDINARY • 12 ARTISAN BLENDS
+          {badge || `TASTE THE EXTRAORDINARY • ${flavors.length} ARTISAN BLENDS`}
         </span>
         <h2 className="font-luxury text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#064e3b] tracking-tight mb-2">
-          Signature Flavours
+          {title}
         </h2>
         <p className="text-neutral-600 text-sm sm:text-base max-w-xl">
-          Turn the dial and find your flavour. If you&apos;re not sure where to start, pick the one that sounds like you and go from there.
+          {subtitle}
         </p>
       </div>
 
@@ -80,7 +92,7 @@ export function HomeFlavorArcDial({ order = 6 }: HomeFlavorArcDialProps) {
         <div className="w-full flex items-center justify-end z-20 mb-3">
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setActiveArcIdx((prev) => (prev - 1 + flavorsData.length) % flavorsData.length)}
+              onClick={() => setActiveArcIdx((prev) => (prev - 1 + flavors.length) % flavors.length)}
               aria-label="Previous flavor"
               className="w-9 h-9 rounded-full bg-white border border-[#064e3b]/30 text-[#064e3b] hover:bg-[#064e3b] hover:text-white flex items-center justify-center transition-all shadow-xs cursor-pointer active:scale-95"
             >
@@ -95,7 +107,7 @@ export function HomeFlavorArcDial({ order = 6 }: HomeFlavorArcDialProps) {
               <span className="text-[11px] uppercase tracking-wider">{isArcAutoplay ? "Auto-Rotating" : "Paused"}</span>
             </button>
             <button
-              onClick={() => setActiveArcIdx((prev) => (prev + 1) % flavorsData.length)}
+              onClick={() => setActiveArcIdx((prev) => (prev + 1) % flavors.length)}
               aria-label="Next flavor"
               className="w-9 h-9 rounded-full bg-white border border-[#064e3b]/30 text-[#064e3b] hover:bg-[#064e3b] hover:text-white flex items-center justify-center transition-all shadow-xs cursor-pointer active:scale-95"
             >
@@ -148,8 +160,8 @@ export function HomeFlavorArcDial({ order = 6 }: HomeFlavorArcDialProps) {
           </svg>
 
           {/* 3D Arc Dial Nodes - High Contrast & Continuous Marquee Flow */}
-          {flavorsData.map((flv: FlavorItem, idx: number) => {
-            const total = flavorsData.length;
+          {flavors.map((flv: FlavorItem, idx: number) => {
+            const total = flavors.length;
             let diff = (idx - activeArcIdx) % total;
             if (diff > total / 2) diff -= total;
             if (diff < -total / 2) diff += total;
@@ -191,7 +203,7 @@ export function HomeFlavorArcDial({ order = 6 }: HomeFlavorArcDialProps) {
                 >
                   <div className="relative w-full h-full rounded-full overflow-hidden shadow-inner">
                     <Image
-                      src={flv.img}
+                      src={cdnWidth(flv.img, 240)}
                       alt={flv.title}
                       fill
                       sizes="(max-width: 640px) 110px, 150px"
@@ -280,7 +292,7 @@ export function HomeFlavorArcDial({ order = 6 }: HomeFlavorArcDialProps) {
               </div>
 
               <motion.a
-                href="#shop"
+                href={currentArcFlavor.id ? `/search?q=${encodeURIComponent(currentArcFlavor.title.split(' ')[0])}` : "/collections"}
                 whileHover={{ scale: 1.04 }}
                 whileTap={{ scale: 0.96 }}
                 className="px-7 py-3 rounded-full bg-gradient-to-r from-[#064e3b] to-[#043729] hover:from-[#043729] hover:to-[#064e3b] text-white font-black text-xs sm:text-sm tracking-wider uppercase shadow-lg shadow-emerald-950/20 border border-amber-400/40 flex items-center gap-2 cursor-pointer no-underline transition-all"
