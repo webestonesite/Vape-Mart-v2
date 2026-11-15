@@ -291,6 +291,19 @@ function toProductItem(node: ShopifyProductNode, flavorObjects: FlavorMetaobject
     }
   } catch { /* malformed custom specs render nothing */ }
 
+  // Fallback: If no specs were defined in metafields yet, extract key-value pairs from description list
+  if (specs.length === 0 && node.descriptionHtml) {
+    const liRegex = /<li[^>]*>\s*([^:<]+?)\s*:\s*([^<]+?)\s*<\/li>/gi;
+    let match: RegExpExecArray | null;
+    while ((match = liRegex.exec(node.descriptionHtml)) !== null) {
+      const label = match[1].replace(/<[^>]+>/g, "").trim();
+      const value = match[2].replace(/<[^>]+>/g, "").trim();
+      if (label && value && !label.toLowerCase().includes("http") && label.length < 40) {
+        specs.push({ label, value });
+      }
+    }
+  }
+
   const num = (v: string | undefined, dflt: number) => {
     const n = parseInt(v || "", 10);
     return Number.isFinite(n) && n >= 1 && n <= 5 ? n : dflt;

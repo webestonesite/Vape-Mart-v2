@@ -604,25 +604,44 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
                   <p className="mt-1 text-sm sm:text-base font-medium text-emerald-800/80">{product.subtitle}</p>
                 )}
 
-                {/* Quick Specs / Key Specifications BEFORE description */}
+                {/* Key Features & Specifications Table & Quick Cards FIRST */}
                 {orderedSpecs.length > 0 && (
-                  <div className="mt-6 mb-8">
-                    <h3 className="font-cinzel text-xs tracking-[0.2em] text-emerald-900 font-bold mb-3.5">
-                      QUICK SPECIFICATIONS
+                  <div className="mt-6 mb-10">
+                    <h3 className="font-luxury text-xl sm:text-2xl font-bold text-emerald-950 mb-4">
+                      Key Features &amp; Specifications
                     </h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
-                      {orderedSpecs.map((s, i) => (
+
+                    {/* Quick Specs Cards */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 mb-5">
+                      {orderedSpecs.slice(0, 8).map((s, i) => (
                         <div key={i} className="rounded-xl border border-emerald-900/10 bg-emerald-50/40 p-3.5 transition hover:bg-emerald-50/70">
                           <p className="text-[10px] font-bold tracking-wider uppercase text-neutral-400">{s.label}</p>
                           <p className="mt-1 text-[13px] sm:text-sm font-bold text-emerald-950 leading-snug">{rich(s.value)}</p>
                         </div>
                       ))}
                     </div>
+
+                    {/* Detailed Specifications Table */}
+                    <div className="rounded-2xl border-2 border-emerald-900/10 overflow-hidden w-full">
+                      <div className="grid grid-cols-2 bg-emerald-950 px-5 py-3">
+                        <span className="font-cinzel text-[11px] tracking-[0.18em] text-amber-300 font-bold">FEATURE</span>
+                        <span className="font-cinzel text-[11px] tracking-[0.18em] text-amber-300 font-bold">DETAILS</span>
+                      </div>
+                      {orderedSpecs.map((s, i) => (
+                        <div key={i} className={`grid grid-cols-2 px-5 py-3.5 text-sm ${i % 2 ? "bg-emerald-50/50" : "bg-white"}`}>
+                          <span className="font-bold text-emerald-950">{s.label}</span>
+                          <span className="text-neutral-600">{rich(s.value)}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-3.5 inline-flex items-center gap-2 rounded-full bg-emerald-100 px-4 py-2 text-xs font-extrabold text-emerald-800">
+                      <BadgeCheck size={15} /> 100% AUTHENTIC UAE CERTIFIED
+                    </div>
                   </div>
                 )}
 
-                {/* Product Description */}
-                <div>
+                {/* Product Description / Overview AFTER specifications */}
+                <div className={orderedSpecs.length > 0 ? "mt-8 pt-8 border-t border-emerald-900/10" : ""}>
                   <h3 className="font-cinzel text-xs tracking-[0.2em] text-emerald-900 font-bold mb-3">
                     PRODUCT OVERVIEW
                   </h3>
@@ -783,25 +802,6 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
           </section>
         )}
 
-        {/* ============ SPECS TABLE ============ */}
-        <section className="mt-6 sm:mt-10">
-          <h2 className="font-luxury text-2xl sm:text-3xl xl:text-[40px] font-bold text-emerald-950 mb-5">Key Features &amp; Specifications</h2>
-          <div className="rounded-2xl border-2 border-emerald-900/10 overflow-hidden w-full">
-            <div className="grid grid-cols-2 bg-emerald-950 px-5 py-3">
-              <span className="font-cinzel text-[11px] tracking-[0.18em] text-amber-300 font-bold">FEATURE</span>
-              <span className="font-cinzel text-[11px] tracking-[0.18em] text-amber-300 font-bold">DETAILS</span>
-            </div>
-            {orderedSpecs.map((s, i) => (
-              <div key={i} className={`grid grid-cols-2 px-5 py-3.5 text-sm ${i % 2 ? "bg-emerald-50/50" : "bg-white"}`}>
-                <span className="font-bold text-emerald-950">{s.label}</span>
-                <span className="text-neutral-600">{rich(s.value)}</span>
-              </div>
-            ))}
-          </div>
-          <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-emerald-100 px-4 py-2 text-xs font-extrabold text-emerald-800">
-            <BadgeCheck size={15} /> 100% AUTHENTIC UAE CERTIFIED
-          </div>
-        </section>
 
         {/* ============ REVIEWS ============ */}
         {product.reviews.length > 0 && (
