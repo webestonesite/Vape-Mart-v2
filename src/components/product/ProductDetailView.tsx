@@ -113,6 +113,22 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
   const nicotineDropRef = useRef<HTMLDivElement>(null);
   const reviewTrackRef = useRef<HTMLDivElement>(null);
 
+  // Enhanced luxury description HTML formatting: wraps raw tables in responsive cards & sanitizes heights
+  const formattedDescription = useMemo(() => {
+    if (!product.fullDescription) return "";
+    let html = product.fullDescription;
+    // Replace old competitor branding if present in imported Shopify descriptions
+    html = html.replace(/Vapor\s*UAE/gi, "Vape Mart UAE");
+    // Wrap raw tables in responsive luxury card containers and strip conflicting Shopify heights
+    html = html.replace(/<table([\s\S]*?)<\/table>/gi, (match) => {
+      const cleaned = match
+        .replace(/height\s*:\s*[^;"']+[;]?/gi, "")
+        .replace(/width\s*:\s*[^;"']+[;]?/gi, "width: 100%;");
+      return `<div class="desc-table-card my-6 overflow-x-auto rounded-2xl border-2 border-emerald-900/15 shadow-[0_4px_24px_-10px_rgba(6,78,59,0.12)] bg-white w-full">${cleaned}</div>`;
+    });
+    return html;
+  }, [product.fullDescription]);
+
   useEffect(() => {
     const close = (e: MouseEvent) => {
       if (flavorDropRef.current && !flavorDropRef.current.contains(e.target as Node)) setFlavorDropOpen(false);
@@ -645,10 +661,30 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
                   <h3 className="font-cinzel text-xs tracking-[0.2em] text-emerald-900 font-bold mb-3">
                     PRODUCT OVERVIEW
                   </h3>
-                  {/<[a-z][\s>]/.test(product.fullDescription) ? (
+                  {/<[a-z][\s>]/.test(formattedDescription) ? (
                     <div
-                      className="text-[15px] xl:text-[17px] leading-relaxed text-neutral-600 [&_a]:text-emerald-700 [&_a]:underline"
-                      dangerouslySetInnerHTML={{ __html: product.fullDescription }}
+                      className="desc-prose-content text-[15px] xl:text-[16px] leading-relaxed text-neutral-700
+                        [&_.desc-table-card]:my-6 [&_.desc-table-card]:overflow-x-auto [&_.desc-table-card]:rounded-2xl [&_.desc-table-card]:border-2 [&_.desc-table-card]:border-emerald-900/15 [&_.desc-table-card]:shadow-[0_4px_24px_-10px_rgba(6,78,59,0.12)] [&_.desc-table-card]:bg-white
+                        [&_table]:w-full [&_table]:border-collapse [&_table]:text-sm [&_table]:min-w-[480px]
+                        [&_thead]:bg-emerald-950 [&_thead_tr]:!h-auto
+                        [&_th]:bg-emerald-950 [&_th]:!text-amber-300 [&_th]:font-cinzel [&_th]:text-[11px] [&_th]:sm:text-xs [&_th]:tracking-[0.16em] [&_th]:font-bold [&_th]:px-5 [&_th]:py-3.5 [&_th]:border-b [&_th]:border-emerald-900/20 [&_th]:!h-auto [&_th]:text-left
+                        [&_tbody_tr]:!h-auto [&_tbody_tr]:transition-colors [&_tbody_tr:nth-child(even)]:bg-emerald-50/40 [&_tbody_tr:nth-child(odd)]:bg-white [&_tbody_tr:hover]:bg-amber-50/60 [&_tbody_tr]:border-b [&_tbody_tr]:border-emerald-900/10 [&_tbody_tr:last-child]:border-b-0
+                        [&_td]:px-5 [&_td]:py-3.5 [&_td]:text-sm [&_td]:text-neutral-700 [&_td]:!h-auto
+                        [&_td:first-child]:font-bold [&_td:first-child]:text-emerald-950
+                        [&_h2]:font-luxury [&_h2]:text-2xl [&_h2]:sm:text-3xl [&_h2]:font-bold [&_h2]:text-emerald-950 [&_h2]:mt-8 [&_h2]:mb-4 [&_h2]:border-b [&_h2]:border-emerald-900/10 [&_h2]:pb-2.5
+                        [&_h3]:font-luxury [&_h3]:text-xl [&_h3]:sm:text-2xl [&_h3]:font-bold [&_h3]:text-emerald-950 [&_h3]:mt-7 [&_h3]:mb-3.5
+                        [&_h4]:font-luxury [&_h4]:text-lg [&_h4]:sm:text-xl [&_h4]:font-bold [&_h4]:text-emerald-950 [&_h4]:mt-6 [&_h4]:mb-3
+                        [&_h5]:font-cinzel [&_h5]:text-sm [&_h5]:tracking-[0.14em] [&_h5]:font-bold [&_h5]:text-emerald-900 [&_h5]:mt-5 [&_h5]:mb-2
+                        [&_ul]:my-4 [&_ul]:space-y-2.5 [&_ul]:pl-1
+                        [&_li]:text-neutral-700 [&_li]:leading-relaxed [&_li]:relative [&_li]:pl-6 [&_li]:list-none
+                        [&_li::before]:content-[''] [&_li::before]:w-2 [&_li::before]:h-2 [&_li::before]:rounded-full [&_li::before]:bg-amber-500 [&_li::before]:absolute [&_li::before]:left-1 [&_li::before]:top-[9px]
+                        [&_ol]:my-4 [&_ol]:pl-5 [&_ol]:space-y-2.5 [&_ol]:list-decimal [&_ol]:text-neutral-700
+                        [&_p]:my-3.5 [&_p]:leading-relaxed [&_p]:text-neutral-700
+                        [&_strong]:font-extrabold [&_strong]:text-emerald-950
+                        [&_b]:font-extrabold [&_b]:text-emerald-950
+                        [&_blockquote]:my-5 [&_blockquote]:border-l-4 [&_blockquote]:border-amber-500 [&_blockquote]:bg-emerald-50/50 [&_blockquote]:p-4 [&_blockquote]:rounded-r-2xl [&_blockquote]:text-emerald-950 [&_blockquote]:italic
+                        [&_a]:text-emerald-800 [&_a]:font-bold [&_a]:underline [&_a]:decoration-amber-500/60 [&_a]:underline-offset-4 [&_a:hover]:text-amber-600 [&_a:hover]:decoration-amber-500"
+                      dangerouslySetInnerHTML={{ __html: formattedDescription }}
                     />
                   ) : (
                     <p className="text-[15px] xl:text-[17px] leading-relaxed text-neutral-600">{product.fullDescription}</p>
