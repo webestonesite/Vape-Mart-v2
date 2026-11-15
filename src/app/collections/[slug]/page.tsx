@@ -27,10 +27,11 @@ export async function generateMetadata({ params }: CollectionSlugPageProps): Pro
     /* B6: brand / unlisted collection — title it by the collection, not "Not Found". */
     const all = await fetchAllProducts();
     const member = all.find((p) =>
-      (p.shopifyCollections || []).some((c) => c.slug === norm) || p.categorySlug === norm
+      (p.shopifyCollections || []).some((c) => c.slug === norm || c.slug === slug) || p.categorySlug === norm || p.categorySlug === slug
     );
-    const memberTitle = member?.shopifyCollections?.find((c) => c.slug === norm)?.title
-      || (member?.categorySlug === norm ? member.category : undefined);
+    const memberTitle = member?.shopifyCollections?.find((c) => c.slug === norm || c.slug === slug)?.title
+      || (member?.categorySlug === norm ? member.category : undefined)
+      || slug.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
     if (memberTitle) {
       return {
         title: `${memberTitle} | Vape Mart UAE`,
@@ -74,18 +75,16 @@ export default async function CollectionSlugPage({ params }: CollectionSlugPageP
   const category = categories.find((c) => c.slug === norm) || getCategoryBySlugSync(norm);
 
   if (!category) {
-    /* B6: a brand / unlisted Shopify collection (e.g. /collections/lambda)
-       is not a "category", so the old code fell back to the unfiltered
-       all-products list. If products are members of a collection with
-       this handle, show that collection's products instead — filtered by
-       membership, like the main categories. */
+    /* Brand or unlisted Shopify collection: fetch products matching this collection handle */
+    const brandProducts = await fetchProductsByCategory(slug);
     const member = allProducts.find((p) =>
-      (p.shopifyCollections || []).some((c) => c.slug === norm) || p.categorySlug === norm
+      (p.shopifyCollections || []).some((c) => c.slug === norm || c.slug === slug) || p.categorySlug === norm || p.categorySlug === slug
     );
-    const memberTitle = member?.shopifyCollections?.find((c) => c.slug === norm)?.title
-      || (member?.categorySlug === norm ? member.category : undefined);
-    if (member && memberTitle) {
-      const brandProducts = await fetchProductsByCategory(slug);
+    const memberTitle = member?.shopifyCollections?.find((c) => c.slug === norm || c.slug === slug)?.title
+      || (member?.categorySlug === norm ? member.category : undefined)
+      || slug.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+
+    if (brandProducts.length > 0 || member) {
       const brandCategory = {
         slug: norm,
         name: memberTitle,
@@ -93,7 +92,7 @@ export default async function CollectionSlugPage({ params }: CollectionSlugPageP
         subtitle: `Shop authentic ${memberTitle.toLowerCase()} with same-day delivery across the UAE.`,
         badge: "NEW",
         icon: "Flame",
-        image: member.primaryImage || "/images/prod_disposable.png",
+        image: member?.primaryImage || brandProducts[0]?.primaryImage || "/images/prod_disposable.png",
         count: brandProducts.length,
         description: `Explore our ${memberTitle.toLowerCase()} collection — 100% authentic products with express delivery across Dubai and the UAE.`,
       };
@@ -107,8 +106,7 @@ export default async function CollectionSlugPage({ params }: CollectionSlugPageP
         />
       );
     }
-    // Unknown slug with no member product: show the empty state, never
-    // the whole catalogue.
+    // Unknown slug with no products: show empty state
     return <CollectionPageView allCategories={categories} products={[]} catalogProducts={allProducts} pageSettings={settings?.collectionPage} />;
   }
 

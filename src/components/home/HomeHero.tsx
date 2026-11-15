@@ -68,15 +68,15 @@ export function HomeHero({ cmsHeroSlides = [], order = 1 }: HomeHeroProps) {
 
   return (
     <section
-      className="relative w-full min-h-[580px] sm:min-h-[640px] md:min-h-[680px] lg:min-h-[720px] overflow-hidden bg-gradient-to-br from-[#064e3b] via-[#022c22] to-[#064e3b] select-none pb-20"
+      className="relative w-full h-[580px] sm:h-[640px] md:h-[650px] lg:h-[700px] overflow-hidden bg-gradient-to-br from-[#064e3b] via-[#022c22] to-[#064e3b] select-none"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       style={{ order }}
     >
       {/* Background Effects */}
-      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay"></div>
-      <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[70%] rounded-full bg-emerald-500/20 blur-[120px]"></div>
-      <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[70%] rounded-full bg-teal-500/20 blur-[120px]"></div>
+      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay pointer-events-none" />
+      <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[70%] rounded-full bg-emerald-500/20 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[70%] rounded-full bg-teal-500/20 blur-[120px] pointer-events-none" />
 
       {/* Sliders arrows */}
       <motion.button
@@ -99,7 +99,7 @@ export function HomeHero({ cmsHeroSlides = [], order = 1 }: HomeHeroProps) {
       </motion.button>
 
       {/* Swipe Track for Content and Image */}
-      <div className="relative z-20">
+      <div className="absolute inset-0 z-20">
         <div
           className="flex h-full transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]"
           style={{
@@ -110,18 +110,19 @@ export function HomeHero({ cmsHeroSlides = [], order = 1 }: HomeHeroProps) {
           {slides.map((slide, idx) => (
             <div
               key={idx}
-              className="w-full h-full flex items-center relative"
+              className="h-full flex items-center relative"
               style={{ width: `${100 / slides.length}%` }}
             >
-              <div className="max-w-[1520px] mx-auto px-4 sm:px-8 md:px-12 w-full flex flex-col md:flex-row items-center justify-between pb-12 md:pb-0">
+              <div className="max-w-[1400px] mx-auto px-4 sm:px-8 md:px-16 w-full flex flex-col md:flex-row items-center justify-between pb-12 md:pb-0">
                 {/* Content */}
                 <div className="w-full md:w-1/2 flex flex-col items-center md:items-start text-center md:text-left z-20 pt-4 md:pt-10">
                   <div className="inline-flex items-center gap-2 px-3.5 py-1 sm:px-4 sm:py-1.5 rounded-full bg-gradient-to-r from-amber-500/15 via-emerald-400/15 to-amber-500/15 border border-amber-400/30 mb-3 sm:mb-6 shadow-sm backdrop-blur-md">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
                     <span className="font-cinzel text-amber-300 font-bold text-[10px] sm:text-[11px] tracking-[0.25em] uppercase">
                       {slide.badge}
                     </span>
                   </div>
+
                   <h1 className="font-luxury text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-[68px] font-extrabold text-white leading-[1.12] mb-3 sm:mb-6 tracking-tight drop-shadow-[0_4px_30px_rgba(0,0,0,0.6)]">
                     {slide.title.split("\n")[0]}
                     {slide.title.split("\n")[1] && (
@@ -130,9 +131,11 @@ export function HomeHero({ cmsHeroSlides = [], order = 1 }: HomeHeroProps) {
                       </span>
                     )}
                   </h1>
+
                   <p className="text-xs sm:text-sm md:text-base lg:text-lg text-emerald-50/85 leading-relaxed mb-6 sm:mb-10 max-w-sm sm:max-w-lg font-normal tracking-wide line-clamp-3 sm:line-clamp-none">
                     {slide.desc}
                   </p>
+
                   <motion.a
                     href={slide.buttonLink || "/collections"}
                     whileHover={{ scale: 1.05, y: -2 }}
@@ -143,22 +146,23 @@ export function HomeHero({ cmsHeroSlides = [], order = 1 }: HomeHeroProps) {
                     <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#064e3b] text-white flex items-center justify-center relative z-10 group-hover:scale-110 group-hover:bg-[#022c22] transition-all">
                       <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
                     </div>
-                    <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-emerald-400/20 to-transparent pointer-events-none"></span>
+                    <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-emerald-400/20 to-transparent pointer-events-none" />
                   </motion.a>
                 </div>
 
                 {/* Image Showcase */}
-                <div className="w-full md:w-1/2 h-[280px] sm:h-[380px] md:h-[500px] lg:h-[560px] relative z-10 flex items-center justify-center mt-4 md:mt-0 px-2 sm:px-4">
+                <div className="w-full md:w-1/2 h-[220px] sm:h-[320px] md:h-[460px] lg:h-[560px] relative z-10 flex items-center justify-center mt-4 md:mt-0 px-2 sm:px-4">
                   <div className="relative w-full max-w-[260px] sm:max-w-[360px] md:max-w-[480px] aspect-square rounded-[24px] sm:rounded-[36px] overflow-hidden shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] border-2 border-emerald-400/20 group/heroImg backdrop-blur-sm bg-black/20">
                     <Image
                       src={slide.image}
                       alt={slide.title}
                       fill
                       priority={idx === 0}
+                      sizes="(max-width: 640px) 260px, (max-width: 1024px) 360px, 480px"
                       className="object-cover transform group-hover/heroImg:scale-105 transition-transform duration-700 ease-out"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#022c22]/60 via-transparent to-transparent pointer-events-none"></div>
-                    <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-[24px] sm:rounded-[36px] pointer-events-none"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#022c22]/60 via-transparent to-transparent pointer-events-none" />
+                    <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-[24px] sm:rounded-[36px] pointer-events-none" />
                   </div>
                 </div>
               </div>
@@ -168,7 +172,7 @@ export function HomeHero({ cmsHeroSlides = [], order = 1 }: HomeHeroProps) {
       </div>
 
       {/* Custom SVG Wave Bottom */}
-      <div className="absolute bottom-[-1px] left-0 w-full z-30 text-white">
+      <div className="absolute bottom-[-1px] left-0 w-full z-30 text-white pointer-events-none">
         <svg viewBox="0 0 1440 120" preserveAspectRatio="none" className="w-full h-10 sm:h-16 md:h-24 fill-current">
           <path d="M0,0 L0,80 C240,120 480,120 720,80 C960,40 1200,40 1440,80 L1440,120 L0,120 Z" />
         </svg>
@@ -179,12 +183,12 @@ export function HomeHero({ cmsHeroSlides = [], order = 1 }: HomeHeroProps) {
         {slides.map((_, idx) => (
           <button
             key={idx}
-            className={`h-2 rounded-full transition-all duration-500 ease-out ${
+            className={`h-2 rounded-full transition-all duration-500 ease-out cursor-pointer ${
               currentSlide === idx ? "w-8 sm:w-10 bg-white" : "w-2 bg-white/40 hover:bg-white/80"
             }`}
             onClick={() => setCurrentSlide(idx)}
             aria-label={`Go to slide ${idx + 1}`}
-          ></button>
+          />
         ))}
       </div>
     </section>
@@ -192,4 +196,3 @@ export function HomeHero({ cmsHeroSlides = [], order = 1 }: HomeHeroProps) {
 }
 
 export default HomeHero;
-

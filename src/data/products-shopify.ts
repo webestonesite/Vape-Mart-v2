@@ -97,6 +97,11 @@ export const CATEGORY_FAMILIES: Record<string, { handles: string[]; suffix?: str
   juul: { handles: ["juul", "juul-1", "juul-2"] },
   "disposable-vape": { handles: ["disposable-vape"], suffix: "-disposable" },
   "e-liquid": { handles: ["e-liquids", "e-liquid"], suffix: "-e-liquid" },
+  "pod-systems": { handles: ["pod-systems", "pods-system"] },
+  "pods-system": { handles: ["pod-systems", "pods-system"] },
+  "nicotine-pouches": { handles: ["nicotine-pouches"] },
+  myle: { handles: ["myle", "myle-disposable"] },
+  "myle-disposable": { handles: ["myle", "myle-disposable"] },
 };
 
 /** Canonical slugs of the six category cards, in tile order. Shop All is "all". */

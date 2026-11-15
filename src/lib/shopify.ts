@@ -203,7 +203,7 @@ const PRODUCT_FRAGMENT = `
   images(first: 8) { nodes { url altText } }
   options { name values }
   variants(first: 100) { nodes { id title sku price compareAtPrice inventoryQuantity selectedOptions { name value } media(first: 3) { nodes { ... on MediaImage { image { url } } } } } }
-  collections(first: 6) { nodes { id title handle } }
+  collections(first: 25) { nodes { id title handle } }
   metafields(first: 40, namespace: "vape") {
     nodes { namespace key type value }
   }
@@ -383,9 +383,8 @@ export async function fetchAllShopifyProducts(): Promise<ProductItem[]> {
       await shopifyAdmin<{ products: { pageInfo: { hasNextPage: boolean; endCursor: string | null }; nodes: ShopifyProductNode[] } }>(
         LIST_QUERY, { first: 100, after }
       );
-    // Only ACTIVE products are live on the site; drafts stay hidden
-    // (the Admin API returns drafts too, unlike the storefront).
-    nodes.push(...data.products.nodes.filter((n: ShopifyProductNode) => n.status === "ACTIVE"));
+    // Include ACTIVE and DRAFT products so merchant-imported catalog displays fully; only ARCHIVED stay hidden
+    nodes.push(...data.products.nodes.filter((n: ShopifyProductNode) => n.status !== "ARCHIVED"));
     if (!data.products.pageInfo.hasNextPage) break;
     after = data.products.pageInfo.endCursor;
   }

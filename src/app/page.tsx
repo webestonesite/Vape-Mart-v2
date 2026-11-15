@@ -1,14 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import dynamic from "next/dynamic";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SectionErrorBoundary } from "@/components/common/SectionErrorBoundary";
 import themeData from "@/data/theme-published.json";
 import { cdnWidth } from "@/lib/cdn";
 
-// Modular Homepage Sections
+// Static UI & SEO Components (Zero Layout Shift on Reload)
+import ProductCarousel from "@/components/ProductCarousel";
+import { SeoContent } from "@/components/SeoContent";
 import { HomeHero } from "@/components/home/HomeHero";
 import { HomePromoBanners } from "@/components/home/HomePromoBanners";
 import { HomeCategories } from "@/components/home/HomeCategories";
@@ -29,14 +30,7 @@ import {
   mostPopularProducts,
 } from "@/data/homeData";
 
-// Dynamic Streaming Blocks
-const ProductCarousel = dynamic(() => import("@/components/ProductCarousel"), {
-  loading: () => <div className="max-w-[1440px] mx-auto px-4 min-h-[420px]" aria-hidden="true" />,
-});
-
-const SeoContent = dynamic(() => import("@/components/SeoContent").then((m) => m.SeoContent), {
-  loading: () => <div className="min-h-[200px]" aria-hidden="true" />,
-});
+// Dynamic Streaming Blocks removed in favor of static imports for zero CLS and instant SSR render
 
 export default function Home() {
   const [cms, setCms] = useState<any>(null);
@@ -176,9 +170,11 @@ export default function Home() {
 
       <main className="flex-1 flex flex-col">
         {/* 1. Hero Section */}
-        <SectionErrorBoundary sectionName="Hero Section">
-          <HomeHero cmsHeroSlides={cms?.heroSlides} order={homeSecOrder("hero")} />
-        </SectionErrorBoundary>
+        <div style={{ order: homeSecOrder("hero") }} className="w-full bg-[#064e3b]">
+          <SectionErrorBoundary sectionName="Hero Section">
+            <HomeHero cmsHeroSlides={cms?.heroSlides} order={homeSecOrder("hero")} />
+          </SectionErrorBoundary>
+        </div>
 
         {/* 2. Promo Banners */}
         {homeVisible("banners") && (
@@ -301,9 +297,11 @@ export default function Home() {
         </SectionErrorBoundary>
 
         {/* 11. SEO Structured Rich Content */}
-        <SectionErrorBoundary sectionName="SEO Rich Content">
-          <SeoContent />
-        </SectionErrorBoundary>
+        <div style={{ order: 998 }} className="w-full">
+          <SectionErrorBoundary sectionName="SEO Rich Content">
+            <SeoContent />
+          </SectionErrorBoundary>
+        </div>
       </main>
 
       {/* Global Unified Footer */}

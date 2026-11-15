@@ -673,24 +673,6 @@ export function CollectionPageView({ category, allCategories, products, catalogP
               FIND YOUR VAPE
             </button>
           </motion.div>
-          {/* brand quick chips */}
-          <div className="mt-5 flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x">
-            <button
-              onClick={() => setSelectedBrands([])}
-              className={`shrink-0 snap-start h-10 px-4 rounded-full text-xs font-bold tracking-wide border transition-colors ${selectedBrands.length === 0 ? "bg-amber-400 text-emerald-950 border-amber-400" : "bg-white/10 text-white border-white/20 hover:border-amber-300"}`}
-            >
-              ALL BRANDS
-            </button>
-            {brands.map((b) => (
-              <button
-                key={b}
-                onClick={() => toggleIn(selectedBrands, b, setSelectedBrands)}
-                className={`shrink-0 snap-start h-10 px-4 rounded-full text-xs font-bold tracking-wide border transition-colors ${selectedBrands.includes(b) ? "bg-amber-400 text-emerald-950 border-amber-400" : "bg-white/10 text-white border-white/20 hover:border-amber-300"}`}
-              >
-                {b} <span className="opacity-70">({brandCounts[b]})</span>
-              </button>
-            ))}
-          </div>
         </div>
       </section>
 
