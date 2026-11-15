@@ -23,6 +23,8 @@ import {
   ExternalLink,
   Sliders,
   ArrowLeft,
+  FolderOpen,
+  Wrench,
 } from "lucide-react";
 import { RichText } from "./rich-text";
 
@@ -404,6 +406,7 @@ export function ProductEditor({ productId, cloneFromId, data, notify, reload, ba
   const [showReviews, setShowReviews] = useState(false);
   const [showRelated, setShowRelated] = useState(false);
   const [showCustomSpecs, setShowCustomSpecs] = useState(false);
+  const [colSearch, setColSearch] = useState("");
 
   const [form, setForm] = useState<any>({
     title: "",
@@ -580,10 +583,25 @@ export function ProductEditor({ productId, cloneFromId, data, notify, reload, ba
 
   const set = (k: string, v: any) => setForm({ ...form, [k]: v });
 
-  const MAIN_HANDLES = ["disposable-vape", "e-liquids", "terea", "iqos", "juul"];
-  const mainCollections = (data.collections || []).filter((c: any) => MAIN_HANDLES.includes(c.handle));
+  const allCollections = data.collections || [];
+  const filteredCollections = allCollections.filter((c: any) => {
+    if (!colSearch.trim()) return true;
+    const q = colSearch.toLowerCase();
+    return c.title?.toLowerCase().includes(q) || c.handle?.toLowerCase().includes(q);
+  });
+
+  const POPULAR_HANDLES = ["disposable-vape", "e-liquids", "terea", "iqos", "juul", "devices", "accessories"];
+  const popularCollections = allCollections.filter((c: any) =>
+    POPULAR_HANDLES.includes(c.handle) || POPULAR_HANDLES.some((h) => c.handle?.includes(h))
+  );
+
   const toggleCollection = (id: string) =>
     setCollectionIds(collectionIds.includes(id) ? collectionIds.filter((x) => x !== id) : [...collectionIds, id]);
+
+  const addCustomSpec = (label: string, value: string) => {
+    setSpecRows((prev: any[]) => [...prev, { key: null, label, value }]);
+    setShowCustomSpecs(true);
+  };
 
   // Variant calculations
   const liveOptions = options
@@ -1026,27 +1044,104 @@ export function ProductEditor({ productId, cloneFromId, data, notify, reload, ba
           </div>
         </div>
 
-        {/* Collections / Categories */}
-        <div className="space-y-2">
-          <Lbl>Collections & Categories * (Tap to pick)</Lbl>
-          <div className="flex flex-wrap gap-1.5">
-            {mainCollections.map((c: any) => {
-              const on = collectionIds.includes(c.id);
+        {/* Category & Collections Selector */}
+        <div className="space-y-3 pt-1 border-t border-neutral-100">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <FolderOpen size={15} className="text-emerald-700" />
+              <Lbl>Product Category & Collections *</Lbl>
+            </div>
+            <span className="text-[11px] text-neutral-400">
+              {collectionIds.length} category selected
+            </span>
+          </div>
+
+          {/* Active selected collection badges */}
+          <div className="flex flex-wrap gap-1.5 min-h-[30px] p-2 rounded-lg bg-neutral-50 border border-neutral-200">
+            {collectionIds.map((cid: string) => {
+              const col = allCollections.find((c: any) => c.id === cid);
+              if (!col) return null;
               return (
-                <button
-                  key={c.id}
-                  type="button"
-                  onClick={() => toggleCollection(c.id)}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-bold border transition ${
-                    on
-                      ? "bg-emerald-700 text-white border-emerald-700 shadow-2xs"
-                      : "bg-white text-neutral-700 border-neutral-300 hover:bg-neutral-50"
-                  }`}
+                <span
+                  key={cid}
+                  className="inline-flex items-center gap-1 rounded-md bg-emerald-800 text-white px-2.5 py-1 text-xs font-semibold shadow-2xs"
                 >
-                  {c.title} {on ? "✓" : "+"}
-                </button>
+                  {col.title}
+                  <button
+                    type="button"
+                    onClick={() => toggleCollection(cid)}
+                    className="hover:text-red-300 font-bold ml-1 text-sm leading-none"
+                    title="Remove category"
+                  >
+                    ×
+                  </button>
+                </span>
               );
             })}
+            {!collectionIds.length && (
+              <span className="text-xs text-amber-700 font-medium self-center">
+                ⚠️ No category selected — please pick at least one so the product shows on the site.
+              </span>
+            )}
+          </div>
+
+          {/* Quick 1-tap popular categories */}
+          <div>
+            <span className="text-[11px] font-semibold text-neutral-500 mb-1 block">Quick Select Categories:</span>
+            <div className="flex flex-wrap gap-1.5">
+              {popularCollections.map((c: any) => {
+                const on = collectionIds.includes(c.id);
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => toggleCollection(c.id)}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-bold border transition ${
+                      on
+                        ? "bg-emerald-700 text-white border-emerald-700 shadow-2xs"
+                        : "bg-white text-neutral-700 border-neutral-300 hover:bg-neutral-100"
+                    }`}
+                  >
+                    {c.title} {on ? "✓" : "+"}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Search all collections */}
+          <div className="space-y-1.5 pt-1">
+            <div className="relative">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+              <input
+                className="w-full rounded-md border border-neutral-300 bg-white pl-8 pr-3 py-1.5 text-xs text-neutral-800 outline-none focus:border-emerald-600"
+                placeholder="Search all store collections & brands…"
+                value={colSearch}
+                onChange={(e) => setColSearch(e.target.value)}
+              />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1.5 max-h-44 overflow-y-auto p-2 rounded-lg border border-neutral-200 bg-white">
+              {filteredCollections.map((c: any) => (
+                <label
+                  key={c.id}
+                  className={`flex items-center gap-2 text-xs font-medium p-1.5 rounded cursor-pointer transition ${
+                    collectionIds.includes(c.id) ? "bg-emerald-50 text-emerald-900 font-bold" : "text-neutral-700 hover:bg-neutral-50"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={collectionIds.includes(c.id)}
+                    onChange={() => toggleCollection(c.id)}
+                    className="rounded text-emerald-700 accent-emerald-700 h-3.5 w-3.5"
+                  />
+                  <span className="truncate">{c.title}</span>
+                  <span className="text-[10px] text-neutral-400 ml-auto shrink-0">({c.productCount})</span>
+                </label>
+              ))}
+              {filteredCollections.length === 0 && (
+                <p className="text-xs text-neutral-400 col-span-3 py-2 text-center">No categories matching &quot;{colSearch}&quot;</p>
+              )}
+            </div>
           </div>
         </div>
 
@@ -1572,7 +1667,164 @@ export function ProductEditor({ productId, cloneFromId, data, notify, reload, ba
           </div>
         </CollapsibleCard>
 
-        {/* 7. Related Products */}
+        {/* 7. Detailed Product Specifications & Custom Hardware Table */}
+        <CollapsibleCard
+          icon={Wrench}
+          title="Full Product Specifications & Custom Hardware Table"
+          subtitle="Resistance, wattage, airflow, screen, dimensions, and unlimited custom specs"
+          badge={specRows.length ? `${specRows.length} Specifications` : undefined}
+          enabled={showCustomSpecs}
+          onToggle={setShowCustomSpecs}
+        >
+          <div className="space-y-4">
+            {/* Extended Fixed Specs Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 p-3 rounded-xl bg-neutral-50/70 border border-neutral-200">
+              <div>
+                <Lbl>Puff Range (Display)</Lbl>
+                <Inp
+                  placeholder="e.g. Up to 10,000 Puffs"
+                  value={specValue("puff_range")}
+                  onChange={(e) => setSpec("puff_range", e.target.value, "Puff range")}
+                />
+              </div>
+              <div>
+                <Lbl>Coil Type & Technology</Lbl>
+                <Inp
+                  placeholder="e.g. Dual Mesh Coil (QUAQ Tech)"
+                  value={specValue("coil_type")}
+                  onChange={(e) => setSpec("coil_type", e.target.value, "Coil")}
+                />
+              </div>
+              <div>
+                <Lbl>Activation Mode</Lbl>
+                <Inp
+                  placeholder="e.g. Draw-Activated"
+                  value={specValue("activation")}
+                  onChange={(e) => setSpec("activation", e.target.value, "Activation")}
+                />
+              </div>
+              <div>
+                <Lbl>VG / PG Ratio</Lbl>
+                <Inp
+                  placeholder="e.g. 50/50"
+                  value={specValue("vg_pg_ratio")}
+                  onChange={(e) => setSpec("vg_pg_ratio", e.target.value, "VG/PG")}
+                />
+              </div>
+              <div>
+                <Lbl>Subtitle / Highlight Line</Lbl>
+                <Inp
+                  placeholder="e.g. Dual mesh flavor with smart LED screen"
+                  value={specValue("subtitle")}
+                  onChange={(e) => setSpec("subtitle", e.target.value, "Subtitle")}
+                />
+              </div>
+              <div>
+                <Lbl>Badge Text</Lbl>
+                <Inp
+                  placeholder="e.g. BEST SELLER"
+                  value={specValue("badge")}
+                  onChange={(e) => setSpec("badge", e.target.value, "Badge")}
+                />
+              </div>
+            </div>
+
+            {/* Quick Add Preset Buttons */}
+            <div>
+              <span className="text-xs font-bold text-neutral-700 block mb-1.5">
+                Quick-Add Additional Specifications:
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  { label: "Resistance", value: "0.8Ω Dual Mesh" },
+                  { label: "Wattage Range", value: "11W - 15W" },
+                  { label: "Airflow", value: "Adjustable Airflow Control" },
+                  { label: "Display Screen", value: "Smart LED Battery & Juice Screen" },
+                  { label: "Dimensions", value: "85mm × 43mm × 22mm" },
+                  { label: "Weight", value: "65g" },
+                  { label: "Body Material", value: "Aluminum Alloy + Food-grade PCTG" },
+                  { label: "Output Voltage", value: "3.6V Constant Output" },
+                  { label: "Pod Capacity", value: "2ml Refillable" },
+                  { label: "Country of Origin", value: "Shenzhen / UAE" },
+                  { label: "Safety Protections", value: "Over-puff / Short-circuit Protection" },
+                ].map((item) => (
+                  <button
+                    key={item.label}
+                    type="button"
+                    onClick={() => {
+                      setSpecRows((prev: any[]) => [...prev, { key: null, label: item.label, value: item.value }]);
+                      setShowCustomSpecs(true);
+                    }}
+                    className="inline-flex items-center gap-1 rounded-md border border-neutral-300 bg-white px-2.5 py-1 text-xs font-semibold text-neutral-700 hover:bg-neutral-100 hover:border-emerald-600 transition"
+                  >
+                    <Plus size={12} className="text-emerald-600" /> {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Custom Specifications Dynamic Rows Table */}
+            <div className="space-y-2 border-t pt-3">
+              <span className="text-xs font-bold text-neutral-800 block">
+                Specification Table Rows ({specRows.filter((r: any) => r.key === null).length} custom rows):
+              </span>
+
+              {specRows
+                .map((r: any, i: number) => ({ r, i }))
+                .filter(({ r }: any) => r.key === null)
+                .map(({ r, i }: any) => (
+                  <div key={i} className="grid grid-cols-[1fr_1.5fr_auto] gap-2 items-center bg-white p-2 rounded-lg border border-neutral-200 shadow-2xs">
+                    <Inp
+                      value={r.label}
+                      placeholder="Specification name (e.g. Resistance)"
+                      onChange={(e) =>
+                        setSpecRows(specRows.map((x: any, j: number) => (j === i ? { ...x, label: e.target.value } : x)))
+                      }
+                    />
+                    <Inp
+                      value={r.value}
+                      placeholder="Specification value (e.g. 0.8Ω)"
+                      onChange={(e) =>
+                        setSpecRows(specRows.map((x: any, j: number) => (j === i ? { ...x, value: e.target.value } : x)))
+                      }
+                    />
+                    <div className="flex items-center gap-1">
+                      <LinkHelper
+                        value={r.value}
+                        onApply={(html) =>
+                          setSpecRows(specRows.map((x: any, j: number) => (j === i ? { ...x, value: html } : x)))
+                        }
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setSpecRows(specRows.filter((_: any, j: number) => j !== i))}
+                        className="rounded-md border border-red-200 bg-red-50 p-2 text-red-700 hover:bg-red-100"
+                        title="Delete specification"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+              {specRows.filter((r: any) => r.key === null).length === 0 && (
+                <p className="text-xs text-neutral-400 italic py-2">
+                  No custom specifications added yet. Use the quick buttons above or click &quot;+ Add Specification Row&quot;.
+                </p>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setSpecRows([...specRows, { key: null, label: "", value: "" }])}
+                className="inline-flex items-center gap-1.5 rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-800 hover:bg-neutral-50 shadow-2xs mt-2"
+              >
+                <Plus size={14} /> Add Specification Row
+              </button>
+            </div>
+          </div>
+        </CollapsibleCard>
+
+        {/* 8. Related Products */}
         <CollapsibleCard
           icon={ExternalLink}
           title="Related Products & Recommendations"
