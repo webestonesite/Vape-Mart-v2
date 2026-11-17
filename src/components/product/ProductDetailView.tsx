@@ -282,15 +282,15 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
         </nav>
 
         {/* ============ 2-COL: GALLERY + BUY BOX ============ */}
-        <div className="grid lg:grid-cols-2 gap-6 lg:gap-10 xl:gap-16 items-start">
+        <div className="grid lg:grid-cols-2 gap-6 lg:gap-10 xl:gap-16 items-start w-full min-w-0 max-w-full overflow-hidden">
           {/* gallery */}
-          <div className="lg:sticky lg:top-24">
+          <div className="lg:sticky lg:top-24 w-full min-w-0 max-w-full">
             <motion.div
               key={imgIdx}
               initial={{ opacity: 0.4 }} animate={{ opacity: 1 }} transition={{ duration: 0.25 }}
-              className="relative aspect-square rounded-3xl bg-white border border-emerald-900/10 shadow-[0_20px_50px_-20px_rgba(6,78,59,0.25)] overflow-hidden"
+              className="relative aspect-square w-full max-w-[540px] xl:max-w-[620px] mx-auto rounded-3xl bg-white border border-emerald-900/10 shadow-[0_20px_50px_-20px_rgba(6,78,59,0.25)] overflow-hidden"
             >
-              <Image src={galleryImages[imgIdx]} alt={product.title} fill priority sizes="(max-width: 1024px) 100vw, 50vw" className="object-contain p-6 sm:p-10" />
+              <Image src={galleryImages[imgIdx]} alt={product.title} fill priority sizes="(max-width: 640px) 92vw, (max-width: 1024px) 80vw, 540px" className="object-contain p-4 sm:p-8 xl:p-10 select-none max-w-full max-h-full" />
               {discount > 0 && (
                 <span className="absolute top-4 left-4 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-emerald-950 text-xs font-extrabold px-3 py-1.5 shadow">-{discount}% OFF</span>
               )}
@@ -664,7 +664,7 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
                   </h3>
                   {/<[a-z][\s>]/.test(formattedDescription) ? (
                     <div
-                      className="desc-prose-content text-[15px] xl:text-[16px] leading-relaxed text-neutral-700
+                      className="desc-prose-content text-[15px] xl:text-[16px] leading-relaxed text-neutral-700 w-full min-w-0 max-w-full overflow-hidden
                         [&_.desc-table-card]:my-6 [&_.desc-table-card]:overflow-x-auto [&_.desc-table-card]:rounded-2xl [&_.desc-table-card]:border-2 [&_.desc-table-card]:border-emerald-900/15 [&_.desc-table-card]:shadow-[0_4px_24px_-10px_rgba(6,78,59,0.12)] [&_.desc-table-card]:bg-white
                         [&_table]:w-full [&_table]:border-collapse [&_table]:text-sm [&_table]:table-auto
                         [&_thead]:bg-emerald-950 [&_thead_tr]:!h-auto
@@ -681,6 +681,7 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
                         [&_li::before]:content-[''] [&_li::before]:w-2 [&_li::before]:h-2 [&_li::before]:rounded-full [&_li::before]:bg-amber-500 [&_li::before]:absolute [&_li::before]:left-1 [&_li::before]:top-[9px]
                         [&_ol]:my-4 [&_ol]:pl-5 [&_ol]:space-y-2.5 [&_ol]:list-decimal [&_ol]:text-neutral-700
                         [&_p]:my-3.5 [&_p]:leading-relaxed [&_p]:text-neutral-700
+                        [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-xl [&_img]:my-4 [&_img]:mx-auto [&_img]:object-contain
                         [&_strong]:font-extrabold [&_strong]:text-emerald-950
                         [&_b]:font-extrabold [&_b]:text-emerald-950
                         [&_blockquote]:my-5 [&_blockquote]:border-l-4 [&_blockquote]:border-amber-500 [&_blockquote]:bg-emerald-50/50 [&_blockquote]:p-4 [&_blockquote]:rounded-r-2xl [&_blockquote]:text-emerald-950 [&_blockquote]:italic
