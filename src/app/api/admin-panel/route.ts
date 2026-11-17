@@ -2,34 +2,43 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import {
   SESSION_COOKIE,
+  createCollection,
+  createProduct,
+  deleteCollection,
+  deleteProduct,
+  fulfillOrder,
+  getAdminCollections,
+  getAdminDraftOrders,
+  getAdminMetaobjects,
+  getAdminOrders,
+  getAdminProducts,
+  getAdminRedirects,
+  getAdminShopSettings,
   getAuthState,
-  setupPassword,
-  login,
+  getCollectionDetail,
+  getCustomerDetail,
+  getOrderDetail,
   getPanelData,
   getPanelExtras,
   getProductDetail,
-  getCollectionDetail,
-  getOrderDetail,
-  getCustomerDetail,
-  fulfillOrder,
-  refundOrder,
-  createProduct,
-  updateProduct,
-  deleteProduct,
-  createCollection,
-  deleteCollection,
   listBulkProducts,
+  login,
+  refundOrder,
+  saveAction,
   saveBulkMetafields,
   searchBulkProducts,
-  saveAction,
+  setupPassword,
+  updateProduct,
 } from "@/lib/admin-panel";
 
 /**
- * Single endpoint for the /admin panel.
- * POST { action: "setup" | "login" | "logout" | "data" | "save", ... }
- * The session cookie is an HMAC derived from the stored password hash;
- * the password itself never leaves the login form.
+ * Granular & backward-compatible endpoint for the /admin panel.
+ * Supports granular domain fetching (domain: "products" | "orders" | "redirects" | "collections" | "metaobjects" | "settings")
+ * to eliminate monolithic overfetching while preserving complete backward compatibility.
  */
+
+const ALLOWED_DOMAINS = ["products", "orders", "redirects", "collections", "metaobjects", "settings"] as const;
+type AllowedDomain = (typeof ALLOWED_DOMAINS)[number];
 
 const COOKIE_OPTS = {
   httpOnly: true,
@@ -44,9 +53,73 @@ async function sessionToken(): Promise<string | undefined> {
   return store.get(SESSION_COOKIE)?.value;
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const state = await getAuthState(await sessionToken());
+    const url = new URL(req.url);
+    const domain = url.searchParams.get("domain");
+
+    if (domain && !state.authed) {
+      return NextResponse.json({ ok: false, error: "Not logged in." }, { status: 401 });
+    }
+
+    if (domain) {
+      if (!ALLOWED_DOMAINS.includes(domain.toLowerCase() as AllowedDomain)) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: `Invalid domain "${domain}". Supported domains: ${ALLOWED_DOMAINS.join(", ")}`,
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    if (domain === "products") {
+      const res = await getAdminProducts({
+        limit: Number(url.searchParams.get("limit")) || 50,
+        status: url.searchParams.get("status") || undefined,
+        query: url.searchParams.get("query") || undefined,
+        cursor: url.searchParams.get("cursor") || undefined,
+      });
+      return NextResponse.json({ ok: true, ...res });
+    }
+
+    if (domain === "orders") {
+      const res = await getAdminOrders({
+        limit: Number(url.searchParams.get("limit")) || 25,
+        status: url.searchParams.get("status") || undefined,
+      });
+      return NextResponse.json({ ok: true, ...res });
+    }
+
+    if (domain === "redirects") {
+      const res = await getAdminRedirects({
+        limit: Number(url.searchParams.get("limit")) || 100,
+        after: url.searchParams.get("after") || undefined,
+      });
+      return NextResponse.json({ ok: true, ...res });
+    }
+
+    if (domain === "collections") {
+      const res = await getAdminCollections({
+        limit: Number(url.searchParams.get("limit")) || 50,
+        after: url.searchParams.get("after") || undefined,
+      });
+      return NextResponse.json({ ok: true, ...res });
+    }
+
+    if (domain === "metaobjects") {
+      const type = url.searchParams.get("type") || "hero_slide";
+      const { metaobjects } = await getAdminMetaobjects(type);
+      return NextResponse.json({ ok: true, data: { metaobjects } });
+    }
+
+    if (domain === "settings") {
+      const settings = await getAdminShopSettings();
+      return NextResponse.json({ ok: true, settings });
+    }
+
     return NextResponse.json(state);
   } catch (e) {
     return NextResponse.json(
@@ -86,11 +159,94 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: "Not logged in." }, { status: 401 });
     }
 
+    // Granular domain-specific fetching
     if (action === "data") {
+      const domain = body.domain ? String(body.domain).toLowerCase() : "";
+
+      if (domain) {
+        if (!ALLOWED_DOMAINS.includes(domain as AllowedDomain)) {
+          return NextResponse.json(
+            {
+              ok: false,
+              error: `Invalid domain "${domain}". Supported domains: ${ALLOWED_DOMAINS.join(", ")}`,
+            },
+            { status: 400 }
+          );
+        }
+
+        if (domain === "products") {
+          const res = await getAdminProducts(body.opts || {});
+          return NextResponse.json({ ok: true, data: { products: res.products, pageInfo: res.pageInfo } });
+        }
+
+        if (domain === "orders") {
+          const [ordersRes, draftsRes] = await Promise.all([
+            getAdminOrders(body.opts || {}),
+            getAdminDraftOrders(body.opts || {}),
+          ]);
+          return NextResponse.json({
+            ok: true,
+            data: {
+              orders: ordersRes.orders,
+              draftOrders: draftsRes.draftOrders,
+              pageInfo: ordersRes.pageInfo,
+            },
+          });
+        }
+
+        if (domain === "redirects") {
+          const res = await getAdminRedirects(body.opts || {});
+          return NextResponse.json({ ok: true, data: { redirects: res.redirects, pageInfo: res.pageInfo } });
+        }
+
+        if (domain === "collections") {
+          const res = await getAdminCollections(body.opts || {});
+          return NextResponse.json({ ok: true, data: { collections: res.collections, pageInfo: res.pageInfo } });
+        }
+
+        if (domain === "metaobjects") {
+          const res = await getAdminMetaobjects(String(body.type || ""), body.opts || {});
+          return NextResponse.json({ ok: true, data: { metaobjects: res.metaobjects, pageInfo: res.pageInfo } });
+        }
+
+        if (domain === "settings") {
+          const settings = await getAdminShopSettings();
+          return NextResponse.json({ ok: true, data: { settings } });
+        }
+      }
+
+      // Backward compatible full panel fetch when no domain specified
       const [data, extras] = await Promise.all([getPanelData(), getPanelExtras()]);
       return NextResponse.json({ ok: true, data: { ...data, ...extras } });
     }
 
+    // Granular list endpoints
+    if (action === "products" || action === "products.list") {
+      const res = await getAdminProducts(body.opts || {});
+      return NextResponse.json({ ok: true, ...res });
+    }
+
+    if (action === "orders" || action === "orders.list") {
+      const res = await getAdminOrders(body.opts || {});
+      return NextResponse.json({ ok: true, ...res });
+    }
+
+    if (action === "redirects" || action === "redirects.list") {
+      const res = await getAdminRedirects(body.opts || {});
+      return NextResponse.json({ ok: true, ...res });
+    }
+
+    if (action === "collections" || action === "collections.list") {
+      const res = await getAdminCollections(body.opts || {});
+      return NextResponse.json({ ok: true, ...res });
+    }
+
+    if (action === "metaobjects" || action === "metaobjects.list") {
+      const res = await getAdminMetaobjects(String(body.type || ""), body.opts || {});
+      return NextResponse.json({ ok: true, ...res });
+    }
+
+    // Details endpoints
     if (action === "productDetail") {
       const detail = await getProductDetail(String(body.id || ""));
       return NextResponse.json({ ok: true, detail });
@@ -111,6 +267,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true, detail });
     }
 
+    // Direct mutation actions
     if (action === "order.fulfill") {
       const result = await fulfillOrder(String(body.id || ""));
       return NextResponse.json({ ok: true, ...result });
@@ -137,7 +294,10 @@ export async function POST(req: Request) {
     }
 
     if (action === "collection.create") {
-      const result = await createCollection(String(body.title || ""), { sortOrder: body.sortOrder, descriptionHtml: body.descriptionHtml });
+      const result = await createCollection(String(body.title || ""), {
+        sortOrder: body.sortOrder,
+        descriptionHtml: body.descriptionHtml,
+      });
       return NextResponse.json({ ok: true, ...result });
     }
 

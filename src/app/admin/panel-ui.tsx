@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+export { ActionButton, ToastProvider, ConfirmModal, useToast } from "@/components/admin/ActionPrimitives";
 
 /* Shared API + UI primitives for the admin panel shell and its
    lazily-loaded managers (kept tiny so the login shell stays light). */

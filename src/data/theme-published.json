@@ -35,11 +35,15 @@
     "navItems": [
       {
         "label": "HOME",
-        "href": "/"
+        "href": "/",
+        "hasDropdown": false,
+        "columns": []
       },
       {
         "label": "SHOP",
-        "href": "/collections"
+        "href": "/collections",
+        "hasDropdown": false,
+        "columns": []
       },
       {
         "label": "JUUL",
@@ -62,7 +66,7 @@
         ]
       },
       {
-        "label": "TEREA",
+        "label": "TEREA Flavor",
         "href": "/collections/terea",
         "hasDropdown": true,
         "columns": [
@@ -70,28 +74,52 @@
             "heading": "Terea",
             "items": [
               {
-                "title": "Terea Device",
+                "title": "Terea Indonesia",
                 "href": "/collections/terea-device"
               },
               {
-                "title": "Terea Flavor",
+                "title": "Terea Uzbekistan",
                 "href": "/collections/terea-flavor"
+              },
+              {
+                "title": "Terea Kyrgystan",
+                "href": "/"
+              },
+              {
+                "title": "Terea Tajikistan",
+                "href": "/"
+              },
+              {
+                "title": "Terea Swiss",
+                "href": "/"
+              },
+              {
+                "title": "Terea Japan",
+                "href": "/"
+              },
+              {
+                "title": "Terea Italy ",
+                "href": "/"
               }
             ]
           }
         ]
       },
       {
-        "label": "IQOS",
+        "label": "IQOS Devices",
         "href": "/collections/iqos",
         "hasDropdown": true,
         "columns": [
           {
-            "heading": "IQOS",
+            "heading": "TOP IQOS Devices",
             "items": [
               {
-                "title": "IQOS Iluma",
-                "href": "/collections/iqos-iluma"
+                "title": "Lambda i9 for Terea",
+                "href": "/"
+              },
+              {
+                "title": "IQOS iluma i One",
+                "href": "/"
               }
             ]
           }
@@ -106,97 +134,12 @@
             "heading": "Top Brands",
             "items": [
               {
-                "title": "AAOK",
-                "href": "/collections/aaok-disposable"
-              },
-              {
-                "title": "Air Bar",
-                "href": "/collections/air-bar-disposable"
-              },
-              {
                 "title": "Al Fakher",
                 "href": "/collections/al-fakher-disposable"
               },
               {
-                "title": "Beco",
-                "href": "/collections/beco-disposable"
-              },
-              {
-                "title": "Bounce",
-                "href": "/collections/bounce-disposable"
-              },
-              {
                 "title": "Elf Bar",
                 "href": "/collections/elf-bar-disposable"
-              },
-              {
-                "title": "Fummo",
-                "href": "/collections/fummo-disposable"
-              },
-              {
-                "title": "Geek Bar",
-                "href": "/collections/geek-bar-disposable"
-              },
-              {
-                "title": "HQD",
-                "href": "/collections/hqd-disposable"
-              },
-              {
-                "title": "Ignite",
-                "href": "/collections/ignite-disposable"
-              },
-              {
-                "title": "JNR",
-                "href": "/collections/jnr-disposable"
-              }
-            ]
-          },
-          {
-            "heading": "Popular Brands",
-            "items": [
-              {
-                "title": "Kief",
-                "href": "/collections/kief-disposable"
-              },
-              {
-                "title": "Kief King",
-                "href": "/collections/kief-king-disposable"
-              },
-              {
-                "title": "Lost Mary",
-                "href": "/collections/lost-mary-disposable"
-              },
-              {
-                "title": "Maskking",
-                "href": "/collections/maskking-disposable"
-              },
-              {
-                "title": "Mazaya",
-                "href": "/collections/mazaya-disposable"
-              },
-              {
-                "title": "MFU",
-                "href": "/collections/mfu-disposable"
-              },
-              {
-                "title": "Nasty",
-                "href": "/collections/nasty-disposable"
-              },
-              {
-                "title": "Oxbar",
-                "href": "/collections/oxbar-disposable"
-              },
-              {
-                "title": "Pod Salt",
-                "href": "/collections/pod-salt-disposable"
-              },
-              {
-                "title": "Relx",
-                "href": "/collections/relx-disposable"
-              },
-              {
-                "title": "Silvaper",
-                "href": "/collections/silvaper-disposable"
               }
             ]
           },
@@ -204,44 +147,8 @@
             "heading": "More Brands",
             "items": [
               {
-                "title": "Smooth",
-                "href": "/collections/smooth-disposable"
-              },
-              {
-                "title": "SPRK",
-                "href": "/collections/sprk-disposable"
-              },
-              {
-                "title": "Stig",
-                "href": "/collections/stig-disposable"
-              },
-              {
-                "title": "Tesla",
-                "href": "/collections/tesla-disposable"
-              },
-              {
-                "title": "Tugboat",
-                "href": "/collections/tugboat-disposable"
-              },
-              {
-                "title": "Vapes Bars",
-                "href": "/collections/vapes-bars-disposable"
-              },
-              {
-                "title": "VNSN",
-                "href": "/collections/vnsn-disposable"
-              },
-              {
-                "title": "Vozol",
-                "href": "/collections/vozol-disposable"
-              },
-              {
                 "title": "Waka",
                 "href": "/collections/waka-disposable"
-              },
-              {
-                "title": "Xtra",
-                "href": "/collections/xtra-disposable"
               },
               {
                 "title": "Yuoto",
@@ -253,51 +160,15 @@
       },
       {
         "label": "E-LIQUID",
-        "href": "/collections/e-liquid",
+        "href": "/collections/e-liquids",
         "hasDropdown": true,
         "columns": [
           {
             "heading": "Top Brands",
             "items": [
               {
-                "title": "VGOD",
-                "href": "/collections/vgod-e-liquid"
-              },
-              {
-                "title": "TOKYO",
-                "href": "/collections/tokyo-e-liquid"
-              },
-              {
                 "title": "Pod Salt",
                 "href": "/collections/pod-salt-e-liquid"
-              },
-              {
-                "title": "Nasty",
-                "href": "/collections/nasty-e-liquid-e-liquid"
-              },
-              {
-                "title": "Vet",
-                "href": "/collections/vet-e-liquid"
-              },
-              {
-                "title": "Pachamama Salt",
-                "href": "/collections/pachamama-salt-e-liquid"
-              },
-              {
-                "title": "Grand E-Liquids",
-                "href": "/collections/grand-e-liquids-e-liquid"
-              },
-              {
-                "title": "Sam Vape",
-                "href": "/collections/sam-vape-e-liquid"
-              },
-              {
-                "title": "Ruthless",
-                "href": "/collections/ruthless-e-liquid"
-              },
-              {
-                "title": "Ripe Vapes",
-                "href": "/collections/ripe-vapes-e-liquid"
               }
             ]
           }
@@ -328,7 +199,7 @@
       },
       {
         "id": "2",
-        "name": "VGOD SaltNic e-liquids 25\u202fmg and 50\u202fmg",
+        "name": "VGOD SaltNic e-liquids 25 mg and 50 mg",
         "price": 30,
         "image": "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/IcedCherryLime.jpg?v=1753208462",
         "category": "E-Liquid"
@@ -343,7 +214,7 @@
     ]
   },
   "footer": {
-    "text": "\u00a9 2026 Vape Mart. All rights reserved. Must be 21+ to purchase."
+    "text": "© 2026 Vape Mart. All rights reserved. Must be 21+ to purchase."
   },
   "tereaHeets": {
     "title": "IQOS and TEREA",

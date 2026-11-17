@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import React from "react";
+import { ToastProvider } from "@/components/admin/ActionPrimitives";
 
 export const metadata: Metadata = {
   title: "Admin | Vape Mart",
@@ -12,8 +13,10 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-[#f6f6f7] text-neutral-900 antialiased selection:bg-emerald-500 selection:text-white">
-      {children}
-    </div>
+    <ToastProvider>
+      <div className="min-h-screen bg-[#f6f6f7] text-neutral-900 antialiased selection:bg-emerald-500 selection:text-white">
+        {children}
+      </div>
+    </ToastProvider>
   );
 }

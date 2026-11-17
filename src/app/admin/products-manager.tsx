@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { Search, Plus, Table, Copy, Edit, ExternalLink } from "lucide-react";
+import { useState, useTransition, useOptimistic } from "react";
+import { Search, Plus, Table, Copy, Edit, ExternalLink, Loader2 } from "lucide-react";
 import { BulkSheet } from "./bulk-sheet";
 import { ProductEditor } from "./product-editor";
+import { ActionButton, useToast } from "@/components/admin/ActionPrimitives";
+import { toggleProductStatusAction } from "./actions/products";
 
 async function api(body: any): Promise<any> {
   const res = await fetch("/api/admin-panel", {
@@ -74,6 +76,9 @@ export function ProductsManager({ data, notify, reload, initialQuery }: any) {
   const [status, setStatus] = useState("ALL");
   const [category, setCategory] = useState("ALL");
   const [page, setPage] = useState(0);
+  const [isPending, startTransition] = useTransition();
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+
   const PAGE_SIZE = 100;
   const filtered = (data.products || [])
     .filter((p: any) => (status === "ALL" || p.status === status) && (!q || p.title.toLowerCase().includes(q.toLowerCase())) && inCategoryFamily(p, category));
@@ -102,16 +107,26 @@ export function ProductsManager({ data, notify, reload, initialQuery }: any) {
   const toggleStatus = async (e: React.MouseEvent, p: any) => {
     e.stopPropagation();
     const nextStatus = p.status === "ACTIVE" ? "DRAFT" : "ACTIVE";
-    p.status = nextStatus;
+    const prevStatus = p.status;
+    p.status = nextStatus; // Instant optimistic update
+    setUpdatingId(p.id);
     notify(`Updated "${p.title}" to ${nextStatus}.`);
-    const r = await api({
-      action: "product.update",
-      payload: { id: p.id, status: nextStatus },
+
+    startTransition(async () => {
+      try {
+        const res = await toggleProductStatusAction(p.id, nextStatus as "ACTIVE" | "DRAFT");
+        if (!res.success) {
+          p.status = prevStatus;
+          notify(`Status update failed: ${res.error || "error"}`);
+          reload();
+        }
+      } catch (err) {
+        p.status = prevStatus;
+        notify("Network error updating status");
+      } finally {
+        setUpdatingId(null);
+      }
     });
-    if (!r.ok) {
-      notify(`Status update failed: ${r.error || "error"}`);
-      reload();
-    }
   };
 
   const duplicateProduct = (e: React.MouseEvent, p: any) => {
@@ -181,14 +196,16 @@ export function ProductsManager({ data, notify, reload, initialQuery }: any) {
                 <td className="px-3 py-2.5 hidden sm:table-cell">
                   <button
                     type="button"
+                    disabled={updatingId === p.id}
                     onClick={(e) => toggleStatus(e, p)}
                     title="Click to toggle Active / Draft"
-                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition hover:scale-105 ${
+                    className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold transition active:scale-95 cursor-pointer ${
                       p.status === "ACTIVE"
                         ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
                         : "bg-neutral-200 text-neutral-700 hover:bg-neutral-300"
-                    }`}
+                    } ${updatingId === p.id ? "opacity-60 cursor-wait" : ""}`}
                   >
+                    {updatingId === p.id && <Loader2 size={10} className="animate-spin text-current" />}
                     {p.status}
                   </button>
                 </td>
