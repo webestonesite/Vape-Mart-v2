@@ -15,5 +15,5 @@ export const revalidate = 300;
 
 export default async function CheckoutPage() {
   const settings = await fetchShopSettings();
-  return <CheckoutView checkoutSettings={settings.checkout} phone={settings.phone} />;
+  return <CheckoutView checkoutSettings={settings.checkout} />;
 }
