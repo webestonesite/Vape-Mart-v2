@@ -2,8 +2,14 @@
 
 import Link from "next/link";
 import { Home as HomeIcon, Layers, Search, Droplets, ShoppingBag } from "lucide-react";
+import { useCart } from "@/modules/cart/CartProvider";
 
 export function MobileBottomNav() {
+  /* Cart opens the shared drawer (same cart the /checkout page reads).
+     While the drawer is open, hide this bar: it sits above the page
+     and would cover the drawer's footer buttons. */
+  const { totalCount, openCart, isOpen: isCartOpen } = useCart();
+  if (isCartOpen) return null;
   return (
     <nav
       aria-label="Mobile Bottom Navigation"
@@ -41,18 +47,20 @@ export function MobileBottomNav() {
         <span className="text-[11px] font-semibold tracking-tight">Disposables</span>
       </Link>
 
-      <Link
-        href="/collections"
-        className="flex-1 flex flex-col items-center justify-center gap-1 text-emerald-100/75 hover:text-white py-1.5 px-1 rounded-xl active:scale-95 transition-all relative text-center no-underline"
+      <button
+        type="button"
+        onClick={openCart}
+        aria-label="Cart"
+        className="flex-1 flex flex-col items-center justify-center gap-1 text-emerald-100/75 hover:text-white py-1.5 px-1 rounded-xl active:scale-95 transition-all relative text-center cursor-pointer"
       >
         <div className="relative">
           <ShoppingBag size={20} className="stroke-[2.2]" />
           <span className="absolute -top-1 -right-2 w-4 h-4 bg-amber-400 text-neutral-900 text-[10px] font-black flex items-center justify-center rounded-full shadow-sm">
-            0
+            {totalCount}
           </span>
         </div>
         <span className="text-[11px] font-semibold tracking-tight">Cart</span>
-      </Link>
+      </button>
     </nav>
   );
 }

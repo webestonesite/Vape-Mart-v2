@@ -20,6 +20,7 @@ import {
   Truck
 } from "lucide-react";
 import themePublished from "@/data/theme-published.json";
+import { useCart } from "@/modules/cart/CartProvider";
 
 export interface SubMenuItem {
   title: string;
@@ -84,6 +85,10 @@ export interface HeaderProps {
 }
 
 export function Header({ onCartClick, cartCount = 0 }: HeaderProps) {
+  /* One shared cart (CartProvider): the header badge and the drawer read
+     the same items the /checkout page reads. onCartClick/cartCount stay
+     as optional overrides for callers that still pass them. */
+  const { totalCount, openCart } = useCart();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
@@ -342,30 +347,17 @@ export function Header({ onCartClick, cartCount = 0 }: HeaderProps) {
               <User size={20} strokeWidth={2} />
             </Link>
 
-            {onCartClick ? (
-              <button
-                type="button"
-                onClick={onCartClick}
-                className="w-10 h-10 md:w-11 md:h-11 flex items-center justify-center rounded-full bg-white/10 text-white hover:text-[#064e3b] hover:bg-white transition-colors duration-300 relative group backdrop-blur-md cursor-pointer"
-                aria-label="Cart"
-              >
-                <ShoppingBag size={20} strokeWidth={2} />
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-amber-400 text-neutral-900 text-[11px] font-bold flex items-center justify-center rounded-full shadow-sm group-hover:scale-110 transition-transform">
-                  {cartCount}
-                </span>
-              </button>
-            ) : (
-              <Link
-                href="/collections"
-                className="w-10 h-10 md:w-11 md:h-11 flex items-center justify-center rounded-full bg-white/10 text-white hover:text-[#064e3b] hover:bg-white transition-colors duration-300 relative group backdrop-blur-md cursor-pointer"
-                aria-label="Cart"
-              >
-                <ShoppingBag size={20} strokeWidth={2} />
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-amber-400 text-neutral-900 text-[11px] font-bold flex items-center justify-center rounded-full shadow-sm group-hover:scale-110 transition-transform">
-                  {cartCount}
-                </span>
-              </Link>
-            )}
+            <button
+              type="button"
+              onClick={onCartClick ?? openCart}
+              className="w-10 h-10 md:w-11 md:h-11 flex items-center justify-center rounded-full bg-white/10 text-white hover:text-[#064e3b] hover:bg-white transition-colors duration-300 relative group backdrop-blur-md cursor-pointer"
+              aria-label="Cart"
+            >
+              <ShoppingBag size={20} strokeWidth={2} />
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-amber-400 text-neutral-900 text-[11px] font-bold flex items-center justify-center rounded-full shadow-sm group-hover:scale-110 transition-transform">
+                {onCartClick ? cartCount : totalCount}
+              </span>
+            </button>
           </div>
         </div>
 

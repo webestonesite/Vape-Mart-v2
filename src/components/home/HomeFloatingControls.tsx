@@ -5,12 +5,21 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowUp, Home as HomeIcon, Layers, Search, Droplets, ShoppingBag } from "lucide-react";
 
+import { useCart } from "@/modules/cart/CartProvider";
+
 interface HomeFloatingControlsProps {
   phone?: string;
 }
 
 export function HomeFloatingControls({ phone = "+971 55 110 3401" }: HomeFloatingControlsProps) {
   const [showScrollTop, setShowScrollTop] = useState(false);
+  /* While the cart drawer is open the drawer is the top layer: its own
+     z-50 sits BELOW this file's FAB (z-60) and bottom nav (z-70), so
+     they would paint over the drawer's totals and footer buttons. Hide
+     them while the drawer is open — the drawer has its own WhatsApp
+     order button, so nothing is lost. */
+  const { isOpen: isCartOpen, totalCount, openCart } = useCart();
+  if (isCartOpen) return null;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -91,13 +100,18 @@ export function HomeFloatingControls({ phone = "+971 55 110 3401" }: HomeFloatin
           <Droplets size={20} className="stroke-[2.2]" />
           <span className="text-[11px] font-semibold tracking-tight">Disposables</span>
         </Link>
-        <Link href="/collections" className="flex-1 flex flex-col items-center justify-center gap-1 text-emerald-100/75 hover:text-white py-1.5 px-1 rounded-xl active:scale-95 transition-all relative text-center no-underline">
+        <button
+          type="button"
+          onClick={openCart}
+          aria-label="Cart"
+          className="flex-1 flex flex-col items-center justify-center gap-1 text-emerald-100/75 hover:text-white py-1.5 px-1 rounded-xl active:scale-95 transition-all relative text-center cursor-pointer"
+        >
           <div className="relative">
             <ShoppingBag size={20} className="stroke-[2.2]" />
-            <span className="absolute -top-1 -right-2 w-4 h-4 bg-amber-400 text-neutral-900 text-[10px] font-black flex items-center justify-center rounded-full shadow-sm">0</span>
+            <span className="absolute -top-1 -right-2 w-4 h-4 bg-amber-400 text-neutral-900 text-[10px] font-black flex items-center justify-center rounded-full shadow-sm">{totalCount}</span>
           </div>
           <span className="text-[11px] font-semibold tracking-tight">Cart</span>
-        </Link>
+        </button>
       </nav>
     </>
   );

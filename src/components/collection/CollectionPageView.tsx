@@ -38,14 +38,11 @@ import {
 } from "lucide-react";
 import { ProductItem, CollectionCategory, CartItem } from "@/types/product";
 import type { CollectionPageSettings } from "@/lib/shopify";
-import dynamic from "next/dynamic";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ProductCard } from "./ProductCard";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
-/* The cart drawer only opens on demand, so its code loads as a separate
-   chunk instead of in the first bundle. */
-const CartDrawer = dynamic(() => import("@/components/CartDrawer").then((m) => m.CartDrawer));
+import { useCart } from "@/modules/cart/CartProvider";
 
 interface CollectionPageViewProps {
   category?: CollectionCategory;
@@ -186,9 +183,9 @@ export function CollectionPageView({ category, allCategories, products, catalogP
   const [quickViewFlavor, setQuickViewFlavor] = useState("");
   const [quickViewQty, setQuickViewQty] = useState(1);
 
-  // ---- cart ----
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  // ---- cart (single shared cart: CartProvider + localStorage, same
+  // cart the /checkout page reads, so items survive navigation) ----
+  const { addToCart: ctxAddToCart, openCart } = useCart();
   const [wishlist, setWishlist] = useState<string[]>([]);
 
   const toggleWishlist = (id: string) =>
@@ -359,12 +356,8 @@ export function CollectionPageView({ category, allCategories, products, catalogP
       flavor: flavorName,
       nicotine: nicotine || prod.nicotineStrength,
     };
-    setCartItems((prev) => {
-      const idx = prev.findIndex((i) => i.id === newItem.id);
-      if (idx > -1) { const copy = [...prev]; copy[idx].quantity += qty; return copy; }
-      return [...prev, newItem];
-    });
-    setIsCartOpen(true);
+    ctxAddToCart(newItem);
+    openCart();
   };
 
   const pageTitle = category ? category.title : "All Vape Products & Collections";
@@ -591,10 +584,7 @@ export function CollectionPageView({ category, allCategories, products, catalogP
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-neutral-900 flex flex-col">
-      <Header
-        onCartClick={() => setIsCartOpen(true)}
-        cartCount={cartItems.reduce((a, it) => a + it.quantity, 0)}
-      />
+      <Header />
 
       {/* ============ HERO BANNER (cinematic) ============ */}
       <section
@@ -1635,16 +1625,6 @@ export function CollectionPageView({ category, allCategories, products, catalogP
         )}
       </AnimatePresence>
 
-      <CartDrawer
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        items={cartItems}
-        onUpdateQuantity={(id, delta) =>
-          setCartItems((prev) => prev.map((i) => (i.id === id ? { ...i, quantity: Math.max(0, i.quantity + delta) } : i)).filter((i) => i.quantity > 0))
-        }
-        onRemoveItem={(id) => setCartItems((prev) => prev.filter((i) => i.id !== id))}
-        onClearCart={() => setCartItems([])}
-      />
     </div>
   );
 }
