@@ -9,7 +9,7 @@ import { CartDrawer as VisualCartDrawer } from "@/components/CartDrawer";
  * Automatically binds CartProvider state to the high-converting UAE Checkout UI.
  */
 export function CartDrawer() {
-  const { items, isOpen, closeCart, updateQuantity, removeFromCart, clearCart } = useCart();
+  const { items, isOpen, closeCart, updateQuantity, removeFromCart } = useCart();
 
   return (
     <VisualCartDrawer
@@ -18,7 +18,6 @@ export function CartDrawer() {
       items={items}
       onUpdateQuantity={updateQuantity}
       onRemoveItem={removeFromCart}
-      onClearCart={clearCart}
     />
   );
 }

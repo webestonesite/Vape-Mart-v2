@@ -30,13 +30,10 @@ import {
 import { ProductItem, CartItem } from "@/types/product";
 import type { ProductPageSettings } from "@/lib/shopify";
 import { buildProductFaqs } from "./productSeo";
-import dynamic from "next/dynamic";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
-/* The cart drawer only opens on demand, so its code loads as a separate
-   chunk instead of in the first bundle. */
-const CartDrawer = dynamic(() => import("@/components/CartDrawer").then((m) => m.CartDrawer));
+import { useCart } from "@/modules/cart/CartProvider";
 
 interface ProductDetailViewProps {
   product: ProductItem;
@@ -140,8 +137,10 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
     return () => document.removeEventListener("mousedown", close);
   }, []);
 
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  /* Single shared cart (CartProvider + localStorage): the header badge,
+     the layout drawer and the /checkout page all read this same cart,
+     so items added here survive navigation. */
+  const { addToCart: ctxAddToCart, openCart, isOpen: isCartOpen } = useCart();
   const buyBoxRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -206,12 +205,8 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
       nicotine: hasVariants ? undefined : (nicotine || undefined),
       variantLabel,
     };
-    setCartItems((prev) => {
-      const i = prev.findIndex((x) => x.id === newItem.id);
-      if (i > -1) { const c = [...prev]; c[i].quantity += qty; return c; }
-      return [...prev, newItem];
-    });
-    if (openDrawer) setIsCartOpen(true);
+    ctxAddToCart(newItem);
+    if (openDrawer) openCart();
   };
 
   const buyNow = () => {
@@ -263,13 +258,13 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
   const quickAddRelated = (p: ProductItem) => {
     const f = p.flavors.find((x) => x.inStock)?.id;
     const n: CartItem = { id: `${p.id}-${f || "std"}`, productId: p.id, title: p.title, brand: p.brand, price: p.price, image: p.primaryImage, quantity: 1, flavor: p.flavors.find((x) => x.id === f)?.name, nicotine: p.nicotineStrength };
-    setCartItems((prev) => { const i = prev.findIndex((x) => x.id === n.id); if (i > -1) { const c = [...prev]; c[i].quantity += 1; return c; } return [...prev, n]; });
-    setIsCartOpen(true);
+    ctxAddToCart(n);
+    openCart();
   };
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-neutral-900 flex flex-col">
-      <Header onCartClick={() => setIsCartOpen(true)} cartCount={cartItems.reduce((a, i) => a + i.quantity, 0)} />
+      <Header />
 
       <main className="flex-1 w-full max-w-[1240px] xl:max-w-[1520px] mx-auto px-4 sm:px-6 xl:px-10 pt-4 sm:pt-6 xl:pt-8 pb-10">
         {/* breadcrumb */}
@@ -1079,16 +1074,6 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
         )}
       </AnimatePresence>
 
-      <CartDrawer
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        items={cartItems}
-        onUpdateQuantity={(id, delta) =>
-          setCartItems((prev) => prev.map((i) => (i.id === id ? { ...i, quantity: Math.max(0, i.quantity + delta) } : i)).filter((i) => i.quantity > 0))
-        }
-        onRemoveItem={(id) => setCartItems((prev) => prev.filter((i) => i.id !== id))}
-        onClearCart={() => setCartItems([])}
-      />
     </div>
   );
 }

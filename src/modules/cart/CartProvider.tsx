@@ -14,6 +14,8 @@ interface CartContextType {
   clearCart: () => void;
   totalCount: number;
   subtotal: number;
+  /** True once the cart has been read from localStorage (client only). */
+  isHydrated: boolean;
 }
 
 const CartContext = createContext<CartContextType | null>(null);
@@ -111,8 +113,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       clearCart,
       totalCount,
       subtotal,
+      isHydrated,
     }),
-    [items, isOpen, openCart, closeCart, addToCart, removeFromCart, updateQuantity, clearCart, totalCount, subtotal]
+    [items, isOpen, openCart, closeCart, addToCart, removeFromCart, updateQuantity, clearCart, totalCount, subtotal, isHydrated]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
