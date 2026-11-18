@@ -45,6 +45,10 @@ export interface Product {
   badge?: string;
   brand?: string;
   img: string;
+  /** Real Shopify handle (from CMS). When present, the card links to the
+      exact product page; the title map below is only a fallback for
+      products without one (2026-11-19). */
+  handle?: string;
 }
 
 function getProductHref(title: string): string {
@@ -81,7 +85,7 @@ function getProductHref(title: string): string {
 
 function ProductCard({ prod }: { prod: Product }) {
   const [isWishlisted, setIsWishlisted] = useState(false);
-  const href = getProductHref(prod.title);
+  const href = prod.handle ? `/product/${prod.handle}` : getProductHref(prod.title);
 
   return (
     <motion.div
