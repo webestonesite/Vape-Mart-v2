@@ -219,9 +219,19 @@ export default function Home() {
             />
           </SectionErrorBoundary>
 
+          <SectionErrorBoundary sectionName="TEREA Carousel">
+            <ProductCarousel
+              title={secText("terea", "title", "TEREA flavors")}
+              subtitle={secText("terea", "subtitle", "Original TEREA sticks in every flavour for IQOS ILUMA in Dubai")}
+              badgeText={secText("terea", "badgeText", "HEATED TOBACCO")}
+              products={secProducts("terea", [])}
+              greenBoxPC={true}
+            />
+          </SectionErrorBoundary>
+
           <SectionErrorBoundary sectionName="IQOS & TEREA Carousel">
             <ProductCarousel
-              title={secText("tereaHeets", "title", themeData.tereaHeets?.title || "IQOS and TEREA")}
+              title={secText("tereaHeets", "title", themeData.tereaHeets?.title || "IQOS Devices")}
               subtitle={secText("tereaHeets", "subtitle", themeData.tereaHeets?.subtitle || "Authentic heated tobacco sticks for IQOS ILUMA & IQOS 3 Duo in UAE")}
               badgeText={secText("tereaHeets", "badgeText", themeData.tereaHeets?.badgeText || "HEATED TOBACCO")}
               products={secProducts("tereaHeets", cmsShowcase("tereaHeets", tereaHeetsProducts))}
