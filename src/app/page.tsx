@@ -1,11 +1,54 @@
-"use client";
-
-import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SectionErrorBoundary } from "@/components/common/SectionErrorBoundary";
-import themeData from "@/data/theme-published.json";
 import { cdnWidth } from "@/lib/cdn";
+import { fetchSiteContent, fetchShopSettings, fetchBlogPosts } from "@/lib/shopify";
+import type { BlogPost } from "@/lib/shopify";
+import type { ProductItem } from "@/types/product";
+
+// Server-rendered homepage (Option A, 2026-11-19): the real CMS data is
+// fetched on the server, so the first paint already shows the real
+// products. There are NO fallback/demo product lists anywhere on this
+// page anymore — a section with no CMS products renders empty (heading
+// + "View All (0)"), never hardcoded products. The old client-side
+// fetch + homeData fallbacks showed stale demo products for ~1s on every
+// reload, which broke the no-demo rule.
+export const revalidate = 300;
+
+// Map a Shopify product to the carousel card shape (same as
+// /api/site-content's cardProduct).
+function cardProduct(p: ProductItem) {
+  const discount =
+    p.originalPrice > p.price ? Math.round((1 - p.price / p.originalPrice) * 100) : 0;
+  return {
+    handle: p.slug,
+    title: p.title,
+    price: p.price.toFixed(2),
+    oldPrice: p.originalPrice > p.price ? p.originalPrice.toFixed(2) : "",
+    discount: discount ? `-${discount}%` : "",
+    revs: p.revs,
+    badge: p.badge || "",
+    brand: p.brand,
+    img: p.primaryImage,
+  };
+}
+
+const BADGE = ["bg-emerald-600 text-white", "bg-amber-600 text-white", "bg-blue-600 text-white", "bg-purple-600 text-white", "bg-rose-600 text-white"];
+
+function mapBlogPost(p: BlogPost, i: number) {
+  return {
+    id: i + 1,
+    handle: p.handle,
+    title: p.title,
+    category: (p.category || "Guides").toUpperCase(),
+    readTime: `${Math.max(1, Math.round(p.bodyHtml.replace(/<[^>]*>/g, " ").split(/\s+/).filter(Boolean).length / 200))} min read`,
+    date: p.publishedAt ? new Date(p.publishedAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : "",
+    excerpt: p.excerpt,
+    image: p.imageUrl || "/images/blog_1.png",
+    badgeBg: BADGE[i % BADGE.length],
+    author: "Vape Mart Team",
+  };
+}
 
 // Static UI & SEO Components (Zero Layout Shift on Reload)
 import ProductCarousel from "@/components/ProductCarousel";
@@ -21,56 +64,37 @@ import { HomeTrustReviews } from "@/components/home/HomeTrustReviews";
 import { HomeBlogCarousel } from "@/components/home/HomeBlogCarousel";
 import { HomeFloatingControls } from "@/components/home/HomeFloatingControls";
 
-// Static Fallback Seed Data
-import {
-  bestSellingProducts,
-  tereaHeetsProducts,
-  juulProductsList,
-  newArrivalsProducts,
-  mostPopularProducts,
-} from "@/data/homeData";
+export default async function Home() {
+  // Same three reads as /api/site-content. Each is guarded: a Shopify
+  // failure renders empty sections, never demo products and never a 500.
+  // (fetchSiteContent itself already records per-query failures in
+  // `error` and returns the good halves.)
+  const [settings, content, posts] = await Promise.all([
+    fetchShopSettings().catch(() => null),
+    fetchSiteContent().catch(() => null),
+    fetchBlogPosts().catch(() => []),
+  ]);
 
-// Dynamic Streaming Blocks removed in favor of static imports for zero CLS and instant SSR render
-
-export default function Home() {
-  const [cms, setCms] = useState<any>(null);
-
-  useEffect(() => {
-    fetch("/api/site-content")
-      .then((res) => res.json())
-      .then((data) => setCms(data))
-      .catch(() => {});
-  }, []);
-
-  // CMS Section Helper
+  // CMS Section Helper — CMS data only, no fallback products.
   const cmsSection = (key: string) =>
-    ((cms?.homeSections ?? []) as any[]).find((s) => s.key === key);
+    ((content?.homeSections ?? []) as any[]).find((s) => s.key === key);
 
-  const secProducts = (key: string, fallback: any[]) => {
+  const secProducts = (key: string) => {
     const s = cmsSection(key);
-    return s && Array.isArray(s.products) && s.products.length ? s.products : fallback;
+    return s && Array.isArray(s.products) && s.products.length
+      ? s.products.map(cardProduct)
+      : [];
   };
 
+  // Section labels only (plain strings, not products). CMS provides all
+  // of these today; the fallback only guards an empty heading if a CMS
+  // text field is ever blank.
   const secText = (key: string, field: string, fallback: string) => {
     const s = cmsSection(key);
     return s && s[field] ? s[field] : fallback;
   };
 
-  const cmsShowcase = (key: string, fallback: any[]) => {
-    const s = cmsSection(key);
-    return s && Array.isArray(s.collection?.products) && s.collection.products.length
-      ? s.collection.products.map((c: any) => ({
-          title: c.title,
-          price: c.price || "0.00",
-          revs: c.revs || 0,
-          badge: c.badge || "",
-          brand: c.brand || "",
-          img: c.imageUrl || "",
-        }))
-      : fallback;
-  };
-
-  const homeSettings: any = cms?.settings?.home || {};
+  const homeSettings: any = (settings as any)?.home || {};
   const homeBanners: any[] =
     Array.isArray(homeSettings.promoBanners ?? homeSettings.promo_banners) &&
     (homeSettings.promoBanners ?? homeSettings.promo_banners).length
@@ -79,7 +103,7 @@ export default function Home() {
   const banner1 = homeBanners[0] || {};
   const banner2 = homeBanners[1] || {};
 
-  const collectionImages: Record<string, string> = cms?.collectionImages || {};
+  const collectionImages: Record<string, string> = content?.collectionImages || {};
   const tileImg = (collection?: string) => {
     const url = collection ? collectionImages[collection] : "";
     return url ? cdnWidth(url, 800) : "";
@@ -132,14 +156,14 @@ export default function Home() {
   ];
   const homeSecOrder = (id: string) => orderedHomeSections.indexOf(id) + 1;
 
-  const fbProducts = secProducts("featuredBrand", [
-    { title: "AL Fakher Hypermax 15k Puffs", price: "50.00", oldPrice: "", discount: "", img: "/images/cat_disposables.png" },
-    { title: "Al Fakher Mega Max 40000 Puffs Disposable Vape", price: "50.00", oldPrice: "", discount: "", img: "/images/cat_disposables.png" },
-    { title: "Waka Blade 50K Puffs 50mg in Dubai, UAE", price: "55.00", oldPrice: "", discount: "", img: "/images/cat_disposables.png" },
-    { title: "ELFBAR BC10000 Puffs Disposable Vape", price: "35.00", oldPrice: "", discount: "", img: "/images/cat_disposables.png" },
-    { title: "Waka SoPro 20000 Puffs 50mg in Dubai, UAE", price: "50.00", oldPrice: "", discount: "", img: "/images/cat_disposables.png" },
-    { title: "KIEF King 35000 Puffs Disposable Vape", price: "45.00", oldPrice: "", discount: "", img: "/images/cat_disposables.png" },
-  ]);
+  // "Your Vibe. Your Flavor." products — CMS only, no hardcoded list.
+  const fbProducts = secProducts("featuredBrand").map((p: any) => ({
+    title: p.title,
+    price: p.price,
+    oldPrice: p.oldPrice || "",
+    discount: p.discount || "",
+    img: p.img || "",
+  }));
 
   const initialsOf = (name: string) =>
     name
@@ -149,8 +173,8 @@ export default function Home() {
       .join("")
       .toUpperCase();
 
-  const testimonialList = cms?.testimonials?.length
-    ? cms.testimonials.map((t: any) => ({
+  const testimonialList = content?.testimonials?.length
+    ? content.testimonials.map((t: any) => ({
         name: t.name,
         avatar: initialsOf(t.name || "V"),
         role: t.role || "Verified Buyer",
@@ -159,9 +183,11 @@ export default function Home() {
       }))
     : undefined;
 
-  const faqList = cms?.faqs?.length
-    ? cms.faqs.map((f: any) => ({ q: f.question, a: f.answer }))
+  const faqList = content?.faqs?.length
+    ? content.faqs.map((f: any) => ({ q: f.question, a: f.answer }))
     : undefined;
+
+  const blogList = posts.length ? posts.map(mapBlogPost) : undefined;
 
   return (
     <div className="min-h-screen bg-white text-neutral-900 font-sans selection:bg-[#064e3b] selection:text-white flex flex-col">
@@ -172,7 +198,7 @@ export default function Home() {
         {/* 1. Hero Section */}
         <div style={{ order: homeSecOrder("hero") }} className="w-full bg-[#064e3b]">
           <SectionErrorBoundary sectionName="Hero Section">
-            <HomeHero cmsHeroSlides={cms?.heroSlides} order={homeSecOrder("hero")} />
+            <HomeHero cmsHeroSlides={content?.heroSlides} order={homeSecOrder("hero")} />
           </SectionErrorBoundary>
         </div>
 
@@ -214,7 +240,7 @@ export default function Home() {
               title={secText("bestSelling", "title", "Best Selling")}
               subtitle={secText("bestSelling", "subtitle", "Our most loved products, chosen by you")}
               badgeText={secText("bestSelling", "badgeText", "TOP PICKS")}
-              products={secProducts("bestSelling", bestSellingProducts)}
+              products={secProducts("bestSelling")}
               greenBoxPC={true}
             />
           </SectionErrorBoundary>
@@ -224,27 +250,27 @@ export default function Home() {
               title={secText("terea", "title", "TEREA flavors")}
               subtitle={secText("terea", "subtitle", "Original TEREA sticks in every flavour for IQOS ILUMA in Dubai")}
               badgeText={secText("terea", "badgeText", "HEATED TOBACCO")}
-              products={secProducts("terea", [])}
+              products={secProducts("terea")}
               greenBoxPC={true}
             />
           </SectionErrorBoundary>
 
           <SectionErrorBoundary sectionName="IQOS & TEREA Carousel">
             <ProductCarousel
-              title={secText("tereaHeets", "title", themeData.tereaHeets?.title || "IQOS Devices")}
-              subtitle={secText("tereaHeets", "subtitle", themeData.tereaHeets?.subtitle || "Authentic heated tobacco sticks for IQOS ILUMA & IQOS 3 Duo in UAE")}
-              badgeText={secText("tereaHeets", "badgeText", themeData.tereaHeets?.badgeText || "HEATED TOBACCO")}
-              products={secProducts("tereaHeets", cmsShowcase("tereaHeets", tereaHeetsProducts))}
+              title={secText("tereaHeets", "title", "IQOS Devices")}
+              subtitle={secText("tereaHeets", "subtitle", "Authentic heated tobacco sticks for IQOS ILUMA & IQOS 3 Duo in UAE")}
+              badgeText={secText("tereaHeets", "badgeText", "HEATED TOBACCO")}
+              products={secProducts("tereaHeets")}
               greenBoxPC={true}
             />
           </SectionErrorBoundary>
 
           <SectionErrorBoundary sectionName="JUUL Carousel">
             <ProductCarousel
-              title={secText("juulProducts", "title", themeData.juulProducts?.title || "JUUL Pods & Devices")}
-              subtitle={secText("juulProducts", "subtitle", themeData.juulProducts?.subtitle || "Original JUUL2 starter kits, replacement pods & accessories with rapid delivery")}
-              badgeText={secText("juulProducts", "badgeText", themeData.juulProducts?.badgeText || "PREMIUM PODS")}
-              products={secProducts("juulProducts", cmsShowcase("juulProducts", juulProductsList))}
+              title={secText("juulProducts", "title", "JUUL Pods & Devices")}
+              subtitle={secText("juulProducts", "subtitle", "Original JUUL2 starter kits, replacement pods & accessories with rapid delivery")}
+              badgeText={secText("juulProducts", "badgeText", "PREMIUM PODS")}
+              products={secProducts("juulProducts")}
               greenBoxPC={true}
             />
           </SectionErrorBoundary>
@@ -254,7 +280,7 @@ export default function Home() {
               title={secText("featured", "title", "New Arrivals")}
               subtitle={secText("featured", "subtitle", "Explore our latest premium collection")}
               badgeText={secText("featured", "badgeText", "NEW ITEMS")}
-              products={secProducts("featured", newArrivalsProducts)}
+              products={secProducts("featured")}
               greenBoxPC={true}
             />
           </SectionErrorBoundary>
@@ -264,7 +290,7 @@ export default function Home() {
               title={secText("mostPopular", "title", "Most Popular")}
               subtitle={secText("mostPopular", "subtitle", "The most trending products right now")}
               badgeText={secText("mostPopular", "badgeText", "TRENDING")}
-              products={secProducts("mostPopular", mostPopularProducts)}
+              products={secProducts("mostPopular")}
               greenBoxPC={true}
             />
           </SectionErrorBoundary>
@@ -283,9 +309,9 @@ export default function Home() {
         <SectionErrorBoundary sectionName="Signature Flavors Arc Dial">
           <HomeFlavorArcDial
             order={homeSecOrder("flavors")}
-            title={secText("flavors", "title", (themeData as any).flavors?.title || "Signature Flavours")}
-            subtitle={secText("flavors", "subtitle", (themeData as any).flavors?.subtitle || "Turn the dial and find your flavour. If you're not sure where to start, pick the one that sounds like you and go from there.")}
-            badge={secText("flavors", "badge", (themeData as any).flavors?.badge)}
+            title={secText("flavors", "title", "Signature Flavours")}
+            subtitle={secText("flavors", "subtitle", "Turn the dial and find your flavour. If you're not sure where to start, pick the one that sounds like you and go from there.")}
+            badge={secText("flavors", "badge", "TASTE THE EXTRAORDINARY • 11 ARTISAN BLENDS")}
           />
         </SectionErrorBoundary>
 
@@ -308,7 +334,7 @@ export default function Home() {
 
         {/* 10. Blog Cover-Flow Carousel */}
         <SectionErrorBoundary sectionName="Blog Carousel">
-          <HomeBlogCarousel posts={cms?.blogPosts} order={homeSecOrder("blog")} />
+          <HomeBlogCarousel posts={blogList} order={homeSecOrder("blog")} />
         </SectionErrorBoundary>
 
         {/* 11. SEO Structured Rich Content */}
@@ -323,7 +349,7 @@ export default function Home() {
       <Footer />
 
       {/* Floating Controls (WhatsApp, Back To Top, Mobile Bottom Navigation) */}
-      <HomeFloatingControls phone={cms?.settings?.phone || "+971 55 110 3401"} />
+      <HomeFloatingControls phone={(settings as any)?.phone || "+971 55 110 3401"} />
     </div>
   );
 }

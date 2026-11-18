@@ -14,15 +14,6 @@ export interface FeaturedBrandProduct {
   img?: string;
 }
 
-const DEFAULT_FB_PRODUCTS: FeaturedBrandProduct[] = [
-  { title: "AL Fakher Hypermax 15k Puffs", price: "50.00", oldPrice: "", discount: "", img: "/images/cat_disposables.png" },
-  { title: "Al Fakher Mega Max 40000 Puffs Disposable Vape", price: "50.00", oldPrice: "", discount: "", img: "/images/cat_disposables.png" },
-  { title: "Waka Blade 50K Puffs 50mg in Dubai, UAE", price: "55.00", oldPrice: "", discount: "", img: "/images/cat_disposables.png" },
-  { title: "ELFBAR BC10000 Puffs Disposable Vape", price: "35.00", oldPrice: "", discount: "", img: "/images/cat_disposables.png" },
-  { title: "Waka SoPro 20000 Puffs 50mg in Dubai, UAE", price: "50.00", oldPrice: "", discount: "", img: "/images/cat_disposables.png" },
-  { title: "KIEF King 35000 Puffs Disposable Vape", price: "45.00", oldPrice: "", discount: "", img: "/images/cat_disposables.png" },
-];
-
 interface HomeFeaturedBrandProps {
   title?: string;
   products?: FeaturedBrandProduct[];
@@ -34,7 +25,10 @@ export function HomeFeaturedBrand({
   products,
   order = 5,
 }: HomeFeaturedBrandProps) {
-  const displayProducts = Array.isArray(products) && products.length ? products : DEFAULT_FB_PRODUCTS;
+  // No fallback/demo products: with no CMS products the grid renders
+  // empty (2026-11-19, Option A). The old DEFAULT_FB_PRODUCTS list
+  // showed 6 hardcoded products on every reload before the CMS fetch.
+  const displayProducts = Array.isArray(products) ? products : [];
 
   return (
     <motion.section
