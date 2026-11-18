@@ -13,7 +13,6 @@ import {
   Truck,
   ShieldCheck,
   ArrowRight,
-  MessageCircle,
 } from "lucide-react";
 import { CartItem } from "@/types/product";
 
@@ -48,7 +47,6 @@ export function CartDrawer({
       .catch(() => {});
   }, []);
   const checkout = checkoutSettings?.checkout || {};
-  const waPhone = (checkoutSettings?.phone || "+971 55 110 3401").replace(/[^0-9]/g, "");
 
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const freeShippingThreshold = checkout.freeShippingThreshold || 350;
@@ -241,20 +239,6 @@ export function CartDrawer({
                     <span>Proceed to Checkout</span>
                     <ArrowRight size={15} />
                   </button>
-
-                  <a
-                    href={`https://wa.me/${waPhone}?text=${encodeURIComponent(
-                      `Hello Vape Mart UAE, I would like to order: ${items
-                        .map((i) => `${i.title} (${i.variantLabel || i.flavor || "Standard"}) x${i.quantity}`)
-                        .join(", ")} - Total: AED ${grandTotal.toFixed(2)}`
-                    )}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer no-underline text-center"
-                  >
-                    <MessageCircle size={15} />
-                    <span>Order via WhatsApp (Instant Dispatch)</span>
-                  </a>
                 </div>
 
                 <div className="flex items-center justify-center gap-4 text-[11px] text-neutral-500 pt-1">

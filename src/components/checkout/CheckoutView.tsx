@@ -11,7 +11,6 @@ import {
   CreditCard,
   Mail,
   MapPin,
-  MessageCircle,
   Pencil,
   Phone,
   ShieldCheck,
@@ -36,10 +35,9 @@ const DEFAULT_CITIES = [
 
 interface CheckoutViewProps {
   checkoutSettings: CheckoutSettings | null;
-  phone: string;
 }
 
-export function CheckoutView({ checkoutSettings, phone }: CheckoutViewProps) {
+export function CheckoutView({ checkoutSettings }: CheckoutViewProps) {
   const { items, subtotal, clearCart, openCart, isHydrated } = useCart();
   const [step, setStep] = useState<"form" | "success">("form");
 
@@ -57,7 +55,6 @@ export function CheckoutView({ checkoutSettings, phone }: CheckoutViewProps) {
   // Same rules as the cart drawer (panel-managed, with the old literals
   // as fallback so nothing changes until the owner edits the panel).
   const checkout = checkoutSettings || ({} as CheckoutSettings);
-  const waPhone = (phone || "+971 55 110 3401").replace(/[^0-9]/g, "");
   const cityPromises = checkout.cityPromises?.length ? checkout.cityPromises : DEFAULT_CITIES;
   const paymentLabel = (key: string, fallback: string) =>
     (checkout.paymentLabels || []).find((l: any) => l.key === key)?.label || fallback;
@@ -71,10 +68,6 @@ export function CheckoutView({ checkoutSettings, phone }: CheckoutViewProps) {
   const grandTotal = subtotal + deliveryFee;
   const amountToFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
   const progressPercent = Math.min(100, (subtotal / freeShippingThreshold) * 100);
-
-  const waOrderText = `Hello Vape Mart UAE, I would like to order: ${items
-    .map((i) => `${i.title} (${i.variantLabel || i.flavor || "Standard"}) x${i.quantity}`)
-    .join(", ")} - Total: AED ${grandTotal.toFixed(2)}`;
 
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,14 +105,14 @@ export function CheckoutView({ checkoutSettings, phone }: CheckoutViewProps) {
       setStep("success");
       clearCart();
     } catch (err: any) {
-      setOrderError(err?.message || "Order failed. Please try WhatsApp ordering.");
+      setOrderError(err?.message || "Order failed. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const inputCls =
-    "w-full pl-10 pr-3 py-3 rounded-xl border border-neutral-300 text-sm text-neutral-900 focus:outline-none focus:border-[#064e3b] focus:ring-1 focus:ring-[#064e3b] bg-white";
+    "w-full min-w-0 pl-10 pr-3 py-3 rounded-xl border border-neutral-300 text-sm text-neutral-900 focus:outline-none focus:border-[#064e3b] focus:ring-1 focus:ring-[#064e3b] bg-white";
   const labelCls = "block text-xs font-bold text-neutral-700 mb-1.5";
 
   return (
@@ -182,17 +175,6 @@ export function CheckoutView({ checkoutSettings, phone }: CheckoutViewProps) {
               </div>
 
               <div className="space-y-2.5">
-                <a
-                  href={`https://wa.me/${waPhone}?text=${encodeURIComponent(
-                    `Hello Vape Mart Dispatch, I just placed Order ${placedOrderId} to ${customerCity}. My phone is ${customerPhone}. Please confirm driver dispatch status.`
-                  )}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-2 no-underline"
-                >
-                  <MessageCircle size={16} />
-                  <span>Track Order on WhatsApp</span>
-                </a>
                 <Link
                   href="/"
                   className="w-full py-3 border border-neutral-300 hover:bg-neutral-100 text-neutral-700 font-bold text-sm rounded-xl transition-colors flex items-center justify-center gap-2 no-underline"
@@ -258,14 +240,14 @@ export function CheckoutView({ checkoutSettings, phone }: CheckoutViewProps) {
                 {/* ----- Form ----- */}
                 <form
                   onSubmit={handlePlaceOrder}
-                  className="bg-white rounded-3xl border border-neutral-200/80 shadow-sm p-5 sm:p-7 space-y-7"
+                  className="bg-white rounded-3xl border border-neutral-200/80 shadow-sm p-5 sm:p-7 space-y-7 min-w-0"
                 >
                   <section className="space-y-4">
                     <h2 className="font-bold text-sm uppercase tracking-wider text-neutral-500">
                       Delivery Details
                     </h2>
                     <div className="grid sm:grid-cols-2 gap-4">
-                      <div>
+                      <div className="min-w-0">
                         <label htmlFor="co-name" className={labelCls}>
                           Full Name <span className="text-red-500">*</span>
                         </label>
@@ -286,7 +268,7 @@ export function CheckoutView({ checkoutSettings, phone }: CheckoutViewProps) {
                           />
                         </div>
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <label htmlFor="co-email" className={labelCls}>
                           Email <span className="text-red-500">*</span>
                         </label>
@@ -310,7 +292,7 @@ export function CheckoutView({ checkoutSettings, phone }: CheckoutViewProps) {
                     </div>
 
                     <div className="grid sm:grid-cols-2 gap-4">
-                      <div>
+                      <div className="min-w-0">
                         <label htmlFor="co-phone" className={labelCls}>
                           UAE Mobile Number <span className="text-red-500">*</span>
                         </label>
@@ -332,7 +314,7 @@ export function CheckoutView({ checkoutSettings, phone }: CheckoutViewProps) {
                           />
                         </div>
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <label htmlFor="co-city" className={labelCls}>
                           Emirate / City <span className="text-red-500">*</span>
                         </label>
@@ -340,7 +322,7 @@ export function CheckoutView({ checkoutSettings, phone }: CheckoutViewProps) {
                           id="co-city"
                           value={customerCity}
                           onChange={(e) => setCustomerCity(e.target.value)}
-                          className="w-full px-3 py-3 rounded-xl border border-neutral-300 text-sm text-neutral-900 focus:outline-none focus:border-[#064e3b] bg-white cursor-pointer"
+                          className="w-full min-w-0 px-3 py-3 rounded-xl border border-neutral-300 text-sm text-neutral-900 focus:outline-none focus:border-[#064e3b] bg-white cursor-pointer"
                         >
                           {cityPromises.map((c: any) => (
                             <option key={c.city} value={c.city}>
@@ -372,7 +354,7 @@ export function CheckoutView({ checkoutSettings, phone }: CheckoutViewProps) {
                           value={customerAddress}
                           onChange={(e) => setCustomerAddress(e.target.value)}
                           placeholder="Building name, apartment number, street name..."
-                          className="w-full pl-10 pr-3 py-3 rounded-xl border border-neutral-300 text-sm text-neutral-900 focus:outline-none focus:border-[#064e3b] focus:ring-1 focus:ring-[#064e3b] bg-white"
+                          className="w-full min-w-0 pl-10 pr-3 py-3 rounded-xl border border-neutral-300 text-sm text-neutral-900 focus:outline-none focus:border-[#064e3b] focus:ring-1 focus:ring-[#064e3b] bg-white"
                         />
                       </div>
                     </div>
@@ -387,7 +369,7 @@ export function CheckoutView({ checkoutSettings, phone }: CheckoutViewProps) {
                         type="button"
                         onClick={() => setPaymentMethod("cod")}
                         aria-pressed={paymentMethod === "cod"}
-                        className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col gap-1.5 ${
+                        className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col gap-1.5 min-w-0 ${
                           paymentMethod === "cod"
                             ? "border-[#064e3b] bg-emerald-50/70 text-neutral-900 ring-1 ring-[#064e3b]"
                             : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300"
@@ -405,7 +387,7 @@ export function CheckoutView({ checkoutSettings, phone }: CheckoutViewProps) {
                         type="button"
                         onClick={() => setPaymentMethod("card_on_delivery")}
                         aria-pressed={paymentMethod === "card_on_delivery"}
-                        className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col gap-1.5 ${
+                        className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col gap-1.5 min-w-0 ${
                           paymentMethod === "card_on_delivery"
                             ? "border-[#064e3b] bg-emerald-50/70 text-neutral-900 ring-1 ring-[#064e3b]"
                             : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300"
@@ -446,15 +428,6 @@ export function CheckoutView({ checkoutSettings, phone }: CheckoutViewProps) {
                   </p>
 
                   <div className="pt-1 border-t border-neutral-200">
-                    <a
-                      href={`https://wa.me/${waPhone}?text=${encodeURIComponent(waOrderText)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer no-underline text-center"
-                    >
-                      <MessageCircle size={16} />
-                      <span>Order via WhatsApp (Instant Dispatch)</span>
-                    </a>
                     <div className="flex items-center justify-center gap-4 text-[11px] text-neutral-500 pt-3">
                       <span className="flex items-center gap-1 font-semibold">
                         <ShieldCheck size={13} className="text-[#064e3b]" />
@@ -470,7 +443,7 @@ export function CheckoutView({ checkoutSettings, phone }: CheckoutViewProps) {
                 </form>
 
                 {/* ----- Order summary ----- */}
-                <aside className="bg-white rounded-3xl border border-neutral-200/80 shadow-sm p-5 sm:p-6 lg:sticky lg:top-6">
+                <aside className="bg-white rounded-3xl border border-neutral-200/80 shadow-sm p-5 sm:p-6 lg:sticky lg:top-6 min-w-0">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="font-bold text-base text-neutral-900">Your Order</h2>
                     <button
