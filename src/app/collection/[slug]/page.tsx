@@ -1,9 +1,10 @@
 import CollectionSlugPage, {
   generateMetadata,
   generateStaticParams,
-  dynamicParams,
-  revalidate,
 } from "../../collections/[slug]/page";
 
-export { generateMetadata, generateStaticParams, dynamicParams, revalidate };
+export const dynamicParams = true;
+export const revalidate = 86400;
+
+export { generateMetadata, generateStaticParams };
 export default CollectionSlugPage;

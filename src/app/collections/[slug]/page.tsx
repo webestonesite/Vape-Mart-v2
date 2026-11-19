@@ -8,7 +8,7 @@ import {
   getCategoryBySlugSync,
   normalizeCategorySlug,
 } from "@/data/products-shopify";
-import { fetchShopSettings } from "@/lib/shopify";
+import { fetchShopSettings, fetchCollectionMeta } from "@/lib/shopify";
 import { fetchNavMenu } from "@/components/menu";
 import { CollectionPageView } from "@/components/collection/CollectionPageView";
 
@@ -21,9 +21,22 @@ export const revalidate = 86400;
 
 export async function generateStaticParams() {
   try {
-    const categories = await fetchCategories();
-    return categories.map((c) => ({
-      slug: c.slug,
+    const [categories, allProducts, meta] = await Promise.all([
+      fetchCategories(),
+      fetchAllProducts(),
+      fetchCollectionMeta(),
+    ]);
+    const slugs = new Set<string>();
+    for (const c of categories) if (c.slug) slugs.add(c.slug);
+    for (const h of Object.keys(meta.byHandle || {})) if (h) slugs.add(h);
+    for (const p of allProducts) {
+      if (p.categorySlug) slugs.add(p.categorySlug);
+      for (const col of p.shopifyCollections || []) {
+        if (col.slug) slugs.add(col.slug);
+      }
+    }
+    return Array.from(slugs).map((slug) => ({
+      slug,
     }));
   } catch {
     return [];

@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import type { ProductItem, ProductFlavor, ProductReview } from "@/types/product";
 
 /* ------------------------------------------------------------------ */
@@ -425,15 +426,46 @@ const LIST_QUERY = `
 
 let catalogCache: { products: ProductItem[]; timestamp: number } | null = null;
 let catalogInFlight: Promise<ProductItem[]> | null = null;
-const CATALOG_CACHE_TTL_MS = 60 * 1000; // 60s memory cache
+const MEMORY_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24h memory cache (cleared instantly on admin saves/webhooks)
 let lastSuccessfulCatalog: ProductItem[] = [];
+
+let menuCache: { data: MenuLink[]; timestamp: number } | null = null;
+let settingsCache: { data: ShopSettings; timestamp: number } | null = null;
+let collectionMetaCache: { data: any; timestamp: number } | null = null;
+let siteContentCache: { data: SiteContent; timestamp: number } | null = null;
 
 export function invalidateCatalogCache(): void {
   catalogCache = null;
+  catalogInFlight = null;
 }
 
-export async function fetchAllShopifyProducts(): Promise<ProductItem[]> {
-  if (catalogCache && Date.now() - catalogCache.timestamp < CATALOG_CACHE_TTL_MS) {
+export function invalidateMenuCache(): void {
+  menuCache = null;
+}
+
+export function invalidateShopSettingsCache(): void {
+  settingsCache = null;
+}
+
+export function invalidateCollectionMetaCache(): void {
+  collectionMetaCache = null;
+}
+
+export function invalidateSiteContentCache(): void {
+  siteContentCache = null;
+}
+
+export function invalidateAllMemoryCaches(): void {
+  catalogCache = null;
+  catalogInFlight = null;
+  menuCache = null;
+  settingsCache = null;
+  collectionMetaCache = null;
+  siteContentCache = null;
+}
+
+async function fetchAllShopifyProductsInternal(): Promise<ProductItem[]> {
+  if (catalogCache && Date.now() - catalogCache.timestamp < MEMORY_CACHE_TTL_MS) {
     return catalogCache.products;
   }
   if (catalogInFlight) {
@@ -495,6 +527,8 @@ export async function fetchAllShopifyProducts(): Promise<ProductItem[]> {
   return catalogInFlight;
 }
 
+export const fetchAllShopifyProducts = cache(fetchAllShopifyProductsInternal);
+
 const DETAIL_QUERY = `
   query ProductDetail($handle: String!) {
     productByHandle(handle: $handle) {
@@ -513,7 +547,7 @@ const DETAIL_QUERY = `
   }
 `;
 
-export async function fetchShopifyProductByHandle(handle: string): Promise<ProductItem | null> {
+export const fetchShopifyProductByHandle = cache(async function fetchShopifyProductByHandle(handle: string): Promise<ProductItem | null> {
   const data = await shopifyAdmin<{
     productByHandle: (ShopifyProductNode & { flavorRefs: { references: { nodes: FlavorMetaobject[] } } | null }) | null;
   }>(DETAIL_QUERY, { handle }, 86400, ["products", `product-${handle}`]);
@@ -535,7 +569,7 @@ export async function fetchShopifyProductByHandle(handle: string): Promise<Produ
     }
   } catch { /* related handles optional */ }
   return toProductItem(node, flavors, relatedById);
-}
+});
 
 /* ------------------------------------------------------------------ */
 /*  Phase 2 storefront reads: product reviews + collection meta        */
@@ -609,10 +643,13 @@ export interface CollectionMeta {
   showAsCard?: boolean;
 }
 
-export async function fetchCollectionMeta(): Promise<{
+export const fetchCollectionMeta = cache(async function fetchCollectionMeta(): Promise<{
   byHandle: Record<string, CollectionMeta>;
   faqsByHandle: Record<string, { q: string; a: string }[]>;
 }> {
+  if (collectionMetaCache && Date.now() - collectionMetaCache.timestamp < MEMORY_CACHE_TTL_MS) {
+    return collectionMetaCache.data;
+  }
   try {
     const d = await shopifyAdmin<any>(
       `query CollectionMeta {
@@ -652,11 +689,13 @@ export async function fetchCollectionMeta(): Promise<{
     const faqsByHandle: Record<string, { q: string; a: string }[]> = {};
     for (const [h, list] of Object.entries(faqsWithPos))
       faqsByHandle[h] = list.sort((a, b) => a.position - b.position).map(({ q, a }) => ({ q, a }));
-    return { byHandle, faqsByHandle };
+    const result = { byHandle, faqsByHandle };
+    collectionMetaCache = { data: result, timestamp: Date.now() };
+    return result;
   } catch {
-    return { byHandle: {}, faqsByHandle: {} };
+    return collectionMetaCache?.data || { byHandle: {}, faqsByHandle: {} };
   }
-}
+});
 
 /* ------------------------------------------------------------------ */
 /*  Menu (vape-mart-main-menu)                                         */
@@ -697,15 +736,20 @@ function mapMenuItems(items: any[]): MenuLink[] {
   }));
 }
 
-export async function fetchShopifyMenu(): Promise<MenuLink[]> {
+export const fetchShopifyMenu = cache(async function fetchShopifyMenu(): Promise<MenuLink[]> {
+  if (menuCache && Date.now() - menuCache.timestamp < MEMORY_CACHE_TTL_MS) {
+    return menuCache.data;
+  }
   try {
     const data = await shopifyAdmin<{ menu: { items: any[] } | null }>(MENU_QUERY, { id: MENU_ID }, 86400, ["menu"]);
     if (!data.menu) return [];
-    return mapMenuItems(data.menu.items);
+    const items = mapMenuItems(data.menu.items);
+    menuCache = { data: items, timestamp: Date.now() };
+    return items;
   } catch {
-    return [];
+    return menuCache?.data || [];
   }
-}
+});
 
 /* ------------------------------------------------------------------ */
 /*  Shop settings (announcements, phone, footer text, logo)            */
@@ -814,7 +858,7 @@ const SHOP_META_QUERY = `
    data cache, so a save looked like it did not happen for up to 10 min.
    getPanelData() passes revalidate 0 (fresh read); the storefront keeps
    the 600 s default. */
-export async function fetchShopSettings(revalidate = 86400): Promise<ShopSettings> {
+export const fetchShopSettings = cache(async function fetchShopSettings(revalidate = 86400): Promise<ShopSettings> {
   const fallback: ShopSettings = {
     announcements: [], phone: "", footerText: "", logoUrl: "",
     checkout: { freeShippingThreshold: 0, deliveryFee: 0, vatNote: "", cityPromises: [], paymentLabels: [] },
@@ -825,6 +869,9 @@ export async function fetchShopSettings(revalidate = 86400): Promise<ShopSetting
     blog: { categories: [], categoryColors: {} },
     pages: { aboutValues: [], aboutStats: [], contactCards: [], pageHeroSubtitles: {} },
   };
+  if (revalidate > 0 && settingsCache && Date.now() - settingsCache.timestamp < MEMORY_CACHE_TTL_MS) {
+    return settingsCache.data;
+  }
   try {
     const data = await shopifyAdmin<{
       shop: {
@@ -853,7 +900,7 @@ export async function fetchShopSettings(revalidate = 86400): Promise<ShopSetting
       const logoRef = JSON.parse(mf["store.logo"] || "null");
       logoUrl = logoRef?.image?.url || logoRef?.url || "";
     } catch { /* ignore */ }
-    return {
+    const result: ShopSettings = {
       announcements: parseList(mf["store.announcements"]),
       phone: mf["store.phone"] || "",
       footerText: mf["store.footer_text"] || "",
@@ -908,10 +955,14 @@ export async function fetchShopSettings(revalidate = 86400): Promise<ShopSetting
         pageHeroSubtitles: parseJson(mf["pages.page_hero_subtitles"], {}),
       },
     };
+    if (revalidate > 0) {
+      settingsCache = { data: result, timestamp: Date.now() };
+    }
+    return result;
   } catch {
-    return fallback;
+    return settingsCache?.data || fallback;
   }
-}
+});
 
 /* ------------------------------------------------------------------ */
 /*  Blog (Shopify Articles)                                            */
@@ -1202,7 +1253,10 @@ async function fetchSectionProducts(ids: string[]): Promise<Map<string, ProductI
   return out;
 }
 
-export async function fetchSiteContent(): Promise<SiteContent> {
+export const fetchSiteContent = cache(async function fetchSiteContent(): Promise<SiteContent> {
+  if (siteContentCache && Date.now() - siteContentCache.timestamp < MEMORY_CACHE_TTL_MS) {
+    return siteContentCache.data;
+  }
   /* B2 (2026-11-11): the meta queries are valid on the pinned API 2025-07
      (the live /api/site-content returns full data right now) — the empty
      arrays were a transient failure (throttle / Shopify hiccup) that the
@@ -1346,8 +1400,9 @@ export async function fetchSiteContent(): Promise<SiteContent> {
     errors.push(`showcaseCards mapping failed: ${errMsg(e)}`);
   }
   if (errors.length) out.error = errors.join("; ");
+  siteContentCache = { data: out, timestamp: Date.now() };
   return out;
-}
+});
 
 /* ------------------------------------------------------------------ */
 /*  Draft orders (custom checkout)                                     */

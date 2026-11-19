@@ -15,7 +15,7 @@ export const revalidate = 86400;
 export async function generateStaticParams() {
   try {
     const products = await fetchAllProducts();
-    return products.slice(0, 30).map((p) => ({
+    return products.map((p) => ({
       slug: p.slug,
     }));
   } catch {

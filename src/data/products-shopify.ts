@@ -4,6 +4,7 @@
 /*  so the site never breaks.                                          */
 /* ------------------------------------------------------------------ */
 
+import { cache } from "react";
 import { ProductItem, CollectionCategory } from "@/types/product";
 import {
   fetchAllShopifyProducts,
@@ -35,7 +36,7 @@ function withNormalizedCategories(products: ProductItem[]): ProductItem[] {
   }));
 }
 
-export async function fetchAllProducts(): Promise<ProductItem[]> {
+export const fetchAllProducts = cache(async function fetchAllProducts(): Promise<ProductItem[]> {
   try {
     const products = await fetchAllShopifyProducts();
     if (products.length > 0) return withNormalizedCategories(products);
@@ -43,9 +44,9 @@ export async function fetchAllProducts(): Promise<ProductItem[]> {
   } catch {
     return localProducts;
   }
-}
+});
 
-export async function fetchProductBySlug(slug: string): Promise<ProductItem | undefined> {
+export const fetchProductBySlug = cache(async function fetchProductBySlug(slug: string): Promise<ProductItem | undefined> {
   try {
     const p = await fetchShopifyProductByHandle(slug);
     if (p) {
@@ -66,9 +67,9 @@ export async function fetchProductBySlug(slug: string): Promise<ProductItem | un
     }
   } catch { /* fallback below */ }
   return localProducts.find((p) => p.slug === slug);
-}
+});
 
-export async function fetchProductsByCategory(categorySlug: string): Promise<ProductItem[]> {
+export const fetchProductsByCategory = cache(async function fetchProductsByCategory(categorySlug: string): Promise<ProductItem[]> {
   const all = await fetchAllProducts();
   if (!categorySlug || categorySlug === "all") return all;
   const norm = normalizeCategorySlug(categorySlug);
@@ -80,7 +81,7 @@ export async function fetchProductsByCategory(categorySlug: string): Promise<Pro
   // Empty stays empty: an empty or unknown category never falls back to
   // the whole catalogue (that silent fallback hid miscategorised products).
   return filtered;
-}
+});
 
 /** The six shop families. A family page shows every ACTIVE product in any
     of its collections, deduped (a product in two family collections still
@@ -169,7 +170,7 @@ export async function fetchRelatedProducts(slug: string): Promise<ProductItem[]>
     TEREA / IQOS / JUUL families, then the synthetic Shop All card. Counts
     are family counts over the ACTIVE catalogue (deduped), not membership
     counts, so a product in two family collections is counted once. */
-export async function fetchCategories(): Promise<CollectionCategory[]> {
+export const fetchCategories = cache(async function fetchCategories(): Promise<CollectionCategory[]> {
   const [all, meta] = await Promise.all([fetchAllProducts(), fetchCollectionMeta()]);
   // Panel-managed collection meta, keyed by normalized slug (handles are aliased above).
   const metaBySlug: Record<string, { badge?: string; heroSubtitle?: string; showAsCard?: boolean }> = {};
@@ -267,7 +268,7 @@ export async function fetchCategories(): Promise<CollectionCategory[]> {
     });
   }
   return [...ordered, ...extra];
-}
+});
 
 export function getCategoryBySlugSync(slug: string): CollectionCategory | undefined {
   return localCategories.find((c) => c.slug === slug);

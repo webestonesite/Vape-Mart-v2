@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { fetchShopifyMenu, type MenuLink } from "@/lib/shopify";
 import type { HeaderNavItem } from "./Header";
 
@@ -20,10 +21,10 @@ export function mapMenuToNavItems(items: MenuLink[]): HeaderNavItem[] {
   }));
 }
 
-export async function fetchNavMenu(): Promise<HeaderNavItem[]> {
+export const fetchNavMenu = cache(async function fetchNavMenu(): Promise<HeaderNavItem[]> {
   try {
     return mapMenuToNavItems(await fetchShopifyMenu());
   } catch {
     return [];
   }
-}
+});

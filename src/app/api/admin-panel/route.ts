@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { revalidateTag, revalidatePath } from "next/cache";
+import { invalidateAllMemoryCaches } from "@/lib/shopify";
 import {
   SESSION_COOKIE,
   createCollection,
@@ -131,6 +132,11 @@ export async function GET(req: Request) {
 }
 
 function purgeCache(tags: string[], paths: string[] = []) {
+  try {
+    invalidateAllMemoryCaches();
+  } catch {
+    // Non-fatal
+  }
   for (const tag of tags) {
     try {
       revalidateTag(tag, { expire: 0 });

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag, revalidatePath } from "next/cache";
 import crypto from "crypto";
 import { env } from "@/core/config/env";
+import { invalidateAllMemoryCaches } from "@/lib/shopify";
 
 export const runtime = "nodejs";
 
@@ -16,6 +17,11 @@ function verifyShopifyHmac(body: string, hmacHeader: string, secret: string): bo
 }
 
 function purgeTag(tag: string) {
+  try {
+    invalidateAllMemoryCaches();
+  } catch {
+    // Non-fatal
+  }
   try {
     // Next.js 16 revalidateTag requires tag and cache profile / expire object
     revalidateTag(tag, { expire: 0 });

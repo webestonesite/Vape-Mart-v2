@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { invalidateAllMemoryCaches } from "@/lib/shopify";
 import {
   createAdminProduct,
   deleteAdminProduct,
@@ -24,6 +25,11 @@ import type {
 } from "./types";
 
 function revalidateProductCaches(handle?: string) {
+  try {
+    invalidateAllMemoryCaches();
+  } catch {
+    // Non-fatal
+  }
   purgeTag("admin-products");
   purgeTag("products");
   purgeTag("sitemap");
