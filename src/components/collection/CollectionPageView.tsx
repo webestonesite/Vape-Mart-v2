@@ -38,7 +38,7 @@ import {
 } from "lucide-react";
 import { ProductItem, CollectionCategory, CartItem } from "@/types/product";
 import type { CollectionPageSettings } from "@/lib/shopify";
-import { Header } from "@/components/Header";
+import { Header, type HeaderNavItem } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ProductCard } from "./ProductCard";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
@@ -50,6 +50,7 @@ interface CollectionPageViewProps {
   allCategories: CollectionCategory[];
   products: ProductItem[];
   catalogProducts?: ProductItem[];
+  menu?: HeaderNavItem[];
 }
 
 const WHATSAPP_LINK = "https://wa.me/971551103401?text=Hi%20Vape%20Mart!%20I%20need%20help%20choosing%20a%20vape.";
@@ -154,7 +155,7 @@ function QuizDropdown({
   );
 }
 
-export function CollectionPageView({ category, allCategories, products, catalogProducts, pageSettings}: CollectionPageViewProps) {
+export function CollectionPageView({ category, allCategories, products, catalogProducts, pageSettings, menu }: CollectionPageViewProps) {
   const catalog = catalogProducts ?? products;
   // ---- filter state ----
   // Menu links like /collections?search=elf+bar pre-fill the search box
@@ -584,7 +585,7 @@ export function CollectionPageView({ category, allCategories, products, catalogP
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-neutral-900 flex flex-col">
-      <Header />
+      <Header initialNavItems={menu ?? []} />
 
       {/* ============ HERO BANNER (cinematic) ============ */}
       <section

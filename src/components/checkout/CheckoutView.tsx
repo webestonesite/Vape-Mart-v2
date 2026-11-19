@@ -18,7 +18,7 @@ import {
   Truck,
   User,
 } from "lucide-react";
-import { Header } from "@/components/Header";
+import { Header, type HeaderNavItem } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { useCart } from "@/modules/cart/CartProvider";
 import type { CheckoutSettings } from "@/lib/shopify";
@@ -35,9 +35,10 @@ const DEFAULT_CITIES = [
 
 interface CheckoutViewProps {
   checkoutSettings: CheckoutSettings | null;
+  menu?: HeaderNavItem[];
 }
 
-export function CheckoutView({ checkoutSettings }: CheckoutViewProps) {
+export function CheckoutView({ checkoutSettings, menu }: CheckoutViewProps) {
   const { items, subtotal, clearCart, openCart, isHydrated } = useCart();
   const [step, setStep] = useState<"form" | "success">("form");
 
@@ -117,7 +118,7 @@ export function CheckoutView({ checkoutSettings }: CheckoutViewProps) {
 
   return (
     <>
-      <Header />
+      <Header initialNavItems={menu ?? []} />
       <main className="min-h-screen bg-neutral-50">
         <div className="max-w-[1120px] mx-auto px-4 sm:px-6 py-6 sm:py-10">
           {/* Crumbs + title */}

@@ -4,7 +4,7 @@ import { ShieldCheck, Truck, BadgeCheck, Headset, ArrowRight, Award, PackageChec
 import { PageHero } from "@/components/PageHero";
 import { getShopifyPageBody } from "@/lib/shopify-pages";
 import { fetchShopSettings } from "@/lib/shopify";
-import { Header } from "@/components/Header";
+import { SiteHeader } from "@/components/SiteHeader";
 import { Footer } from "@/components/Footer";
 
 export const metadata: Metadata = {
@@ -55,7 +55,7 @@ export default async function AboutPage() {
     : stats;
   return (
     <>
-      <Header />
+      <SiteHeader />
       <main className="min-h-screen bg-white">
         <PageHero
           badge="Our Story"

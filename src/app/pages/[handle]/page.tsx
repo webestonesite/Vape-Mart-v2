@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { fetchShopifyPage } from "@/lib/shopify";
-import { Header } from "@/components/Header";
+import { SiteHeader } from "@/components/SiteHeader";
 import { Footer } from "@/components/Footer";
 
 export const dynamicParams = true;
@@ -36,7 +36,7 @@ export default async function ShopifyCmsPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-black text-foreground">
-      <Header />
+      <SiteHeader />
       <main className="mx-auto max-w-4xl px-4 py-16 sm:px-6">
         <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
           {page.title}

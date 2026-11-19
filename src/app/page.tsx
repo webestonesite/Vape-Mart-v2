@@ -1,4 +1,4 @@
-import { Header } from "@/components/Header";
+import { SiteHeader } from "@/components/SiteHeader";
 import { Footer } from "@/components/Footer";
 import { SectionErrorBoundary } from "@/components/common/SectionErrorBoundary";
 import { cdnWidth } from "@/lib/cdn";
@@ -192,7 +192,7 @@ export default async function Home() {
   return (
     <div className="min-h-screen bg-white text-neutral-900 font-sans selection:bg-[#064e3b] selection:text-white flex flex-col">
       {/* Global Unified Header Component */}
-      <Header />
+      <SiteHeader />
 
       <main className="flex-1 flex flex-col">
         {/* 1. Hero Section */}

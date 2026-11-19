@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { CalendarDays, Clock, ChevronRight, ArrowRight, Zap } from "lucide-react";
 import { blogPosts } from "@/data/blog";
 import { getDisplayPost, getDisplayPosts } from "@/lib/blog-adapter";
-import { Header } from "@/components/Header";
+import { SiteHeader } from "@/components/SiteHeader";
 import { Footer } from "@/components/Footer";
 import { BlogCard, CoverImage, categoryBadge } from "@/components/blog/BlogCard";
 import { ShareButtons } from "@/components/blog/ShareButtons";
@@ -42,7 +42,7 @@ export default async function BlogArticlePage({ params }: Props) {
 
   return (
     <>
-      <Header />
+      <SiteHeader />
       <main className="min-h-screen bg-[#f7f8f7]">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-8 sm:py-10">
           {/* Article card — white, bordered, separated from the page background */}

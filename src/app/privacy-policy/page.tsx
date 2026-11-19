@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { PageHero } from "@/components/PageHero";
 import { getShopifyPageSections } from "@/lib/shopify-pages";
 import { fetchShopSettings } from "@/lib/shopify";
-import { Header } from "@/components/Header";
+import { SiteHeader } from "@/components/SiteHeader";
 import { Footer } from "@/components/Footer";
 
 export const metadata: Metadata = {
@@ -69,7 +69,7 @@ export default async function PrivacyPolicyPage() {
   const settings = await fetchShopSettings();
   return (
     <>
-      <Header />
+      <SiteHeader />
       <main className="min-h-screen bg-white">
         <PageHero
           badge="Legal"

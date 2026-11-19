@@ -9,6 +9,7 @@ import {
   normalizeCategorySlug,
 } from "@/data/products-shopify";
 import { fetchShopSettings } from "@/lib/shopify";
+import { fetchNavMenu } from "@/components/menu";
 import { CollectionPageView } from "@/components/collection/CollectionPageView";
 
 interface CollectionSlugPageProps {
@@ -67,10 +68,11 @@ export default async function CollectionSlugPage({ params }: CollectionSlugPageP
   // Normalise first, so /collections/e-liquids resolves first-class as the
   // e-liquid category instead of falling through to the brand branch.
   const norm = normalizeCategorySlug(slug);
-  const [categories, allProducts, settings] = await Promise.all([
+  const [categories, allProducts, settings, menu] = await Promise.all([
     fetchCategories().catch(() => []),
     fetchAllProducts().catch(() => []),
     fetchShopSettings().catch(() => null),
+    fetchNavMenu(),
   ]);
   const category = categories.find((c) => c.slug === norm) || getCategoryBySlugSync(norm);
 
@@ -119,11 +121,12 @@ export default async function CollectionSlugPage({ params }: CollectionSlugPageP
           products={brandProducts}
           catalogProducts={catalogProjection}
           pageSettings={settings?.collectionPage}
+          menu={menu}
         />
       );
     }
     // Unknown slug with no products: show empty state
-    return <CollectionPageView allCategories={categories} products={[]} catalogProducts={catalogProjection} pageSettings={settings?.collectionPage} />;
+    return <CollectionPageView allCategories={categories} products={[]} catalogProducts={catalogProjection} pageSettings={settings?.collectionPage} menu={menu} />;
   }
 
   const categoryProducts = await fetchProductsByCategory(category.slug);
@@ -178,6 +181,7 @@ export default async function CollectionSlugPage({ params }: CollectionSlugPageP
           products={categoryProducts}
           catalogProducts={catalogProjection}
           pageSettings={settings?.collectionPage}
+          menu={menu}
         />
       </Suspense>
     </>

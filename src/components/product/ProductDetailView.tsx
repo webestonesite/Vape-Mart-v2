@@ -30,7 +30,7 @@ import {
 import { ProductItem, CartItem } from "@/types/product";
 import type { ProductPageSettings } from "@/lib/shopify";
 import { buildProductFaqs } from "./productSeo";
-import { Header } from "@/components/Header";
+import { Header, type HeaderNavItem } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { useCart } from "@/modules/cart/CartProvider";
@@ -40,6 +40,7 @@ interface ProductDetailViewProps {
   relatedProducts: ProductItem[];
   pageSettings?: ProductPageSettings;
   phone?: string;
+  menu?: HeaderNavItem[];
 }
 
 function formatAED(n: number): string {
@@ -56,7 +57,7 @@ function Stars({ rating, size = 14 }: { rating: number; size?: number }) {
   );
 }
 
-export function ProductDetailView({ product, relatedProducts, pageSettings, phone }: ProductDetailViewProps) {
+export function ProductDetailView({ product, relatedProducts, pageSettings, phone, menu }: ProductDetailViewProps) {
   // WhatsApp number comes from the panel (store.phone); literals are fallback.
   const waPhoneDisplay = phone || "+971 55 110 3401";
   const waDigits = waPhoneDisplay.replace(/[^0-9]/g, "");
@@ -264,7 +265,7 @@ export function ProductDetailView({ product, relatedProducts, pageSettings, phon
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-neutral-900 flex flex-col">
-      <Header />
+      <Header initialNavItems={menu ?? []} />
 
       <main className="flex-1 w-full max-w-[1240px] xl:max-w-[1520px] mx-auto px-4 sm:px-6 xl:px-10 pt-4 sm:pt-6 xl:pt-8 pb-10">
         {/* breadcrumb */}

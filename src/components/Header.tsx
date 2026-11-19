@@ -82,9 +82,13 @@ export interface ThemeHeaderConfig {
 export interface HeaderProps {
   onCartClick?: () => void;
   cartCount?: number;
+  /* Nav items from the Shopify menu, passed by the server header (or by
+     the page for client views). No baked-in fallback: when absent the nav
+     renders empty rather than stale menu items. */
+  initialNavItems?: HeaderNavItem[];
 }
 
-export function Header({ onCartClick, cartCount = 0 }: HeaderProps) {
+export function Header({ onCartClick, cartCount = 0, initialNavItems }: HeaderProps) {
   /* One shared cart (CartProvider): the header badge and the drawer read
      the same items the /checkout page reads. onCartClick/cartCount stay
      as optional overrides for callers that still pass them. */
@@ -96,9 +100,10 @@ export function Header({ onCartClick, cartCount = 0 }: HeaderProps) {
   const [dropPositions, setDropPositions] = useState<Record<number, { left: number; top: number; width: number }>>({});
   const [expandedMobileMenuIdx, setExpandedMobileMenuIdx] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [headerData, setHeaderData] = useState<ThemeHeaderConfig | undefined>(
-    themePublished.header as unknown as ThemeHeaderConfig
-  );
+  const [headerData, setHeaderData] = useState<ThemeHeaderConfig | undefined>(() => ({
+    ...(themePublished.header as unknown as ThemeHeaderConfig),
+    navItems: initialNavItems ?? [],
+  }));
 
   const pathname = usePathname();
   const router = useRouter();
@@ -127,30 +132,8 @@ export function Header({ onCartClick, cartCount = 0 }: HeaderProps) {
       .catch(() => {});
   }, []);
 
-  // Shopify menu (vape-mart-main-menu) overrides nav items when available.
-  // Falls back to the baked-in nav on any failure — design never changes.
-  useEffect(() => {
-    fetch("/api/menu")
-      .then((res) => res.json())
-      .then((data) => {
-        const items = data?.items;
-        if (!Array.isArray(items) || items.length === 0) return;
-        const navItems: HeaderNavItem[] = items.map((it: any) => ({
-          label: it.title,
-          href: it.url || "#",
-          hasDropdown: Array.isArray(it.children) && it.children.length > 0,
-          columns: (it.children || []).map((col: any) => ({
-            heading: col.title,
-            items: (col.children || []).map((link: any) => ({
-              title: link.title,
-              href: link.url || "#",
-            })),
-          })),
-        }));
-        setHeaderData((prev) => (prev ? { ...prev, navItems } : prev));
-      })
-      .catch(() => {});
-  }, []);
+  // (The nav now arrives server-side via initialNavItems — there is no
+  // client-side menu fetch and no baked-in fallback menu.)
 
   // Site settings from Shopify (store metafields): the top-bar
   // announcements and phone are edited in Shopify admin, no deploy.
