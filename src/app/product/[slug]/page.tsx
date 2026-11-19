@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { fetchProductBySlug, fetchRelatedProducts, fetchAllProducts } from "@/data/products-shopify";
 import { fetchProductReviews, fetchProductFaqs, fetchShopSettings } from "@/lib/shopify";
+import { fetchNavMenu } from "@/components/menu";
 import { ProductDetailView } from "@/components/product/ProductDetailView";
 
 interface ProductPageProps {
@@ -49,11 +50,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
   }
 
   // Parallel fetch with individual error isolation (high-end resilience)
-  const [related, reviews, productFaqs, settings] = await Promise.all([
+  const [related, reviews, productFaqs, settings, menu] = await Promise.all([
     fetchRelatedProducts(product.slug).catch(() => []),
     fetchProductReviews(product.id).catch(() => []),
     fetchProductFaqs(product.id).catch(() => []),
     fetchShopSettings().catch(() => null),
+    fetchNavMenu(),
   ]);
 
   const productWithReviews = {
@@ -128,7 +130,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
-      <ProductDetailView product={productWithReviews} relatedProducts={related} pageSettings={settings?.productPage} phone={settings?.phone} />
+      <ProductDetailView product={productWithReviews} relatedProducts={related} pageSettings={settings?.productPage} phone={settings?.phone} menu={menu} />
     </>
   );
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { fetchShopSettings } from "@/lib/shopify";
+import { fetchNavMenu } from "@/components/menu";
 import { CheckoutView } from "@/components/checkout/CheckoutView";
 
 export const metadata: Metadata = {
@@ -14,6 +15,6 @@ export const metadata: Metadata = {
 export const revalidate = 300;
 
 export default async function CheckoutPage() {
-  const settings = await fetchShopSettings();
-  return <CheckoutView checkoutSettings={settings.checkout} />;
+  const [settings, menu] = await Promise.all([fetchShopSettings(), fetchNavMenu()]);
+  return <CheckoutView checkoutSettings={settings.checkout} menu={menu} />;
 }

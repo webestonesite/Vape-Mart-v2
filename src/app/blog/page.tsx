@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { ShieldCheck, Truck, BadgeCheck } from "lucide-react";
 import { getDisplayPosts } from "@/lib/blog-adapter";
 import { fetchShopSettings } from "@/lib/shopify";
-import { Header } from "@/components/Header";
+import { SiteHeader } from "@/components/SiteHeader";
 import { Footer } from "@/components/Footer";
 import { BlogExplorer } from "@/components/blog/BlogExplorer";
 
@@ -17,7 +17,7 @@ export default async function BlogPage() {
   const settings = await fetchShopSettings();
   return (
     <>
-      <Header />
+      <SiteHeader />
       <main className="min-h-screen bg-[#f7f8f7]">
         {/* Page header — simple title + subtitle, no hero band */}
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 pt-10 sm:pt-14 pb-2">

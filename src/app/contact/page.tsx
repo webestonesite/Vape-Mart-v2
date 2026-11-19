@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { MapPin, Phone, Mail, Clock, Send, CheckCircle2 } from "lucide-react";
 import { PageHero } from "@/components/PageHero";
-import { Header } from "@/components/Header";
+import { Header, type HeaderNavItem } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 
 const channels = [
@@ -37,6 +37,15 @@ const channels = [
 
 export default function ContactPage() {
   const [sent, setSent] = useState(false);
+  // Menu comes from Shopify (live); the nav starts empty, never stale —
+  // this page is a client component (form) so it cannot use SiteHeader.
+  const [menuItems, setMenuItems] = useState<HeaderNavItem[]>([]);
+  useEffect(() => {
+    fetch("/api/menu")
+      .then((res) => res.json())
+      .then((data) => { if (Array.isArray(data?.items)) setMenuItems(data.items); })
+      .catch(() => {});
+  }, []);
   // The intro copy is edited in Shopify admin (Content → Pages → Contact).
   const [introHtml, setIntroHtml] = useState("");
   // Contact cards + hero subtitle from the panel (shop metafields, namespace "pages").
@@ -63,7 +72,7 @@ export default function ContactPage() {
 
   return (
     <>
-      <Header />
+      <Header initialNavItems={menuItems} />
       <main className="min-h-screen bg-white">
         <PageHero
           badge="Get In Touch"
