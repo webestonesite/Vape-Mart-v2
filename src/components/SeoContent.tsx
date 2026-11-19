@@ -15,11 +15,11 @@ export function SeoContent() {
               Vape Mart UAE
             </span>
             <h2 className="text-2xl sm:text-3xl font-bold text-[#064e3b] mb-4">
-              Buy Vapes in the UAE, Without the Guesswork
+              Buy Vapes in Dubai, UAE. Without the Guesswork
             </h2>
             <div className="space-y-4 text-neutral-600 leading-relaxed text-[15px] sm:text-base">
               <p>
-                Shopping for a vape in the UAE should be simple. You want a genuine device, a flavour
+                Buying a vape in the UAE should be simple. You want a genuine device, a flavour
                 you actually like, and a clear price in AED with no need to work it out in your head.
                 That is what Vape Mart is built around. As the best vape shop in Dubai for online
                 orders, Vape Mart serves Dubai, Sharjah, Ajman and Abu Dhabi with a focused range of
@@ -39,20 +39,7 @@ export function SeoContent() {
           <div className="mt-10">
             <h2 className="text-2xl sm:text-3xl font-bold text-[#064e3b] mb-4">What You Will Find Here</h2>
             <div className="space-y-4 text-neutral-600 leading-relaxed text-[15px] sm:text-base">
-              <h3 className="text-lg sm:text-xl font-bold text-neutral-900">JUUL and JUUL 2 pods</h3>
-              <p>
-                JUUL is where many vapers in the UAE start, because it keeps things simple. The device
-                is small enough to fit in your pocket, it has no buttons to learn, and the pods click
-                in and out in seconds. JUUL 2 builds on the same idea with a wider pod range to choose
-                from. When you buy JUUL online in the UAE from Vape Mart, the best JUUL shop in Dubai
-                for starter kits and pods, you pick your flavour and nicotine strength from simple
-                options and the price and stock update to match the exact one you chose. Tobacco and
-                menthol are covered, with JUUL Virginia Tobacco and Mint pods still the classics, while
-                the fruit ice pods are the ones people reorder most. You will find JUUL salt nicotine
-                pods in 3% and 5% and also in 18 mg, along with an authentic JUUL starter kit if you
-                are starting from scratch.
-              </p>
-              <h3 className="text-lg sm:text-xl font-bold text-neutral-900">TEREA and IQOS heated tobacco</h3>
+              <h3 className="text-lg sm:text-xl font-bold text-neutral-900">IQOS Devices and TEREA Sticks</h3>
               <p>
                 TEREA sticks are made for IQOS and Lambda devices. Lambda is a third-party device for
                 TEREA sticks. They suit smokers who want the real tobacco taste without smoke, ash or
@@ -65,7 +52,20 @@ export function SeoContent() {
                 the best, original TEREA sticks in the UAE and TEREA delivery throughout Dubai and the
                 Emirates.
               </p>
-              <h3 className="text-lg sm:text-xl font-bold text-neutral-900">Disposable vapes</h3>
+              <h3 className="text-lg sm:text-xl font-bold text-neutral-900">JUUL and JUUL 2 pods in Dubai</h3>
+              <p>
+                JUUL is where many vapers in the UAE start, because it keeps things simple. The device
+                is small enough to fit in your pocket, it has no buttons to learn, and the pods click
+                in and out in seconds. JUUL 2 builds on the same idea with a wider pod range to choose
+                from. When you buy JUUL online in the UAE from Vape Mart, the best JUUL shop in Dubai
+                for starter kits and pods, you pick your flavour and nicotine strength from simple
+                options and the price and stock update to match the exact one you chose. Tobacco and
+                menthol are covered, with JUUL Virginia Tobacco and Mint pods still the classics, while
+                the fruit ice pods are the ones people reorder most. You will find JUUL salt nicotine
+                pods in 3% and 5% and also in 18 mg, along with an authentic JUUL starter kit if you
+                are starting from scratch.
+              </p>
+              <h3 className="text-lg sm:text-xl font-bold text-neutral-900">Disposable Vapes in Dubai, UAE</h3>
               <p>
                 Disposables are the easiest way to vape. There&apos;s nothing to charge, nothing to top
                 up, nothing to wait for, so open the box, use the lot. The selection ranges from small
@@ -75,7 +75,7 @@ export function SeoContent() {
                 disposable vape shop in Dubai, Vape Mart also offers cash on delivery on eligible
                 orders, at some of the best vape prices in the UAE.
               </p>
-              <h3 className="text-lg sm:text-xl font-bold text-neutral-900">E-liquids for refillable devices</h3>
+              <h3 className="text-lg sm:text-xl font-bold text-neutral-900">E-liquids for refillable devices in Dubai</h3>
               <p>
                 If you already own a refillable device, e-liquids give you the most control. You
                 choose the flavour family and you choose how strong you want it. Fruit blends are the

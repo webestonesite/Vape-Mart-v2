@@ -429,39 +429,3 @@ export const blogPostsData: BlogPost[] = [
     author: "Vape Mart Team"
   }
 ];
-
-
-export const HERO_SLIDES = [
-  {
-    "title": "Original TEREA Sticks\nReal tobacco, without the smoke",
-    "desc": "If you've already got an IQOS, you don't need a new device - you need sticks you can trust. That's why a lot of vapers treat Vape Mart as the best Terea shop in Dubai: original sticks, in the amber and menthol blends that sell out first, with fast delivery across the UAE.",
-    "badge": "TEREA in Dubai",
-    "image": "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/slider_terea.webp?v=1794773108",
-    "buttonText": "Shop TEREA Sticks",
-    "buttonLink": "/collections/terea"
-  },
-  {
-    "title": "IQOS ILUMA Devices\nHeat it, don't burn it",
-    "desc": "New to heated tobacco? It's simple - the device heats the stick instead of burning it, so you get real tobacco taste without ash. Buy your IQOS online from Vape Mart, the best IQOS shop in Dubai for devices and TEREA sticks together.",
-    "badge": "IQOS in Dubai",
-    "image": "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/slider_iqos.webp?v=1794773112",
-    "buttonText": "Shop IQOS",
-    "buttonLink": "/collections/iqos"
-  },
-  {
-    "title": "JUUL Pods That Just Work\nSmall, simple, no fuss",
-    "desc": "No buttons to learn, no liquid to spill, you just click a pod in and go. Vape Mart is the best JUUL shop in Dubai for authentic starter kits and pods, from Virginia Tobacco and Mint to fruit ice, in Juul 1 3% and 5%, Juul 2 18mg salt nicotine.",
-    "badge": "JUUL & JUUL 2 in Dubai",
-    "image": "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/slider_juul.webp?v=1794773116",
-    "buttonText": "Shop JUUL",
-    "buttonLink": "/collections/juul"
-  },
-  {
-    "title": "Disposable Vapes\nReady to Go, Zero Refilling",
-    "desc": "Open the pack and you're set. From a compact ELFBAR for the weekend to a big Waka Blade 50K for daily use, you'll find high-performance disposables at Vape Mart, the best vape shop in Dubai for disposable vapes, with cash on delivery across the UAE.",
-    "badge": "Disposable Vapes in the UAE",
-    "image": "https://cdn.shopify.com/s/files/1/0631/8607/5696/files/slider_disposable.webp?v=1794773120",
-    "buttonText": "Shop Disposables",
-    "buttonLink": "/collections/disposable-vape"
-  }
-];
