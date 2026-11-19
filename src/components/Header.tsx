@@ -121,8 +121,8 @@ export function Header({ onCartClick, cartCount = 0, initialNavItems }: HeaderPr
       .then((res) => res.json())
       .then((resData) => {
         if (resData?.data?.header) {
-          // The nav always comes from the Shopify menu (or the baked-in copy
-          // of it). The theme payload must never overwrite navItems, or the
+          // The nav always comes from the Shopify menu via initialNavItems.
+          // The theme payload must never overwrite navItems, or the
           // header races between two different menus on every page load.
           setHeaderData((prev) =>
             prev ? { ...resData.data.header, navItems: prev.navItems } : resData.data.header
@@ -134,6 +134,15 @@ export function Header({ onCartClick, cartCount = 0, initialNavItems }: HeaderPr
 
   // (The nav now arrives server-side via initialNavItems — there is no
   // client-side menu fetch and no baked-in fallback menu.)
+
+  // When the nav arrives after mount — the contact page loads it client-side —
+  // push it into state. The useState initializer above only runs once, so
+  // without this the header would keep the empty first-render nav forever.
+  useEffect(() => {
+    if (initialNavItems && initialNavItems.length > 0) {
+      setHeaderData((prev) => (prev ? { ...prev, navItems: initialNavItems } : prev));
+    }
+  }, [initialNavItems]);
 
   // Site settings from Shopify (store metafields): the top-bar
   // announcements and phone are edited in Shopify admin, no deploy.
