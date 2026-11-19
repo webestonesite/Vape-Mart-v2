@@ -27,7 +27,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const [products, collectionMeta] = await Promise.all([
       fetchAllShopifyProducts().catch(() => []),
-      fetchCollectionMeta().catch(() => ({ byHandle: {}, faqsByHandle: {} })),
+      fetchCollectionMeta().catch(() => ({ byHandle: {}, faqsByHandle: {}, imagesByHandle: {} })),
     ]);
 
     const productRoutes: MetadataRoute.Sitemap = products

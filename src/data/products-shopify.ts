@@ -11,6 +11,7 @@ import {
   fetchShopifyProductByHandle,
   fetchCollectionMeta,
 } from "@/lib/shopify";
+import { cdnWidth } from "@/lib/cdn";
 import { allProducts as localProducts, categories as localCategories } from "./products";
 
 /** Normalize a Shopify collection handle to a local category slug when they match. */
@@ -172,6 +173,20 @@ export async function fetchRelatedProducts(slug: string): Promise<ProductItem[]>
     counts, so a product in two family collections is counted once. */
 export const fetchCategories = cache(async function fetchCategories(): Promise<CollectionCategory[]> {
   const [all, meta] = await Promise.all([fetchAllProducts(), fetchCollectionMeta()]);
+  const imagesByHandle = meta.imagesByHandle || {};
+
+  // Resolve Shopify collection featured image (same as Home Category tiles)
+  const getCatImage = (slug: string, fallback?: string): string => {
+    const direct =
+      imagesByHandle[slug] ||
+      (slug === "all" ? (imagesByHandle["frontpage"] || imagesByHandle["all"]) : undefined) ||
+      (slug === "e-liquid" ? (imagesByHandle["e-liquids"] || imagesByHandle["e-liquid"]) : undefined) ||
+      (slug === "heated-tobacco" ? (imagesByHandle["iqos-terea"] || imagesByHandle["heated-tobacco"]) : undefined) ||
+      (slug === "pods-system" ? (imagesByHandle["pod-systems"] || imagesByHandle["pods-system"]) : undefined);
+    if (direct) return cdnWidth(direct, 800);
+    return fallback || "/images/prod_disposable.png";
+  };
+
   // Panel-managed collection meta, keyed by normalized slug (handles are aliased above).
   const metaBySlug: Record<string, { badge?: string; heroSubtitle?: string; showAsCard?: boolean }> = {};
   const faqsBySlug: Record<string, { q: string; a: string }[]> = {};
@@ -204,7 +219,7 @@ export const fetchCategories = cache(async function fetchCategories(): Promise<C
       subtitle: metaBySlug[slug]?.heroSubtitle || `Shop authentic ${title.toLowerCase()} with same-day delivery across the UAE.`,
       badge: metaBySlug[slug]?.badge || "NEW",
       icon: "Flame",
-      image: sample?.primaryImage || "/images/prod_disposable.png",
+      image: getCatImage(slug, sample?.primaryImage),
       count: members.length,
       description: `Explore our ${title.toLowerCase()} collection, 100% authentic products with express delivery across Dubai and the UAE.`,
       faqs: faqsBySlug[slug],
@@ -223,6 +238,7 @@ export const fetchCategories = cache(async function fetchCategories(): Promise<C
       count,
       badge: m?.badge || c.badge,
       subtitle: m?.heroSubtitle || c.subtitle,
+      image: getCatImage(c.slug, c.image),
       faqs: faqsBySlug[c.slug],
     });
   }
@@ -240,7 +256,7 @@ export const fetchCategories = cache(async function fetchCategories(): Promise<C
     subtitle: "Browse the full catalogue of authentic vapes, e-liquids and heated tobacco with same-day delivery across the UAE.",
     badge: "EXPLORE",
     icon: "Flame",
-    image: all[0]?.primaryImage || "/images/prod_disposable.png",
+    image: getCatImage("all", all[0]?.primaryImage),
     count: all.length,
     description: "Browse the full catalogue of authentic vapes, e-liquids and heated tobacco with express delivery across Dubai and the UAE.",
   });
@@ -261,7 +277,7 @@ export const fetchCategories = cache(async function fetchCategories(): Promise<C
       subtitle: metaBySlug[slug]?.heroSubtitle || `Shop authentic ${info.title.toLowerCase()} with same-day delivery across the UAE.`,
       badge: metaBySlug[slug]?.badge || "NEW",
       icon: "Flame",
-      image: sample?.primaryImage || "/images/prod_disposable.png",
+      image: getCatImage(slug, sample?.primaryImage),
       count: info.count,
       description: `Explore our ${info.title.toLowerCase()} collection, 100% authentic products with express delivery across Dubai and the UAE.`,
       faqs: faqsBySlug[slug],

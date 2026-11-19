@@ -842,7 +842,9 @@ export function CollectionPageView({ category, allCategories, products, catalogP
                 href={`/collections/${cat.slug}`}
                 className="group relative shrink-0 w-44 sm:w-56 h-56 sm:h-64 rounded-3xl overflow-hidden snap-start border border-emerald-900/10"
               >
-                <Image src={cat.image} alt={cat.name} fill loading="lazy" className="object-cover transition-transform duration-500 group-hover:scale-110" sizes="224px" />
+                {cat.image ? (
+                  <Image src={cat.image} alt={cat.name} fill loading="lazy" className="object-cover transition-transform duration-500 group-hover:scale-110" sizes="224px" />
+                ) : null}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#022c22] via-[#022c22]/40 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-4">
                   <p className="font-luxury text-base sm:text-lg font-bold text-white leading-tight">{cat.name}</p>

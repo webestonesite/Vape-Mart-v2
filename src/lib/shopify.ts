@@ -641,11 +641,13 @@ export interface CollectionMeta {
   badge?: string;
   heroSubtitle?: string;
   showAsCard?: boolean;
+  imageUrl?: string;
 }
 
 export const fetchCollectionMeta = cache(async function fetchCollectionMeta(): Promise<{
   byHandle: Record<string, CollectionMeta>;
   faqsByHandle: Record<string, { q: string; a: string }[]>;
+  imagesByHandle: Record<string, string>;
 }> {
   if (collectionMetaCache && Date.now() - collectionMetaCache.timestamp < MEMORY_CACHE_TTL_MS) {
     return collectionMetaCache.data;
@@ -654,7 +656,12 @@ export const fetchCollectionMeta = cache(async function fetchCollectionMeta(): P
     const d = await shopifyAdmin<any>(
       `query CollectionMeta {
          collections(first: 100) {
-           nodes { id handle metafields(first: 20, namespace: "collection") { nodes { key value } } }
+           nodes {
+             id
+             handle
+             image { url }
+             metafields(first: 20, namespace: "collection") { nodes { key value } }
+           }
          }
          faqs: metaobjects(type: "vm_collection_faq", first: 100) { nodes { fields { key value } } }
        }`,
@@ -663,15 +670,20 @@ export const fetchCollectionMeta = cache(async function fetchCollectionMeta(): P
       ["collections"]
     );
     const byHandle: Record<string, CollectionMeta> = {};
+    const imagesByHandle: Record<string, string> = {};
     const gidToHandle: Record<string, string> = {};
     for (const c of d.collections?.nodes ?? []) {
       gidToHandle[c.id] = c.handle;
       const mf: Record<string, string> = {};
       for (const m of c.metafields?.nodes ?? []) mf[m.key] = m.value;
+      if (c.image?.url) {
+        imagesByHandle[c.handle] = c.image.url;
+      }
       byHandle[c.handle] = {
         badge: mf.badge || undefined,
         heroSubtitle: mf.hero_subtitle || undefined,
         showAsCard: mf.show_as_card === "true",
+        imageUrl: c.image?.url || undefined,
       };
     }
     const faqsWithPos: Record<string, { q: string; a: string; position: number }[]> = {};
@@ -689,11 +701,11 @@ export const fetchCollectionMeta = cache(async function fetchCollectionMeta(): P
     const faqsByHandle: Record<string, { q: string; a: string }[]> = {};
     for (const [h, list] of Object.entries(faqsWithPos))
       faqsByHandle[h] = list.sort((a, b) => a.position - b.position).map(({ q, a }) => ({ q, a }));
-    const result = { byHandle, faqsByHandle };
+    const result = { byHandle, faqsByHandle, imagesByHandle };
     collectionMetaCache = { data: result, timestamp: Date.now() };
     return result;
   } catch {
-    return collectionMetaCache?.data || { byHandle: {}, faqsByHandle: {} };
+    return collectionMetaCache?.data || { byHandle: {}, faqsByHandle: {}, imagesByHandle: {} };
   }
 });
 
