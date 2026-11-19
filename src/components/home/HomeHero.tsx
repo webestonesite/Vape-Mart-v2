@@ -4,7 +4,6 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
-import { HERO_SLIDES } from "@/data/homeData";
 import { cdnWidth } from "@/lib/cdn";
 
 export interface CmsHeroSlide {
@@ -27,31 +26,29 @@ interface HomeHeroProps {
 export function HomeHero({ cmsHeroSlides = [], order = 1 }: HomeHeroProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  // 100% Dynamic from Shopify CMS: updates live without redeploying
-  const hasCms = Array.isArray(cmsHeroSlides) && cmsHeroSlides.length > 0;
-  const sourceSlides = hasCms
-    ? [...cmsHeroSlides].sort((a, b) => (Number(a.position) || 0) - (Number(b.position) || 0))
-    : HERO_SLIDES;
+  // CMS only, no fallback slides: if Shopify returns no slides, the hero
+  // renders nothing instead of showing old hardcoded content.
+  const slides = [...cmsHeroSlides]
+    .sort((a, b) => (Number(a.position) || 0) - (Number(b.position) || 0))
+    .map((s: any) => {
+      const rawTitle = s.title || "";
+      const title = rawTitle.includes(" // ") ? rawTitle.replace(" // ", "\n") : rawTitle;
+      const desc = s.description || s.desc || "";
+      const badge = s.badge || "";
+      const img = s.imageUrl || s.image || "";
+      const buttonText = s.buttonText || "";
+      const buttonLink = s.buttonLink || "";
 
-  const slides = sourceSlides.map((s: any, i: number) => {
-    const fallback = HERO_SLIDES[i] || HERO_SLIDES[0];
-    const rawTitle = s.title || fallback.title;
-    const title = rawTitle.includes(" // ") ? rawTitle.replace(" // ", "\n") : rawTitle;
-    const desc = s.description || s.desc || fallback.desc;
-    const badge = s.badge || fallback.badge;
-    const img = s.imageUrl || s.image || fallback.image;
-    const buttonText = s.buttonText || fallback.buttonText;
-    const buttonLink = s.buttonLink || fallback.buttonLink;
-
-    return {
-      title,
-      desc,
-      badge,
-      image: cdnWidth(img, 800),
-      buttonText,
-      buttonLink,
-    };
-  });
+      return {
+        title,
+        desc,
+        badge,
+        image: img ? cdnWidth(img, 800) : "",
+        buttonText,
+        buttonLink,
+      };
+    })
+    .filter((slide) => slide.title && slide.image);
 
   const nextSlide = useCallback(() => {
     if (slides.length === 0) return;
