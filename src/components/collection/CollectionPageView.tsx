@@ -43,6 +43,7 @@ import { Footer } from "@/components/Footer";
 import { ProductCard } from "./ProductCard";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { useCart } from "@/modules/cart/CartProvider";
+import { TereaEditorialGuide, TEREA_FAQS } from "./TereaEditorialGuide";
 
 interface CollectionPageViewProps {
   category?: CollectionCategory;
@@ -959,6 +960,9 @@ export function CollectionPageView({ category, allCategories, products, catalogP
         </section>
 
         {/* ============ SEO EDITORIAL ============ */}
+        {category?.slug === "terea" ? (
+          <TereaEditorialGuide />
+        ) : (
         <section className="mt-14 sm:mt-20 overflow-hidden rounded-3xl border border-emerald-900/10 bg-white">
           {/* Guide header — emerald banner */}
           <div className="relative overflow-hidden bg-gradient-to-br from-[#064e3b] via-[#043e2e] to-[#022c22] px-6 py-10 sm:px-10 sm:py-14">
@@ -1130,6 +1134,7 @@ export function CollectionPageView({ category, allCategories, products, catalogP
           )}
 
         </section>
+        )}
 
         {/* ============ FAQ (standalone section) ============ */}
         <section className="mt-12 sm:mt-16">
@@ -1139,7 +1144,9 @@ export function CollectionPageView({ category, allCategories, products, catalogP
             <p className="mt-2 text-sm text-neutral-500">Everything you need to know about authenticity, delivery, nicotine strengths and more.</p>
           </div>
           <div className="grid lg:grid-cols-2 gap-3 sm:gap-4">
-            {[...(category?.faqs || []),
+            {(category?.slug === "terea"
+              ? TEREA_FAQS
+              : [...(category?.faqs || []),
               { q: "Are your vapes 100% authentic?", a: "Yes — without exception. Every product at Vape Mart UAE is sourced from licensed UAE importers and carries verifiable authenticity packaging: scratch-to-verify codes, holograms or QR checks depending on the brand. We never sell clones, refills or grey-market stock. If any unit ever fails a brand authenticity check, we replace it free and investigate the batch." },
               { q: "How fast is delivery in the UAE?", a: "Dubai orders placed before 9pm are delivered the same day, with express 2–3 hour delivery available in most areas including Marina, JLT, Deira, Bur Dubai and Business Bay. Sharjah, Ajman and Abu Dhabi are next-day. Ras Al Khaimah, Fujairah and Umm Al Quwain arrive within 48 hours. Every parcel is packed discreetly with no product branding visible on the outside." },
               { q: "What nicotine strength should I choose?", a: "20mg (2%) suits most people switching from up to half a pack a day — it gives a smooth, cigarette-like throat hit. 50mg (5%) is for heavier smokers (a pack or more daily) who want maximum satisfaction with fewer puffs. Both use nicotine salts, which feel smoother and absorb faster than old freebase e-liquids. If you feel dizzy, you are vaping too much too fast — pause, drink water, and consider dropping to 20mg." },
@@ -1148,7 +1155,7 @@ export function CollectionPageView({ category, allCategories, products, catalogP
               { q: "What is the difference between disposable vapes and pod systems?", a: "Disposables are pre-filled, pre-charged and draw-activated — you open the pack and vape, with zero setup or maintenance. Pod systems (like JUUL, XROS or Nord) pair a rechargeable battery with replaceable or refillable pods: higher upfront cost, but much cheaper per puff over time and more control over your draw and flavours. Beginners usually start disposable; regular vapers often graduate to pods within a few months." },
               { q: "Are vapes legal in the UAE?", a: "Yes. Since 2019, the UAE regulates e-cigarettes and vaping products through ESMA (Emirates Authority for Standardization and Metrology). Legal products must meet UAE standards for labelling, packaging and nicotine content — which is exactly what we stock. You must be 18 or older to purchase, and vaping is restricted in the same public places as smoking." },
               { q: "What if my device arrives faulty or I get the wrong flavour?", a: "Contact us on WhatsApp within 48 hours with a short video of the issue and your order number. Faulty devices are replaced free — no need to return the unit in most cases. Wrong flavours or products are exchanged on the next delivery run. Our support team replies around the clock, seven days a week." },
-            ].map((f, i) => (
+            ]).map((f, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
