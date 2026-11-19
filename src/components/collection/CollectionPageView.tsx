@@ -43,6 +43,7 @@ import { Footer } from "@/components/Footer";
 import { ProductCard } from "./ProductCard";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { useCart } from "@/modules/cart/CartProvider";
+import { TereaEditorialGuide } from "./TereaEditorialGuide";
 
 interface CollectionPageViewProps {
   category?: CollectionCategory;
@@ -958,11 +959,13 @@ export function CollectionPageView({ category, allCategories, products, catalogP
           </div>
         </section>
 
-        {/* ============ SEO EDITORIAL / DESCRIPTION (FROM SHOPIFY DATABASE) ============ */}
-        {category?.descriptionHtml ? (
-          <section className="mt-14 sm:mt-20">
+        {/* ============ SEO EDITORIAL ============ */}
+        {category?.slug === "terea" ? (
+          <TereaEditorialGuide />
+        ) : category?.descriptionHtml ? (
+          <section className="mt-14 sm:mt-20 overflow-hidden rounded-3xl border border-emerald-900/10 bg-white shadow-sm">
             <div
-              className="collection-editorial-prose"
+              className="collection-editorial-prose px-6 sm:px-10 py-10 sm:py-14"
               dangerouslySetInnerHTML={{ __html: category.descriptionHtml }}
             />
           </section>
