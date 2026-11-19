@@ -1,5 +1,8 @@
 import { redirect } from "next/navigation";
 
+export const dynamicParams = true;
+export const revalidate = 86400;
+
 export default async function ProductAliasPage({
   params,
 }: {

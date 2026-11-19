@@ -15,6 +15,8 @@ export const metadata: Metadata = {
   }
 };
 
+export const revalidate = 86400;
+
 export default async function AllCollectionsPage() {
   const jsonLd = {
     "@context": "https://schema.org",

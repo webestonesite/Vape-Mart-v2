@@ -2,6 +2,8 @@ import type { MetadataRoute } from "next";
 import { env } from "@/core/config/env";
 import { fetchAllShopifyProducts, fetchCollectionMeta } from "@/lib/shopify";
 
+export const revalidate = 86400;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = env.SITE_URL;
   const now = new Date();

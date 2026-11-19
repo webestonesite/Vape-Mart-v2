@@ -16,6 +16,20 @@ interface CollectionSlugPageProps {
   params: Promise<{ slug: string }>;
 }
 
+export const dynamicParams = true;
+export const revalidate = 86400;
+
+export async function generateStaticParams() {
+  try {
+    const categories = await fetchCategories();
+    return categories.map((c) => ({
+      slug: c.slug,
+    }));
+  } catch {
+    return [];
+  }
+}
+
 export async function generateMetadata({ params }: CollectionSlugPageProps): Promise<Metadata> {
   const { slug } = await params;
   // Normalise first, so /collections/e-liquids resolves first-class as the

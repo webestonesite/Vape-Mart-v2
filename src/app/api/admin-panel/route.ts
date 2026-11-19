@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { revalidateTag, revalidatePath } from "next/cache";
 import {
   SESSION_COOKIE,
   createCollection,
@@ -126,6 +127,23 @@ export async function GET(req: Request) {
       { setupNeeded: false, authed: false, error: e instanceof Error ? e.message : "Auth check failed" },
       { status: 500 }
     );
+  }
+}
+
+function purgeCache(tags: string[], paths: string[] = []) {
+  for (const tag of tags) {
+    try {
+      revalidateTag(tag, { expire: 0 });
+    } catch {
+      // Non-fatal
+    }
+  }
+  for (const p of paths) {
+    try {
+      revalidatePath(p);
+    } catch {
+      // Non-fatal
+    }
   }
 }
 
@@ -280,16 +298,27 @@ export async function POST(req: Request) {
 
     if (action === "product.create") {
       const result = await createProduct(body.payload ?? {});
+      const handle = body.payload?.handle;
+      purgeCache(
+        ["products", "catalog", "sitemap", ...(handle ? [`product-${handle}`] : [])],
+        ["/", "/collections", ...(handle ? [`/product/${handle}`] : [])]
+      );
       return NextResponse.json({ ok: true, ...result });
     }
 
     if (action === "product.update") {
       const result = await updateProduct(body.payload ?? {});
+      const handle = body.payload?.handle;
+      purgeCache(
+        ["products", "catalog", "sitemap", ...(handle ? [`product-${handle}`] : [])],
+        ["/", "/collections", ...(handle ? [`/product/${handle}`] : [])]
+      );
       return NextResponse.json({ ok: true, ...result });
     }
 
     if (action === "product.delete") {
       const result = await deleteProduct(String(body.id || ""));
+      purgeCache(["products", "catalog", "sitemap"], ["/", "/collections"]);
       return NextResponse.json({ ok: true, ...result });
     }
 
@@ -298,11 +327,13 @@ export async function POST(req: Request) {
         sortOrder: body.sortOrder,
         descriptionHtml: body.descriptionHtml,
       });
+      purgeCache(["collections", "catalog", "sitemap"], ["/collections"]);
       return NextResponse.json({ ok: true, ...result });
     }
 
     if (action === "collection.delete") {
       const result = await deleteCollection(String(body.id || ""));
+      purgeCache(["collections", "catalog", "sitemap"], ["/collections"]);
       return NextResponse.json({ ok: true, ...result });
     }
 
@@ -317,6 +348,7 @@ export async function POST(req: Request) {
 
     if (action === "bulk.save") {
       const result = await saveBulkMetafields(Array.isArray(body.changes) ? body.changes : []);
+      purgeCache(["products", "catalog"], ["/", "/collections"]);
       return NextResponse.json({ ok: true, ...result });
     }
 
@@ -326,7 +358,19 @@ export async function POST(req: Request) {
     }
 
     if (action === "save") {
-      const result = await saveAction(String(body.saveAction || ""), body.payload ?? {});
+      const saveKey = String(body.saveAction || "");
+      const result = await saveAction(saveKey, body.payload ?? {});
+      if (saveKey === "menu") {
+        purgeCache(["menu"], ["/"]);
+      } else if (saveKey === "theme" || saveKey === "settings") {
+        purgeCache(["shop-settings", "theme"], ["/"]);
+      } else if (saveKey === "hero" || saveKey === "home") {
+        purgeCache(["hero-slides", "cms-content", "home"], ["/"]);
+      } else if (saveKey === "blog" || saveKey === "blog-settings") {
+        purgeCache(["blog"], ["/blog"]);
+      } else {
+        purgeCache(["shop-settings", "cms-content"], ["/"]);
+      }
       return NextResponse.json({ ok: true, ...result });
     }
 

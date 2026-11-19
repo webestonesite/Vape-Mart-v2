@@ -1,4 +1,9 @@
-import CollectionSlugPage, { generateMetadata } from "../../collections/[slug]/page";
+import CollectionSlugPage, {
+  generateMetadata,
+  generateStaticParams,
+  dynamicParams,
+  revalidate,
+} from "../../collections/[slug]/page";
 
-export { generateMetadata };
+export { generateMetadata, generateStaticParams, dynamicParams, revalidate };
 export default CollectionSlugPage;

@@ -12,6 +12,8 @@ export const metadata: Metadata = {
     "Vaping guides, safety tips, flavour advice and UAE regulation updates from the Vape Mart experts.",
 };
 
+export const revalidate = 86400;
+
 export default async function BlogPage() {
   const posts = await getDisplayPosts();
   const settings = await fetchShopSettings();

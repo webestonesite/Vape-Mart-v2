@@ -33,7 +33,7 @@ async function requestNewToken(clientId: string, clientSecret: string): Promise<
       client_secret: clientSecret,
       grant_type: "client_credentials",
     }),
-    cache: "no-store",
+    next: { revalidate: 86400, tags: ["shopify-token"] },
   });
   if (!res.ok) throw new Error(`Shopify OAuth token request failed: HTTP ${res.status}`);
   const json = await res.json();
@@ -72,17 +72,26 @@ function invalidateShopifyTokenCache(): void {
   tokenCache = null;
 }
 
-async function shopifyAdmin<T>(query: string, variables: Record<string, unknown> = {}, revalidate = REVALIDATE_SECS): Promise<T> {
-  const doRequest = (token: string) =>
-    fetch(`https://${SHOP_DOMAIN}/admin/api/${API_VERSION}/graphql.json`, {
+async function shopifyAdmin<T>(
+  query: string,
+  variables: Record<string, unknown> = {},
+  revalidate: number | false = REVALIDATE_SECS,
+  tags: string[] = []
+): Promise<T> {
+  const doRequest = (token: string) => {
+    const isMutation = revalidate === 0;
+    return fetch(`https://${SHOP_DOMAIN}/admin/api/${API_VERSION}/graphql.json`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "X-Shopify-Access-Token": token,
       },
       body: JSON.stringify({ query, variables }),
-      next: { revalidate },
+      ...(isMutation
+        ? { cache: "no-store" }
+        : { next: { revalidate: revalidate || false, tags: ["shopify", ...tags] } }),
     });
+  };
 
   const once = async (): Promise<{ res: Response; json: any }> => {
     let res = await doRequest(await getShopifyAccessToken());
@@ -438,7 +447,7 @@ export async function fetchAllShopifyProducts(): Promise<ProductItem[]> {
       for (let page = 0; page < 8; page++) {
         const data: { products: { pageInfo: { hasNextPage: boolean; endCursor: string | null }; nodes: ShopifyProductNode[] } } =
           await shopifyAdmin<{ products: { pageInfo: { hasNextPage: boolean; endCursor: string | null }; nodes: ShopifyProductNode[] } }>(
-            LIST_QUERY, { first: 50, after }
+            LIST_QUERY, { first: 50, after }, 86400, ["products", "catalog"]
           );
         // Include ACTIVE and DRAFT products so merchant-imported catalog displays fully; only ARCHIVED stay hidden
         nodes.push(...data.products.nodes.filter((n: ShopifyProductNode) => n.status !== "ARCHIVED"));
@@ -507,7 +516,7 @@ const DETAIL_QUERY = `
 export async function fetchShopifyProductByHandle(handle: string): Promise<ProductItem | null> {
   const data = await shopifyAdmin<{
     productByHandle: (ShopifyProductNode & { flavorRefs: { references: { nodes: FlavorMetaobject[] } } | null }) | null;
-  }>(DETAIL_QUERY, { handle }, 120);
+  }>(DETAIL_QUERY, { handle }, 86400, ["products", `product-${handle}`]);
   const node = data.productByHandle;
   if (!node || node.status !== "ACTIVE") return null;
   const flavors = node.flavorRefs?.references?.nodes ?? [];
@@ -518,7 +527,9 @@ export async function fetchShopifyProductByHandle(handle: string): Promise<Produ
     if (Array.isArray(ids) && ids.length) {
       const d = await shopifyAdmin<{ nodes: ({ id: string; handle: string } | null)[] }>(
         `query RelHandles($ids: [ID!]!) { nodes(ids: $ids) { ... on Product { id handle } } }`,
-        { ids }
+        { ids },
+        86400,
+        ["products"]
       );
       for (const n of d.nodes ?? []) if (n?.id && n?.handle) relatedById[n.id] = n.handle;
     }
@@ -538,7 +549,8 @@ export async function fetchProductReviews(productNumericId: string): Promise<Pro
          reviews: metaobjects(type: "vm_product_review", first: 100) { nodes { id fields { key value } } }
        }`,
       {},
-      120
+      86400,
+      ["products", `product-reviews-${productNumericId}`]
     );
     const out: (ProductReview & { position: number })[] = [];
     for (const n of d.reviews?.nodes ?? []) {
@@ -574,7 +586,8 @@ export async function fetchProductFaqs(productNumericId: string): Promise<{ q: s
          faqs: metaobjects(type: "vm_product_faq", first: 100) { nodes { id fields { key value } } }
        }`,
       {},
-      120
+      86400,
+      ["products", `product-faqs-${productNumericId}`]
     );
     const out: ({ q: string; a: string; html: boolean } & { position: number })[] = [];
     for (const n of d.faqs?.nodes ?? []) {
@@ -609,7 +622,8 @@ export async function fetchCollectionMeta(): Promise<{
          faqs: metaobjects(type: "vm_collection_faq", first: 100) { nodes { fields { key value } } }
        }`,
       {},
-      120
+      86400,
+      ["collections"]
     );
     const byHandle: Record<string, CollectionMeta> = {};
     const gidToHandle: Record<string, string> = {};
@@ -685,7 +699,7 @@ function mapMenuItems(items: any[]): MenuLink[] {
 
 export async function fetchShopifyMenu(): Promise<MenuLink[]> {
   try {
-    const data = await shopifyAdmin<{ menu: { items: any[] } | null }>(MENU_QUERY, { id: MENU_ID }, 600);
+    const data = await shopifyAdmin<{ menu: { items: any[] } | null }>(MENU_QUERY, { id: MENU_ID }, 86400, ["menu"]);
     if (!data.menu) return [];
     return mapMenuItems(data.menu.items);
   } catch {
@@ -800,7 +814,7 @@ const SHOP_META_QUERY = `
    data cache, so a save looked like it did not happen for up to 10 min.
    getPanelData() passes revalidate 0 (fresh read); the storefront keeps
    the 600 s default. */
-export async function fetchShopSettings(revalidate = 600): Promise<ShopSettings> {
+export async function fetchShopSettings(revalidate = 86400): Promise<ShopSettings> {
   const fallback: ShopSettings = {
     announcements: [], phone: "", footerText: "", logoUrl: "",
     checkout: { freeShippingThreshold: 0, deliveryFee: 0, vatNote: "", cityPromises: [], paymentLabels: [] },
@@ -823,7 +837,7 @@ export async function fetchShopSettings(revalidate = 600): Promise<ShopSettings>
         blog: { nodes: MetafieldNode[] };
         pages: { nodes: MetafieldNode[] };
       };
-    }>(SHOP_META_QUERY, {}, revalidate);
+    }>(SHOP_META_QUERY, {}, revalidate, ["shop-settings", "theme"]);
     const mf = mfMap([
       ...(data.shop.store?.nodes ?? []),
       ...(data.shop.checkout?.nodes ?? []),
@@ -955,7 +969,7 @@ export async function fetchBlogPosts(): Promise<BlogPost[]> {
   const out: BlogPost[] = [];
   let after: string | null = null;
   for (let page = 0; page < 3; page++) {
-    const data: any = await shopifyAdmin<any>(BLOG_QUERY, { id: BLOG_ID, first: 10, after }, 600);
+    const data: any = await shopifyAdmin<any>(BLOG_QUERY, { id: BLOG_ID, first: 10, after }, 86400, ["blog"]);
     const conn: any = data.blog?.articles;
     if (!conn) break;
     out.push(...conn.nodes.map((n: any) => toBlogPost(n)));
@@ -972,7 +986,7 @@ export async function fetchBlogPost(handle: string): Promise<BlogPost | null> {
   // field), so scan the blog's articles and match the handle client-side.
   let after: string | null = null;
   for (let page = 0; page < 3; page++) {
-    const data: any = await shopifyAdmin<any>(BLOG_QUERY, { id: BLOG_ID, first: 10, after }, 600);
+    const data: any = await shopifyAdmin<any>(BLOG_QUERY, { id: BLOG_ID, first: 10, after }, 86400, ["blog", `blog-${handle}`]);
     const conn: any = data.blog?.articles;
     if (!conn) return null;
     const node = conn.nodes.find((n: any) => n.handle === handle);
@@ -991,7 +1005,9 @@ export async function fetchShopifyPage(handle: string): Promise<{ title: string;
   try {
     const data = await shopifyAdmin<any>(
       `query Page($q: String!) { pages(first: 1, query: $q) { nodes { title body } } }`,
-      { q: `handle:${handle}` }, 600
+      { q: `handle:${handle}` },
+      86400,
+      ["pages", `page-${handle}`]
     );
     const p = data.pages?.nodes?.[0];
     return p ? { title: p.title, bodyHtml: p.body || "" } : null;
@@ -1169,7 +1185,7 @@ async function fetchSectionProducts(ids: string[]): Promise<Map<string, ProductI
   for (let i = 0; i < unique.length; i += BATCH) {
     const batch = unique.slice(i, i + BATCH);
     try {
-      const data = await shopifyAdmin<any>(SECTION_PRODUCTS_QUERY, { ids: batch }, 600);
+      const data = await shopifyAdmin<any>(SECTION_PRODUCTS_QUERY, { ids: batch }, 86400, ["cms-content", "products"]);
       for (const n of data.nodes ?? []) {
         if (!n || !n.id) continue;
         if (n.status && n.status !== "ACTIVE") continue; // home sections show live products only
@@ -1201,17 +1217,17 @@ export async function fetchSiteContent(): Promise<SiteContent> {
   // half failing must not wipe out the other half's content. The
   // collection-images read is a third independent one (same rule).
   const [a, b, c] = await Promise.all([
-    shopifyAdmin<any>(SITE_CONTENT_META_QUERY_A, {}, 600).catch((e) => {
+    shopifyAdmin<any>(SITE_CONTENT_META_QUERY_A, {}, 86400, ["cms-content", "home"]).catch((e) => {
       console.error("[fetchSiteContent] meta query A failed:", errMsg(e));
       errors.push(`meta query A failed: ${errMsg(e)}`);
       return null;
     }),
-    shopifyAdmin<any>(SITE_CONTENT_META_QUERY_B, {}, 600).catch((e) => {
+    shopifyAdmin<any>(SITE_CONTENT_META_QUERY_B, {}, 86400, ["cms-content", "home"]).catch((e) => {
       console.error("[fetchSiteContent] meta query B failed:", errMsg(e));
       errors.push(`meta query B failed: ${errMsg(e)}`);
       return null;
     }),
-    shopifyAdmin<any>(SITE_CONTENT_COLLECTION_IMAGES_QUERY, {}, 600).catch((e) => {
+    shopifyAdmin<any>(SITE_CONTENT_COLLECTION_IMAGES_QUERY, {}, 86400, ["collections", "cms-content"]).catch((e) => {
       console.error("[fetchSiteContent] collection images failed:", errMsg(e));
       errors.push(`collection images failed: ${errMsg(e)}`);
       return null;

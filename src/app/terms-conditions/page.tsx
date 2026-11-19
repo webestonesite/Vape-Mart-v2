@@ -5,6 +5,8 @@ import { fetchShopSettings } from "@/lib/shopify";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Footer } from "@/components/Footer";
 
+export const revalidate = 86400;
+
 export const metadata: Metadata = {
   title: "Terms & Conditions | Vape Mart UAE",
   description:

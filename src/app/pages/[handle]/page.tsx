@@ -5,6 +5,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { Footer } from "@/components/Footer";
 
 export const dynamicParams = true;
+export const revalidate = 86400;
 
 type PageProps = {
   params: Promise<{ handle: string }>;

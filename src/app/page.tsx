@@ -13,7 +13,7 @@ import type { ProductItem } from "@/types/product";
 // + "View All (0)"), never hardcoded products. The old client-side
 // fetch + homeData fallbacks showed stale demo products for ~1s on every
 // reload, which broke the no-demo rule.
-export const revalidate = 300;
+export const revalidate = 86400;
 
 // Map a Shopify product to the carousel card shape (same as
 // /api/site-content's cardProduct).

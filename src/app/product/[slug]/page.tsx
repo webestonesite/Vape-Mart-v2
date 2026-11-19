@@ -9,6 +9,20 @@ interface ProductPageProps {
   params: Promise<{ slug: string }>;
 }
 
+export const dynamicParams = true;
+export const revalidate = 86400;
+
+export async function generateStaticParams() {
+  try {
+    const products = await fetchAllProducts();
+    return products.slice(0, 30).map((p) => ({
+      slug: p.slug,
+    }));
+  } catch {
+    return [];
+  }
+}
+
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
   const product = (await fetchProductBySlug(slug)) || (await fetchAllProducts())[0];
