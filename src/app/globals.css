@@ -2326,40 +2326,52 @@ body {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Shopify Collection Editorial Content (Dynamic from Database)      */
+/*  Shopify Collection Editorial Guide - Luxury Design System         */
 /* ------------------------------------------------------------------ */
 .collection-editorial-prose {
-  color: #1e293b;
-  font-size: 15px;
-  line-height: 1.75;
+  width: 100%;
 }
 
-/* 1. HERO BANNER - 2-Column Responsive Layout */
-.collection-editorial-prose .editorial-hero-banner {
+.collection-editorial-prose .editorial-guide-wrapper {
+  overflow: hidden;
+  border-radius: 1.5rem;
+  border: 1px solid rgba(6, 78, 59, 0.12);
+  background: #ffffff;
+  box-shadow: 0 10px 30px -10px rgba(6, 78, 59, 0.08);
+}
+
+/* 1. EMERALD TOP BANNER */
+.collection-editorial-prose .guide-header-banner {
   position: relative;
   overflow: hidden;
-  border-radius: 1.75rem;
   background: linear-gradient(135deg, #064e3b 0%, #043e2e 50%, #022c22 100%);
-  padding: 2.5rem;
+  padding: 2.5rem 1.5rem;
   color: #ffffff;
+}
+
+@media (min-width: 640px) {
+  .collection-editorial-prose .guide-header-banner {
+    padding: 3rem 2.5rem;
+  }
+}
+
+.collection-editorial-prose .guide-header-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 2rem;
   align-items: center;
-  margin-bottom: 3rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 20px 40px -15px rgba(6, 78, 59, 0.4);
+  position: relative;
+  z-index: 2;
 }
 
 @media (min-width: 1024px) {
-  .collection-editorial-prose .editorial-hero-banner {
-    grid-template-columns: 1.15fr 0.85fr;
-    padding: 3rem 3.5rem;
+  .collection-editorial-prose .guide-header-grid {
+    grid-template-columns: 1.25fr 0.75fr;
     gap: 3rem;
   }
 }
 
-.collection-editorial-prose .editorial-badge {
+.collection-editorial-prose .guide-kicker {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -2369,187 +2381,255 @@ body {
   padding: 0.35rem 1rem;
   font-family: var(--font-cinzel), 'Cinzel', serif;
   font-size: 11px;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.22em;
   color: #fbbf24;
   font-weight: 700;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
 }
 
-.collection-editorial-prose .editorial-hero-title {
+.collection-editorial-prose .guide-title {
   font-family: var(--font-playfair), 'Playfair Display', Georgia, serif;
   font-size: 2rem;
   font-weight: 700;
   line-height: 1.2;
   color: #ffffff;
-  margin: 0 0 1.25rem 0;
+  margin: 0 0 1rem 0;
 }
 
 @media (min-width: 640px) {
-  .collection-editorial-prose .editorial-hero-title {
+  .collection-editorial-prose .guide-title {
     font-size: 2.5rem;
   }
 }
 
-.collection-editorial-prose .editorial-gold-text {
-  display: block;
-  background: linear-gradient(90deg, #fef08a 0%, #f59e0b 50%, #fef08a 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  font-size: 0.85em;
-  margin-top: 0.35rem;
-}
-
-.collection-editorial-prose .editorial-lead {
+.collection-editorial-prose .guide-subtitle {
   font-size: 15px;
   line-height: 1.75;
-  color: rgba(209, 250, 229, 0.95);
-  margin-bottom: 1rem;
+  color: rgba(209, 250, 229, 0.9);
+  margin-bottom: 1.5rem;
+  max-width: 42rem;
 }
 
-.collection-editorial-prose .editorial-subtext {
-  font-size: 14px;
-  line-height: 1.7;
-  color: rgba(209, 250, 229, 0.8);
-  margin-bottom: 1.75rem;
-}
-
-.collection-editorial-prose .editorial-pills {
+.collection-editorial-prose .guide-pill-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.6rem;
+  gap: 0.5rem;
 }
 
-.collection-editorial-prose .editorial-pill {
+.collection-editorial-prose .guide-pill-item {
   display: inline-flex;
   align-items: center;
   border-radius: 9999px;
   background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.15);
-  padding: 0.4rem 0.85rem;
+  padding: 0.35rem 0.85rem;
   font-size: 12px;
   font-weight: 600;
   color: #fde047;
 }
 
-/* 2. STAT CARD (RIGHT COLUMN OF HERO) */
-.collection-editorial-prose .editorial-stat-card {
-  border-radius: 1.5rem;
-  border: 1px solid rgba(251, 191, 36, 0.3);
+/* Quick Glance Card on Right Side of Emerald Banner */
+.collection-editorial-prose .guide-quick-card {
+  border-radius: 1.25rem;
   background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(16px);
-  padding: 2rem;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  backdrop-filter: blur(12px);
+  padding: 1.5rem 1.75rem;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
 }
 
-.collection-editorial-prose .card-eyebrow {
+.collection-editorial-prose .quick-card-tag {
   font-family: var(--font-cinzel), 'Cinzel', serif;
   font-size: 10px;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.2em;
   color: #fbbf24;
   font-weight: 700;
   display: block;
   margin-bottom: 0.35rem;
 }
 
-.collection-editorial-prose .card-heading {
+.collection-editorial-prose .quick-card-title {
   font-family: var(--font-playfair), 'Playfair Display', Georgia, serif;
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   font-weight: 700;
   color: #ffffff;
-  margin: 0;
+  margin: 0 0 1.25rem 0;
 }
 
-.collection-editorial-prose .card-desc {
-  font-size: 12.5px;
-  color: rgba(209, 250, 229, 0.75);
-  margin-top: 0.25rem;
-  margin-bottom: 1.5rem;
-}
-
-.collection-editorial-prose .stat-grid {
+.collection-editorial-prose .quick-stats-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
-  margin-bottom: 1.75rem;
+  gap: 0.65rem;
+  margin-bottom: 1.25rem;
 }
 
-.collection-editorial-prose .stat-box {
-  border-radius: 1rem;
-  background: rgba(0, 0, 0, 0.2);
+.collection-editorial-prose .quick-stat-box {
+  background: rgba(0, 0, 0, 0.25);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 1rem;
+  border-radius: 0.75rem;
+  padding: 0.75rem 0.5rem;
   text-align: center;
 }
 
-.collection-editorial-prose .stat-num {
-  display: block;
+.collection-editorial-prose .quick-stat-num {
   font-family: var(--font-playfair), 'Playfair Display', Georgia, serif;
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: #fbbf24;
+  display: block;
   line-height: 1;
 }
 
-.collection-editorial-prose .stat-txt {
-  display: block;
+.collection-editorial-prose .quick-stat-lbl {
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: rgba(255, 255, 255, 0.85);
-  margin-top: 0.4rem;
+  margin-top: 0.35rem;
+  display: block;
 }
 
-.collection-editorial-prose .card-bottom {
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: 1.25rem;
-  text-align: center;
-}
-
-.collection-editorial-prose .help-text {
-  font-size: 12px;
-  color: rgba(209, 250, 229, 0.8);
-  margin-bottom: 0.75rem;
-}
-
-.collection-editorial-prose .editorial-whatsapp-link {
-  display: inline-flex;
+.collection-editorial-prose .quick-whatsapp-btn {
+  display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   width: 100%;
-  height: 44px;
-  border-radius: 0.85rem;
+  height: 42px;
+  border-radius: 0.75rem;
   background: #25d366;
   color: #ffffff;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 700;
+  text-decoration: none;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35);
 }
 
-.collection-editorial-prose .editorial-whatsapp-link:hover {
-  background: #22bf5b;
-  transform: translateY(-1px);
+.collection-editorial-prose .quick-whatsapp-btn:hover {
+  background: #20ba59;
 }
 
-/* 3. HEADINGS & SECTIONS */
-.collection-editorial-prose .section-title-wrap {
-  margin-bottom: 1.5rem;
+/* 2. WHITE CONTENT AREA */
+.collection-editorial-prose .guide-body-content {
+  padding: 2rem 1.5rem;
 }
 
-.collection-editorial-prose .section-kicker {
+@media (min-width: 640px) {
+  .collection-editorial-prose .guide-body-content {
+    padding: 3rem 2.5rem;
+  }
+}
+
+/* Intro lead with Trust Sidebar */
+.collection-editorial-prose .guide-intro-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  align-items: start;
+  margin-bottom: 3.5rem;
+  border-bottom: 1px solid rgba(6, 78, 59, 0.1);
+  padding-bottom: 2.5rem;
+}
+
+@media (min-width: 1024px) {
+  .collection-editorial-prose .guide-intro-layout {
+    grid-template-columns: 1fr 340px;
+    gap: 2.5rem;
+  }
+}
+
+.collection-editorial-prose .intro-text-area p {
+  font-size: 15px;
+  line-height: 1.8;
+  color: #334155;
+  margin-bottom: 1.25rem;
+}
+
+.collection-editorial-prose .intro-text-area p:first-child {
+  font-size: 16px;
+  font-weight: 500;
+  color: #064e3b;
+  line-height: 1.8;
+}
+
+.collection-editorial-prose .trust-sidebar-card {
+  border-radius: 1.25rem;
+  background: linear-gradient(135deg, #064e3b 0%, #022c22 100%);
+  color: #ffffff;
+  padding: 1.75rem;
+  box-shadow: 0 10px 25px -5px rgba(6, 78, 59, 0.3);
+}
+
+.collection-editorial-prose .trust-sidebar-title {
+  font-family: var(--font-cinzel), 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: #fbbf24;
+  font-weight: 700;
+  margin-bottom: 1.25rem;
+}
+
+.collection-editorial-prose .trust-sidebar-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.collection-editorial-prose .trust-sidebar-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+}
+
+.collection-editorial-prose .trust-sidebar-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fbbf24;
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.collection-editorial-prose .trust-sidebar-item strong {
+  display: block;
+  font-size: 13.5px;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.collection-editorial-prose .trust-sidebar-item span {
+  display: block;
+  font-size: 12px;
+  color: rgba(209, 250, 229, 0.75);
+  margin-top: 0.15rem;
+  line-height: 1.45;
+}
+
+/* Section Kickers & Headlines */
+.collection-editorial-prose .section-heading-block {
+  margin-bottom: 1.75rem;
+}
+
+.collection-editorial-prose .section-heading-kicker {
   font-family: var(--font-cinzel), 'Cinzel', serif;
   font-size: 11px;
-  letter-spacing: 0.24em;
+  letter-spacing: 0.22em;
   color: #d97706;
   font-weight: 700;
   display: block;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.35rem;
 }
 
-.collection-editorial-prose .section-headline {
+.collection-editorial-prose .section-heading-title {
   font-family: var(--font-playfair), 'Playfair Display', Georgia, serif;
   font-size: 1.75rem;
   font-weight: 700;
@@ -2557,116 +2637,155 @@ body {
   margin: 0;
 }
 
-.collection-editorial-prose .buyer-section-wrap,
-.collection-editorial-prose .popular-flavours-wrap,
-.collection-editorial-prose .comparison-table-wrap {
+@media (min-width: 640px) {
+  .collection-editorial-prose .section-heading-title {
+    font-size: 2rem;
+  }
+}
+
+/* 3. CHAPTERS: EXACT 2-COLUMN GRID (NEVER 4 COLUMNS) */
+.collection-editorial-prose .chapters-two-col {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
   margin-bottom: 3.5rem;
 }
 
-.collection-editorial-prose .buyer-chapters {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
+@media (min-width: 768px) {
+  .collection-editorial-prose .chapters-two-col {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.75rem;
+  }
 }
 
-.collection-editorial-prose .chapter-card {
+.collection-editorial-prose .chapter-card-item {
   border-radius: 1.25rem;
   border: 1px solid rgba(6, 78, 59, 0.12);
   background: #fbfdfc;
   padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
   transition: all 0.2s ease;
 }
 
-.collection-editorial-prose .chapter-card:hover {
+.collection-editorial-prose .chapter-card-item:hover {
   border-color: rgba(217, 119, 6, 0.4);
-  box-shadow: 0 10px 25px -10px rgba(6, 78, 59, 0.15);
+  box-shadow: 0 10px 25px -10px rgba(6, 78, 59, 0.12);
 }
 
-.collection-editorial-prose .chapter-card h4 {
+.collection-editorial-prose .chapter-num-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 0.5rem;
+  background: rgba(6, 78, 59, 0.08);
+  color: #064e3b;
+  font-size: 12px;
+  font-weight: 800;
+  margin-bottom: 0.85rem;
+}
+
+.collection-editorial-prose .chapter-card-item h4 {
   font-family: var(--font-playfair), 'Playfair Display', Georgia, serif;
   font-size: 1.25rem;
   font-weight: 700;
   color: #064e3b;
   margin: 0 0 0.85rem 0;
+  line-height: 1.35;
 }
 
-.collection-editorial-prose .chapter-card p {
+.collection-editorial-prose .chapter-card-item p {
   font-size: 14px;
   line-height: 1.75;
   color: #475569;
   margin-bottom: 0.85rem;
 }
 
-.collection-editorial-prose .chapter-card p:last-child {
+.collection-editorial-prose .chapter-card-item p:last-child {
   margin-bottom: 0;
 }
 
-/* 4. POPULAR FLAVOURS GRID */
-.collection-editorial-prose .popular-flavours-grid {
+/* 4. POPULAR FLAVOURS: 3-COLUMN GRID */
+.collection-editorial-prose .flavours-three-col {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: 1fr;
   gap: 1.25rem;
+  margin-bottom: 3.5rem;
 }
 
-.collection-editorial-prose .flavour-box {
+@media (min-width: 640px) {
+  .collection-editorial-prose .flavours-three-col {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .collection-editorial-prose .flavours-three-col {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.collection-editorial-prose .flavour-card-item {
   border-radius: 1.25rem;
   border: 1px solid rgba(6, 78, 59, 0.1);
   background: #ffffff;
   padding: 1.5rem;
-  box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.05);
-  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
 }
 
-.collection-editorial-prose .flavour-box:hover {
-  border-color: rgba(217, 119, 6, 0.35);
-  transform: translateY(-2px);
-  box-shadow: 0 12px 25px -8px rgba(6, 78, 59, 0.12);
-}
-
-.collection-editorial-prose .flavour-tag {
+.collection-editorial-prose .flavour-card-tag {
   display: inline-block;
+  align-self: flex-start;
   font-family: var(--font-cinzel), 'Cinzel', serif;
   font-size: 10px;
   letter-spacing: 0.18em;
   color: #d97706;
   font-weight: 700;
   background: #fef3c7;
-  padding: 0.2rem 0.6rem;
+  padding: 0.2rem 0.65rem;
   border-radius: 9999px;
   margin-bottom: 0.75rem;
 }
 
-.collection-editorial-prose .flavour-box h4 {
+.collection-editorial-prose .flavour-card-item h4 {
   font-family: var(--font-playfair), 'Playfair Display', Georgia, serif;
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-weight: 700;
   color: #064e3b;
-  margin: 0 0 0.6rem 0;
+  margin: 0 0 0.65rem 0;
 }
 
-.collection-editorial-prose .flavour-box p {
-  font-size: 14px;
+.collection-editorial-prose .flavour-card-item p {
+  font-size: 13.5px;
   line-height: 1.7;
   color: #475569;
   margin: 0;
 }
 
 /* 5. COMPARISON TABLE */
-.collection-editorial-prose .comparison-table {
+.collection-editorial-prose .comparison-section-wrap {
+  margin-bottom: 3.5rem;
+}
+
+.collection-editorial-prose .table-scroll-container {
   overflow-x: auto;
   border-radius: 1.25rem;
   border: 1px solid rgba(6, 78, 59, 0.12);
-  box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.03);
 }
 
-.collection-editorial-prose .comparison-table table {
+.collection-editorial-prose .table-scroll-container table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
+  font-size: 13.5px;
   text-align: left;
 }
 
-.collection-editorial-prose .comparison-table th {
+.collection-editorial-prose .table-scroll-container th {
   background: #064e3b;
   color: #ffffff;
   font-family: var(--font-cinzel), 'Cinzel', serif;
@@ -2677,33 +2796,32 @@ body {
   white-space: nowrap;
 }
 
-.collection-editorial-prose .comparison-table td {
+.collection-editorial-prose .table-scroll-container td {
   padding: 15px 20px;
   border-bottom: 1px solid rgba(6, 78, 59, 0.08);
   color: #334155;
-  font-size: 13.5px;
 }
 
-.collection-editorial-prose .comparison-table tr:nth-child(even) td {
+.collection-editorial-prose .table-scroll-container tr:nth-child(even) td {
   background: #f8fafc;
 }
 
-.collection-editorial-prose .comparison-table tr:hover td {
-  background: #f0fdf4;
-}
-
-/* 6. WHY VAPE MART (TRUST) */
-.collection-editorial-prose .why-vape-mart {
+/* 6. WHY SHOP WITH VAPE MART */
+.collection-editorial-prose .why-shop-wrap {
   border-radius: 1.5rem;
   background: linear-gradient(135deg, #064e3b 0%, #043e2e 100%);
   color: #ffffff;
-  padding: 2.5rem;
+  padding: 2.25rem 1.75rem;
   margin-bottom: 2.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 20px 40px -15px rgba(6, 78, 59, 0.35);
 }
 
-.collection-editorial-prose .section-kicker-gold {
+@media (min-width: 640px) {
+  .collection-editorial-prose .why-shop-wrap {
+    padding: 3rem 2.5rem;
+  }
+}
+
+.collection-editorial-prose .why-kicker {
   font-family: var(--font-cinzel), 'Cinzel', serif;
   font-size: 10.5px;
   letter-spacing: 0.22em;
@@ -2713,55 +2831,61 @@ body {
   margin-bottom: 0.35rem;
 }
 
-.collection-editorial-prose .why-vape-mart h3 {
+.collection-editorial-prose .why-shop-wrap h3 {
   font-family: var(--font-playfair), 'Playfair Display', Georgia, serif;
-  font-size: 1.75rem;
+  font-size: 1.85rem;
   font-weight: 700;
   color: #ffffff;
   margin: 0 0 0.5rem 0;
 }
 
-.collection-editorial-prose .why-vape-mart p {
+.collection-editorial-prose .why-desc {
   font-size: 14.5px;
   color: rgba(209, 250, 229, 0.85);
   margin-bottom: 1.75rem;
 }
 
-.collection-editorial-prose .why-grid {
+.collection-editorial-prose .why-tiles-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: 1fr;
   gap: 1rem;
 }
 
-.collection-editorial-prose .why-tile {
+@media (min-width: 640px) {
+  .collection-editorial-prose .why-tiles-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .collection-editorial-prose .why-tiles-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.collection-editorial-prose .why-tile-card {
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 1rem;
-  padding: 1.15rem 1.25rem;
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  transition: all 0.2s ease;
 }
 
-.collection-editorial-prose .why-tile:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(251, 191, 36, 0.3);
-}
-
-.collection-editorial-prose .why-tile strong {
+.collection-editorial-prose .why-tile-card strong {
   color: #fbbf24;
   font-size: 14px;
 }
 
-.collection-editorial-prose .why-tile span {
+.collection-editorial-prose .why-tile-card span {
   color: rgba(209, 250, 229, 0.8);
   font-size: 12.5px;
   line-height: 1.55;
 }
 
 /* 7. CTA STRIP */
-.collection-editorial-prose .cta-strip {
+.collection-editorial-prose .bottom-cta-strip {
   border-radius: 1.25rem;
   border: 1px dashed #d97706;
   background: #fffbeb;
@@ -2769,9 +2893,8 @@ body {
   text-align: center;
   font-size: 15px;
   color: #78350f;
-  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.08);
 }
 
-.collection-editorial-prose .cta-strip strong {
+.collection-editorial-prose .bottom-cta-strip strong {
   color: #92400e;
 }
