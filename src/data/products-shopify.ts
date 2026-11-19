@@ -10,6 +10,7 @@ import {
   fetchAllShopifyProducts,
   fetchShopifyProductByHandle,
   fetchCollectionMeta,
+  type CollectionMeta,
 } from "@/lib/shopify";
 import { cdnWidth } from "@/lib/cdn";
 import { allProducts as localProducts, categories as localCategories } from "./products";
@@ -188,7 +189,7 @@ export const fetchCategories = cache(async function fetchCategories(): Promise<C
   };
 
   // Panel-managed collection meta, keyed by normalized slug (handles are aliased above).
-  const metaBySlug: Record<string, { badge?: string; heroSubtitle?: string; showAsCard?: boolean }> = {};
+  const metaBySlug: Record<string, CollectionMeta> = {};
   const faqsBySlug: Record<string, { q: string; a: string }[]> = {};
   for (const [h, m] of Object.entries(meta.byHandle)) metaBySlug[normalizeCategorySlug(h)] = m;
   for (const [h, list] of Object.entries(meta.faqsByHandle)) faqsBySlug[normalizeCategorySlug(h)] = list;
@@ -212,16 +213,20 @@ export const fetchCategories = cache(async function fetchCategories(): Promise<C
     const members = all.filter((p) => productMatchesHandles(p, handles));
     const sample = members[0];
     const title = seen.get(slug)?.title || slug;
+    const m = metaBySlug[slug];
     return {
       slug,
-      name: title,
-      title: `${title} | Vape Mart UAE`,
-      subtitle: metaBySlug[slug]?.heroSubtitle || `Shop authentic ${title.toLowerCase()} with same-day delivery across the UAE.`,
-      badge: metaBySlug[slug]?.badge || "NEW",
+      name: m?.title || title,
+      title: m?.seoTitle || `${title} | Vape Mart UAE`,
+      subtitle: m?.heroSubtitle || `Shop authentic ${title.toLowerCase()} with same-day delivery across the UAE.`,
+      badge: m?.badge || "NEW",
       icon: "Flame",
       image: getCatImage(slug, sample?.primaryImage),
       count: members.length,
-      description: `Explore our ${title.toLowerCase()} collection, 100% authentic products with express delivery across Dubai and the UAE.`,
+      description: m?.seoDescription || `Explore our ${title.toLowerCase()} collection, 100% authentic products with express delivery across Dubai and the UAE.`,
+      descriptionHtml: m?.descriptionHtml,
+      seoTitle: m?.seoTitle,
+      seoDescription: m?.seoDescription,
       faqs: faqsBySlug[slug],
     };
   };
@@ -239,7 +244,10 @@ export const fetchCategories = cache(async function fetchCategories(): Promise<C
       badge: m?.badge || c.badge,
       subtitle: m?.heroSubtitle || c.subtitle,
       image: getCatImage(c.slug, c.image),
-      faqs: faqsBySlug[c.slug],
+      descriptionHtml: m?.descriptionHtml,
+      seoTitle: m?.seoTitle,
+      seoDescription: m?.seoDescription,
+      faqs: faqsBySlug[c.slug] || c.faqs,
     });
   }
   const familyBySlug = new Map(familyCards.map((c) => [c.slug, c]));
@@ -270,16 +278,20 @@ export const fetchCategories = cache(async function fetchCategories(): Promise<C
     const sample =
       all.find((p) => p.categorySlug === slug) ||
       all.find((p) => (p.shopifyCollections || []).some((c) => c.slug === slug));
+    const m = metaBySlug[slug];
     extra.push({
       slug,
-      name: info.title,
-      title: `${info.title} | Vape Mart UAE`,
-      subtitle: metaBySlug[slug]?.heroSubtitle || `Shop authentic ${info.title.toLowerCase()} with same-day delivery across the UAE.`,
-      badge: metaBySlug[slug]?.badge || "NEW",
+      name: m?.title || info.title,
+      title: m?.seoTitle || `${info.title} | Vape Mart UAE`,
+      subtitle: m?.heroSubtitle || `Shop authentic ${info.title.toLowerCase()} with same-day delivery across the UAE.`,
+      badge: m?.badge || "NEW",
       icon: "Flame",
       image: getCatImage(slug, sample?.primaryImage),
       count: info.count,
-      description: `Explore our ${info.title.toLowerCase()} collection, 100% authentic products with express delivery across Dubai and the UAE.`,
+      description: m?.seoDescription || `Explore our ${info.title.toLowerCase()} collection, 100% authentic products with express delivery across Dubai and the UAE.`,
+      descriptionHtml: m?.descriptionHtml,
+      seoTitle: m?.seoTitle,
+      seoDescription: m?.seoDescription,
       faqs: faqsBySlug[slug],
     });
   }

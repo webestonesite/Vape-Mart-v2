@@ -2324,3 +2324,165 @@ body {
 .safe-bottom {
   padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
 }
+
+/* ------------------------------------------------------------------ */
+/*  Shopify Collection Editorial Content (Dynamic from Database)      */
+/* ------------------------------------------------------------------ */
+.collection-editorial-prose {
+  color: #1e293b;
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.collection-editorial-prose .intro-lead p {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #064e3b;
+  margin-bottom: 1.25rem;
+}
+
+.collection-editorial-prose h3 {
+  font-family: var(--font-playfair), 'Playfair Display', Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #064e3b;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.collection-editorial-prose .buyer-chapters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.collection-editorial-prose .chapter-card {
+  border-radius: 1rem;
+  border: 1px solid rgba(6, 78, 59, 0.12);
+  background: #fbfdfc;
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+}
+
+.collection-editorial-prose .chapter-card:hover {
+  border-color: rgba(217, 119, 6, 0.4);
+  box-shadow: 0 10px 25px -10px rgba(6, 78, 59, 0.15);
+}
+
+.collection-editorial-prose .chapter-card h3 {
+  margin-top: 0;
+  font-size: 1.25rem;
+  color: #064e3b;
+}
+
+.collection-editorial-prose .popular-flavours-grid {
+  margin-bottom: 2.5rem;
+}
+
+.collection-editorial-prose .popular-flavours-grid ul {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.collection-editorial-prose .popular-flavours-grid li {
+  border-radius: 1rem;
+  border: 1px solid rgba(6, 78, 59, 0.1);
+  background: #ffffff;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.04);
+}
+
+.collection-editorial-prose .popular-flavours-grid li strong {
+  display: block;
+  font-size: 1rem;
+  color: #064e3b;
+  margin-bottom: 0.35rem;
+}
+
+.collection-editorial-prose .comparison-table {
+  overflow-x: auto;
+  margin-bottom: 2.5rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(6, 78, 59, 0.12);
+}
+
+.collection-editorial-prose .comparison-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  text-align: left;
+}
+
+.collection-editorial-prose .comparison-table th {
+  background: #064e3b;
+  color: #ffffff;
+  font-family: var(--font-cinzel), 'Cinzel', serif;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  padding: 14px 18px;
+  font-weight: 700;
+}
+
+.collection-editorial-prose .comparison-table td {
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(6, 78, 59, 0.08);
+  color: #334155;
+}
+
+.collection-editorial-prose .comparison-table tr:nth-child(even) td {
+  background: #f8fafc;
+}
+
+.collection-editorial-prose .why-vape-mart {
+  border-radius: 1.25rem;
+  background: linear-gradient(135deg, #064e3b 0%, #043e2e 100%);
+  color: #ffffff;
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.collection-editorial-prose .why-vape-mart h3 {
+  color: #fbbf24;
+  margin-top: 0;
+}
+
+.collection-editorial-prose .why-vape-mart p {
+  color: #e2e8f0;
+  margin-bottom: 1.25rem;
+}
+
+.collection-editorial-prose .why-vape-mart ul {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.collection-editorial-prose .why-vape-mart li {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: #d1fae5;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 0.85rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.collection-editorial-prose .why-vape-mart li strong {
+  color: #ffffff;
+}
+
+.collection-editorial-prose .cta-strip {
+  border-radius: 1rem;
+  border: 1px dashed #d97706;
+  background: #fffbeb;
+  padding: 1.25rem 1.75rem;
+  text-align: center;
+  font-size: 15px;
+  color: #78350f;
+}

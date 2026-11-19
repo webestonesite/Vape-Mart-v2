@@ -642,6 +642,10 @@ export interface CollectionMeta {
   heroSubtitle?: string;
   showAsCard?: boolean;
   imageUrl?: string;
+  title?: string;
+  descriptionHtml?: string;
+  seoTitle?: string;
+  seoDescription?: string;
 }
 
 export const fetchCollectionMeta = cache(async function fetchCollectionMeta(): Promise<{
@@ -659,6 +663,9 @@ export const fetchCollectionMeta = cache(async function fetchCollectionMeta(): P
            nodes {
              id
              handle
+             title
+             descriptionHtml
+             seo { title description }
              image { url }
              metafields(first: 20, namespace: "collection") { nodes { key value } }
            }
@@ -684,6 +691,10 @@ export const fetchCollectionMeta = cache(async function fetchCollectionMeta(): P
         heroSubtitle: mf.hero_subtitle || undefined,
         showAsCard: mf.show_as_card === "true",
         imageUrl: c.image?.url || undefined,
+        title: c.title || undefined,
+        descriptionHtml: c.descriptionHtml || undefined,
+        seoTitle: c.seo?.title || undefined,
+        seoDescription: c.seo?.description || undefined,
       };
     }
     const faqsWithPos: Record<string, { q: string; a: string; position: number }[]> = {};

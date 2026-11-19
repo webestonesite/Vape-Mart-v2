@@ -117,6 +117,9 @@ export interface CollectionCategory {
   image: string;
   count: number;
   description: string;
+  descriptionHtml?: string;
+  seoTitle?: string;
+  seoDescription?: string;
   faqs?: { q: string; a: string }[];
 }
 

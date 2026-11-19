@@ -8,10 +8,9 @@ import {
   getCategoryBySlugSync,
   normalizeCategorySlug,
 } from "@/data/products-shopify";
-import { fetchShopSettings, fetchCollectionMeta } from "@/lib/shopify";
+import { fetchShopSettings, fetchCollectionMeta, type CollectionMeta } from "@/lib/shopify";
 import { fetchNavMenu } from "@/components/menu";
 import { CollectionPageView } from "@/components/collection/CollectionPageView";
-import { TEREA_FAQS } from "@/components/collection/TereaEditorialGuide";
 
 interface CollectionSlugPageProps {
   params: Promise<{ slug: string }>;
@@ -49,12 +48,17 @@ export async function generateMetadata({ params }: CollectionSlugPageProps): Pro
   // Normalise first, so /collections/e-liquids resolves first-class as the
   // e-liquid category instead of falling through to the brand branch.
   const norm = normalizeCategorySlug(slug);
-  const categories = await fetchCategories();
+  const [categories, meta] = await Promise.all([
+    fetchCategories().catch(() => []),
+    fetchCollectionMeta().catch(() => ({ byHandle: {} as Record<string, CollectionMeta>, faqsByHandle: {}, imagesByHandle: {} })),
+  ]);
   const category = categories.find((c) => c.slug === norm) || getCategoryBySlugSync(norm);
+  const byHandle = (meta?.byHandle || {}) as Record<string, CollectionMeta>;
+  const colMeta = byHandle[norm] || byHandle[slug];
 
-  if (!category) {
+  if (!category && !colMeta) {
     /* B6: brand / unlisted collection — title it by the collection, not "Not Found". */
-    const all = await fetchAllProducts();
+    const all = await fetchAllProducts().catch(() => []);
     const member = all.find((p) =>
       (p.shopifyCollections || []).some((c) => c.slug === norm || c.slug === slug) || p.categorySlug === norm || p.categorySlug === slug
     );
@@ -73,40 +77,27 @@ export async function generateMetadata({ params }: CollectionSlugPageProps): Pro
     };
   }
 
-  if (norm === "terea") {
-    return {
-      title: "IQOS TEREA Shop UAE | TEREA Sticks Dubai | Vape Mart",
-      description: "IQOS TEREA Shop UAE. Buy TEREA sticks in Dubai from 7 regions, 61 flavours, with cash on delivery and fast UAE delivery. Sealed original stock. Order now.",
-      openGraph: {
-        title: "IQOS TEREA Shop UAE | TEREA Sticks Dubai | Vape Mart",
-        description: "IQOS TEREA Shop UAE. Buy TEREA sticks in Dubai from 7 regions, 61 flavours, with cash on delivery and fast UAE delivery. Sealed original stock. Order now.",
-        images: [
-          {
-            url: category.image || "https://cdn.shopify.com/s/files/1/0631/8607/5696/collections/Terea_Dubai.webp?v=1794333481",
-            width: 800,
-            height: 800,
-            alt: "IQOS TEREA Shop UAE",
-          },
-        ],
-      },
-    };
-  }
+  const metaTitle = colMeta?.seoTitle || category?.seoTitle || (category ? `${category.title} | Vape Mart UAE` : `${slug} | Vape Mart UAE`);
+  const metaDescription = colMeta?.seoDescription || category?.seoDescription || category?.subtitle || category?.description || `Explore our authentic products with express delivery across Dubai and the UAE.`;
+  const image = colMeta?.imageUrl || category?.image;
 
   return {
-    title: `${category.title} | Vape Mart UAE`,
-    description: `${category.subtitle} Same-day express delivery in Dubai with 100% genuine guaranteed brands.`,
+    title: metaTitle,
+    description: metaDescription,
     openGraph: {
-      title: `${category.title} | Vape Mart UAE`,
-      description: category.description,
-      images: [
-        {
-          url: category.image,
-          width: 800,
-          height: 800,
-          alt: category.name
-        }
-      ]
-    }
+      title: metaTitle,
+      description: metaDescription,
+      images: image
+        ? [
+            {
+              url: image,
+              width: 800,
+              height: 800,
+              alt: category?.name || metaTitle,
+            },
+          ]
+        : [],
+    },
   };
 }
 
@@ -176,30 +167,20 @@ export default async function CollectionSlugPage({ params }: CollectionSlugPageP
     return <CollectionPageView allCategories={categories} products={[]} catalogProducts={catalogProjection} pageSettings={settings?.collectionPage} menu={menu} />;
   }
 
-  const enrichedCategory = norm === "terea" ? {
-    ...category,
-    name: "TEREA",
-    title: "IQOS TEREA Shop UAE – TEREA Sticks from 7 Regions",
-    badge: "7 REGIONS • 61 FLAVOURS",
-    subtitle: "At the IQOS TEREA Shop UAE, you will find IQOS TEREA sticks from 7 regions, 61 flavours in all, made for IQOS ILUMA and ILUMA i devices. In Dubai, order before 6pm and your sticks arrive in 3–4 hours with cash on delivery across the UAE.",
-    description: "Sealed original stock, 20 sticks per pack with region on the label. 100% genuine guaranteed with same-day express delivery across Dubai and the UAE.",
-    faqs: TEREA_FAQS,
-  } : category;
-
   const categoryProducts = await fetchProductsByCategory(category.slug);
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: enrichedCategory.title,
-    description: enrichedCategory.description,
+    name: category.title,
+    description: category.description,
     url: `https://vapemart.ae/collections/${category.slug}`
   };
 
-  const faqJsonLd = norm === "terea" ? {
+  const faqJsonLd = category.faqs && category.faqs.length > 0 ? {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: TEREA_FAQS.map((f) => ({
+    mainEntity: category.faqs.map((f) => ({
       "@type": "Question",
       name: f.q,
       acceptedAnswer: {
@@ -252,7 +233,7 @@ export default async function CollectionSlugPage({ params }: CollectionSlugPageP
       />
       <Suspense fallback={null}>
         <CollectionPageView
-          category={enrichedCategory}
+          category={category}
           allCategories={categories}
           products={categoryProducts}
           catalogProducts={catalogProjection}
