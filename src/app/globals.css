@@ -2334,34 +2334,246 @@ body {
   line-height: 1.75;
 }
 
-.collection-editorial-prose .intro-lead p {
-  font-size: 16px;
-  line-height: 1.8;
-  color: #064e3b;
+/* 1. HERO BANNER - 2-Column Responsive Layout */
+.collection-editorial-prose .editorial-hero-banner {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.75rem;
+  background: linear-gradient(135deg, #064e3b 0%, #043e2e 50%, #022c22 100%);
+  padding: 2.5rem;
+  color: #ffffff;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  align-items: center;
+  margin-bottom: 3rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 40px -15px rgba(6, 78, 59, 0.4);
+}
+
+@media (min-width: 1024px) {
+  .collection-editorial-prose .editorial-hero-banner {
+    grid-template-columns: 1.15fr 0.85fr;
+    padding: 3rem 3.5rem;
+    gap: 3rem;
+  }
+}
+
+.collection-editorial-prose .editorial-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  background: rgba(251, 191, 36, 0.1);
+  padding: 0.35rem 1rem;
+  font-family: var(--font-cinzel), 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: #fbbf24;
+  font-weight: 700;
   margin-bottom: 1.25rem;
 }
 
-.collection-editorial-prose h3 {
+.collection-editorial-prose .editorial-hero-title {
+  font-family: var(--font-playfair), 'Playfair Display', Georgia, serif;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #ffffff;
+  margin: 0 0 1.25rem 0;
+}
+
+@media (min-width: 640px) {
+  .collection-editorial-prose .editorial-hero-title {
+    font-size: 2.5rem;
+  }
+}
+
+.collection-editorial-prose .editorial-gold-text {
+  display: block;
+  background: linear-gradient(90deg, #fef08a 0%, #f59e0b 50%, #fef08a 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 0.85em;
+  margin-top: 0.35rem;
+}
+
+.collection-editorial-prose .editorial-lead {
+  font-size: 15px;
+  line-height: 1.75;
+  color: rgba(209, 250, 229, 0.95);
+  margin-bottom: 1rem;
+}
+
+.collection-editorial-prose .editorial-subtext {
+  font-size: 14px;
+  line-height: 1.7;
+  color: rgba(209, 250, 229, 0.8);
+  margin-bottom: 1.75rem;
+}
+
+.collection-editorial-prose .editorial-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.collection-editorial-prose .editorial-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 0.4rem 0.85rem;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fde047;
+}
+
+/* 2. STAT CARD (RIGHT COLUMN OF HERO) */
+.collection-editorial-prose .editorial-stat-card {
+  border-radius: 1.5rem;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  padding: 2rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.collection-editorial-prose .card-eyebrow {
+  font-family: var(--font-cinzel), 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: #fbbf24;
+  font-weight: 700;
+  display: block;
+  margin-bottom: 0.35rem;
+}
+
+.collection-editorial-prose .card-heading {
   font-family: var(--font-playfair), 'Playfair Display', Georgia, serif;
   font-size: 1.5rem;
   font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+}
+
+.collection-editorial-prose .card-desc {
+  font-size: 12.5px;
+  color: rgba(209, 250, 229, 0.75);
+  margin-top: 0.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.collection-editorial-prose .stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1.75rem;
+}
+
+.collection-editorial-prose .stat-box {
+  border-radius: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1rem;
+  text-align: center;
+}
+
+.collection-editorial-prose .stat-num {
+  display: block;
+  font-family: var(--font-playfair), 'Playfair Display', Georgia, serif;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #fbbf24;
+  line-height: 1;
+}
+
+.collection-editorial-prose .stat-txt {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.85);
+  margin-top: 0.4rem;
+}
+
+.collection-editorial-prose .card-bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 1.25rem;
+  text-align: center;
+}
+
+.collection-editorial-prose .help-text {
+  font-size: 12px;
+  color: rgba(209, 250, 229, 0.8);
+  margin-bottom: 0.75rem;
+}
+
+.collection-editorial-prose .editorial-whatsapp-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  height: 44px;
+  border-radius: 0.85rem;
+  background: #25d366;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35);
+}
+
+.collection-editorial-prose .editorial-whatsapp-link:hover {
+  background: #22bf5b;
+  transform: translateY(-1px);
+}
+
+/* 3. HEADINGS & SECTIONS */
+.collection-editorial-prose .section-title-wrap {
+  margin-bottom: 1.5rem;
+}
+
+.collection-editorial-prose .section-kicker {
+  font-family: var(--font-cinzel), 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  color: #d97706;
+  font-weight: 700;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.collection-editorial-prose .section-headline {
+  font-family: var(--font-playfair), 'Playfair Display', Georgia, serif;
+  font-size: 1.75rem;
+  font-weight: 700;
   color: #064e3b;
-  margin-top: 2rem;
-  margin-bottom: 1rem;
+  margin: 0;
+}
+
+.collection-editorial-prose .buyer-section-wrap,
+.collection-editorial-prose .popular-flavours-wrap,
+.collection-editorial-prose .comparison-table-wrap {
+  margin-bottom: 3.5rem;
 }
 
 .collection-editorial-prose .buyer-chapters {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1.5rem;
-  margin-bottom: 2.5rem;
 }
 
 .collection-editorial-prose .chapter-card {
-  border-radius: 1rem;
+  border-radius: 1.25rem;
   border: 1px solid rgba(6, 78, 59, 0.12);
   background: #fbfdfc;
-  padding: 1.5rem;
+  padding: 1.75rem;
   transition: all 0.2s ease;
 }
 
@@ -2370,44 +2582,81 @@ body {
   box-shadow: 0 10px 25px -10px rgba(6, 78, 59, 0.15);
 }
 
-.collection-editorial-prose .chapter-card h3 {
-  margin-top: 0;
+.collection-editorial-prose .chapter-card h4 {
+  font-family: var(--font-playfair), 'Playfair Display', Georgia, serif;
   font-size: 1.25rem;
+  font-weight: 700;
   color: #064e3b;
+  margin: 0 0 0.85rem 0;
 }
 
+.collection-editorial-prose .chapter-card p {
+  font-size: 14px;
+  line-height: 1.75;
+  color: #475569;
+  margin-bottom: 0.85rem;
+}
+
+.collection-editorial-prose .chapter-card p:last-child {
+  margin-bottom: 0;
+}
+
+/* 4. POPULAR FLAVOURS GRID */
 .collection-editorial-prose .popular-flavours-grid {
-  margin-bottom: 2.5rem;
-}
-
-.collection-editorial-prose .popular-flavours-grid ul {
-  list-style: none;
-  padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1.25rem;
 }
 
-.collection-editorial-prose .popular-flavours-grid li {
-  border-radius: 1rem;
+.collection-editorial-prose .flavour-box {
+  border-radius: 1.25rem;
   border: 1px solid rgba(6, 78, 59, 0.1);
   background: #ffffff;
-  padding: 1.25rem 1.5rem;
-  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.04);
+  padding: 1.5rem;
+  box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
 }
 
-.collection-editorial-prose .popular-flavours-grid li strong {
-  display: block;
-  font-size: 1rem;
+.collection-editorial-prose .flavour-box:hover {
+  border-color: rgba(217, 119, 6, 0.35);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 25px -8px rgba(6, 78, 59, 0.12);
+}
+
+.collection-editorial-prose .flavour-tag {
+  display: inline-block;
+  font-family: var(--font-cinzel), 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: #d97706;
+  font-weight: 700;
+  background: #fef3c7;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  margin-bottom: 0.75rem;
+}
+
+.collection-editorial-prose .flavour-box h4 {
+  font-family: var(--font-playfair), 'Playfair Display', Georgia, serif;
+  font-size: 1.25rem;
+  font-weight: 700;
   color: #064e3b;
-  margin-bottom: 0.35rem;
+  margin: 0 0 0.6rem 0;
 }
 
+.collection-editorial-prose .flavour-box p {
+  font-size: 14px;
+  line-height: 1.7;
+  color: #475569;
+  margin: 0;
+}
+
+/* 5. COMPARISON TABLE */
 .collection-editorial-prose .comparison-table {
   overflow-x: auto;
-  margin-bottom: 2.5rem;
-  border-radius: 1rem;
+  border-radius: 1.25rem;
   border: 1px solid rgba(6, 78, 59, 0.12);
+  box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.04);
 }
 
 .collection-editorial-prose .comparison-table table {
@@ -2421,68 +2670,108 @@ body {
   background: #064e3b;
   color: #ffffff;
   font-family: var(--font-cinzel), 'Cinzel', serif;
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  padding: 14px 18px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  padding: 16px 20px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .collection-editorial-prose .comparison-table td {
-  padding: 14px 18px;
+  padding: 15px 20px;
   border-bottom: 1px solid rgba(6, 78, 59, 0.08);
   color: #334155;
+  font-size: 13.5px;
 }
 
 .collection-editorial-prose .comparison-table tr:nth-child(even) td {
   background: #f8fafc;
 }
 
+.collection-editorial-prose .comparison-table tr:hover td {
+  background: #f0fdf4;
+}
+
+/* 6. WHY VAPE MART (TRUST) */
 .collection-editorial-prose .why-vape-mart {
-  border-radius: 1.25rem;
+  border-radius: 1.5rem;
   background: linear-gradient(135deg, #064e3b 0%, #043e2e 100%);
   color: #ffffff;
-  padding: 2rem;
-  margin-bottom: 2rem;
+  padding: 2.5rem;
+  margin-bottom: 2.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 40px -15px rgba(6, 78, 59, 0.35);
+}
+
+.collection-editorial-prose .section-kicker-gold {
+  font-family: var(--font-cinzel), 'Cinzel', serif;
+  font-size: 10.5px;
+  letter-spacing: 0.22em;
+  color: #fbbf24;
+  font-weight: 700;
+  display: block;
+  margin-bottom: 0.35rem;
 }
 
 .collection-editorial-prose .why-vape-mart h3 {
-  color: #fbbf24;
-  margin-top: 0;
+  font-family: var(--font-playfair), 'Playfair Display', Georgia, serif;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 0.5rem 0;
 }
 
 .collection-editorial-prose .why-vape-mart p {
-  color: #e2e8f0;
-  margin-bottom: 1.25rem;
+  font-size: 14.5px;
+  color: rgba(209, 250, 229, 0.85);
+  margin-bottom: 1.75rem;
 }
 
-.collection-editorial-prose .why-vape-mart ul {
-  list-style: none;
-  padding: 0;
+.collection-editorial-prose .why-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 1rem;
 }
 
-.collection-editorial-prose .why-vape-mart li {
-  font-size: 13.5px;
-  line-height: 1.6;
-  color: #d1fae5;
+.collection-editorial-prose .why-tile {
   background: rgba(255, 255, 255, 0.06);
-  padding: 0.85rem 1rem;
-  border-radius: 0.75rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.collection-editorial-prose .why-vape-mart li strong {
-  color: #ffffff;
-}
-
-.collection-editorial-prose .cta-strip {
   border-radius: 1rem;
+  padding: 1.15rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  transition: all 0.2s ease;
+}
+
+.collection-editorial-prose .why-tile:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(251, 191, 36, 0.3);
+}
+
+.collection-editorial-prose .why-tile strong {
+  color: #fbbf24;
+  font-size: 14px;
+}
+
+.collection-editorial-prose .why-tile span {
+  color: rgba(209, 250, 229, 0.8);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+/* 7. CTA STRIP */
+.collection-editorial-prose .cta-strip {
+  border-radius: 1.25rem;
   border: 1px dashed #d97706;
   background: #fffbeb;
-  padding: 1.25rem 1.75rem;
+  padding: 1.5rem 2rem;
   text-align: center;
   font-size: 15px;
   color: #78350f;
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.08);
+}
+
+.collection-editorial-prose .cta-strip strong {
+  color: #92400e;
 }

@@ -960,9 +960,9 @@ export function CollectionPageView({ category, allCategories, products, catalogP
 
         {/* ============ SEO EDITORIAL / DESCRIPTION (FROM SHOPIFY DATABASE) ============ */}
         {category?.descriptionHtml ? (
-          <section className="mt-14 sm:mt-20 overflow-hidden rounded-3xl border border-emerald-900/10 bg-white">
+          <section className="mt-14 sm:mt-20">
             <div
-              className="collection-editorial-prose px-6 sm:px-10 py-10 sm:py-14"
+              className="collection-editorial-prose"
               dangerouslySetInnerHTML={{ __html: category.descriptionHtml }}
             />
           </section>
