@@ -370,6 +370,42 @@ export interface BlogPost {
 export const blogPostsData: BlogPost[] = [
   {
     id: 1,
+    handle: "best-selling-juul-pod-flavors-dubai",
+    title: "Best-Selling Juul Pod Flavors in Dubai Right Now",
+    category: "BUYING GUIDES",
+    readTime: "5 min read",
+    date: "November 18, 2026",
+    excerpt: "Discover the most popular Juul pod flavors flying off the shelves in Dubai. From classic tobacco to crisp menthol and fruity blends, find out which pods local vapers are loving most right now.",
+    image: "/images/blog_juul_flavors.webp",
+    badgeBg: "bg-emerald-600 text-white",
+    author: "Vape Mart Team"
+  },
+  {
+    id: 2,
+    handle: "ultimate-guide-terea-flavors-dubai",
+    title: "The Ultimate Guide to Terea Flavors Available in Dubai",
+    category: "FLAVOR GUIDE",
+    readTime: "7 min read",
+    date: "November 16, 2026",
+    excerpt: "Explore the complete lineup of IQOS Terea sticks available across Dubai. Whether you prefer rich, roasted tobacco or a refreshing cooling sensation, this guide breaks down every flavor profile to help you find your perfect match.",
+    image: "/images/blog_terea_guide.webp",
+    badgeBg: "bg-amber-600 text-white",
+    author: "Vape Mart Team"
+  },
+  {
+    id: 3,
+    handle: "iqos-iluma-vs-juul-which-should-you-buy",
+    title: "IQOS Iluma vs. JUUL: Which Should You Buy Right Now",
+    category: "COMPARISON",
+    readTime: "6 min read",
+    date: "November 14, 2026",
+    excerpt: "Torn between heated tobacco and traditional pod vaping? Compare the IQOS Iluma and JUUL across flavor variety, battery life, convenience, and cost to decide which device fits your lifestyle best.",
+    image: "/images/blog_iqos_vs_juul.webp",
+    badgeBg: "bg-blue-600 text-white",
+    author: "Vape Mart Team"
+  },
+  {
+    id: 4,
     handle: "disposable-vs-pod-system-which-is-right-for-you",
     title: "Disposable vs Pod System: Which Is Right for You?",
     category: "BUYING GUIDES",
@@ -377,11 +413,11 @@ export const blogPostsData: BlogPost[] = [
     date: "October 12, 2026",
     excerpt: "Torn between a grab-and-go disposable and a refillable pod system? We break down cost, flavour, convenience and who each one suits best in the UAE.",
     image: "/images/blog_1.png",
-    badgeBg: "bg-emerald-600 text-white",
+    badgeBg: "bg-purple-600 text-white",
     author: "Vape Mart Team"
   },
   {
-    id: 2,
+    id: 5,
     handle: "best-disposable-vapes-uae-2026",
     title: "Best Disposable Vapes in UAE 2026: Top Picks and Buying Guide",
     category: "BUYING GUIDES",
@@ -389,42 +425,6 @@ export const blogPostsData: BlogPost[] = [
     date: "October 18, 2026",
     excerpt: "We tested the best-selling disposables in the Emirates for flavour, puff count, battery life and value. Here are our top 5 picks for 2026, plus how to choose and how to spot fakes.",
     image: "/images/blog_2.png",
-    badgeBg: "bg-amber-600 text-white",
-    author: "Vape Mart Team"
-  },
-  {
-    id: 3,
-    handle: "how-to-spot-fake-vapes-in-uae",
-    title: "How to Spot Fake Vapes in the UAE (5 Checks)",
-    category: "SAFETY",
-    readTime: "5 min read",
-    date: "October 8, 2026",
-    excerpt: "Counterfeit vapes are everywhere in the Emirates. Learn the five quick checks our team uses to verify every product before it reaches your hands.",
-    image: "/images/blog_3.png",
-    badgeBg: "bg-blue-600 text-white",
-    author: "Vape Mart Team"
-  },
-  {
-    id: 4,
-    handle: "nicotine-strength-guide-uae-vapers",
-    title: "Nicotine Strength Guide: 20mg vs 50mg Explained",
-    category: "EDUCATION",
-    readTime: "7 min read",
-    date: "October 3, 2026",
-    excerpt: "Confused by 2% vs 5%, 20mg vs 50mg? This plain-English guide explains nicotine salts, what each strength feels like, and how to pick yours.",
-    image: "/images/hero_slide_1.jpg",
-    badgeBg: "bg-purple-600 text-white",
-    author: "Vape Mart Team"
-  },
-  {
-    id: 5,
-    handle: "uae-vape-laws-2026-what-you-need-to-know",
-    title: "UAE Vape Laws in 2026: What Every Vaper Must Know",
-    category: "REGULATIONS",
-    readTime: "8 min read",
-    date: "September 14, 2026",
-    excerpt: "Age limits, where you can vape, import rules, and ESMA certification — the essential legal guide for vapers in the Emirates.",
-    image: "/images/hero_slide_3.jpg",
     badgeBg: "bg-rose-600 text-white",
     author: "Vape Mart Team"
   }

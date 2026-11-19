@@ -63,6 +63,7 @@ import { HomeFaq } from "@/components/home/HomeFaq";
 import { HomeTrustReviews } from "@/components/home/HomeTrustReviews";
 import { HomeBlogCarousel } from "@/components/home/HomeBlogCarousel";
 import { HomeFloatingControls } from "@/components/home/HomeFloatingControls";
+import { blogPostsData } from "@/data/homeData";
 
 export default async function Home() {
   // Same three reads as /api/site-content. Each is guarded: a Shopify
@@ -187,7 +188,9 @@ export default async function Home() {
     ? content.faqs.map((f: any) => ({ q: f.question, a: f.answer }))
     : undefined;
 
-  const blogList = posts.length ? posts.map(mapBlogPost) : undefined;
+  const curatedHandles = new Set(blogPostsData.map((b) => b.handle));
+  const shopifyMapped = posts.map(mapBlogPost).filter((p) => !curatedHandles.has(p.handle));
+  const blogList = [...blogPostsData, ...shopifyMapped];
 
   return (
     <div className="min-h-screen bg-white text-neutral-900 font-sans selection:bg-[#064e3b] selection:text-white flex flex-col">

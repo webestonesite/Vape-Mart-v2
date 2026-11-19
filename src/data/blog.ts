@@ -14,6 +14,68 @@ export interface BlogPost {
 
 export const blogPosts: BlogPost[] = [
   {
+    slug: "best-selling-juul-pod-flavors-dubai",
+    title: "Best-Selling Juul Pod Flavors in Dubai Right Now",
+    excerpt:
+      "Discover the most popular Juul pod flavors flying off the shelves in Dubai. From classic tobacco to crisp menthol and fruity blends, find out which pods local vapers are loving most right now.",
+    category: "Buying Guides",
+    date: "November 18, 2026",
+    readTime: "5 min read",
+    cover: "/images/blog_juul_flavors.webp",
+    quickAnswer: "Juul Virginia Tobacco and Crisp Menthol lead sales in Dubai for adult smokers, while Mango and Berry pods remain top favorites for refreshing fruity satisfaction.",
+    tags: ["JUUL", "JUUL pods", "Dubai", "buying guide", "flavors"],
+    productSlugs: ["juul-2-starter-kit", "juul-slate-device", "juul-ruby-device"],
+    content: [
+      "JUUL remains one of Dubai's most sought-after pod systems due to its pocket-friendly design, consistent nicotine delivery, and refined flavor portfolio. If you are wondering which flavors are dominating the market in Dubai today, here is the complete breakdown of the best-sellers.",
+      "1. Virginia Tobacco: The gold standard for adult smokers transitioning to vaping. It delivers a rich, earthy, and slightly sweet American tobacco profile with a familiar throat hit that never feels harsh.",
+      "2. Crisp Menthol: Especially in the Dubai heat, Menthol and Mint pods fly off shelves. Delivering an invigorating icy blast on inhale followed by clean herbal undertones, it is an essential all-day vape for menthol lovers.",
+      "3. Mango & Tropical Blends: Famous worldwide for juicy sweetness, authentic JUUL mango pods offer a smooth, tropical burst that balances ripe sweetness with smooth salt nicotine vapor.",
+      "4. Ruby & Berry: A vibrant fusion of forest berries with a light tart finish. It provides a sweet, aromatic vape that is especially popular among younger adult vapers seeking flavorful alternatives to tobacco.",
+      "When buying JUUL pods in the UAE, always verify authenticity. Vape Mart delivers 100% genuine, factory-sealed JUUL pods across Dubai, Abu Dhabi, and Sharjah with same-day express courier service.",
+    ],
+  },
+  {
+    slug: "ultimate-guide-terea-flavors-dubai",
+    title: "The Ultimate Guide to Terea Flavors Available in Dubai",
+    excerpt:
+      "Explore the complete lineup of IQOS Terea sticks available across Dubai. Whether you prefer rich, roasted tobacco or a refreshing cooling sensation, this guide breaks down every flavor profile to help you find your perfect match.",
+    category: "Buying Guides",
+    date: "November 16, 2026",
+    readTime: "7 min read",
+    cover: "/images/blog_terea_guide.webp",
+    quickAnswer: "TEREA sticks use the SMARTCORE INDUCTION SYSTEM for blade-free heating. Bronze and Sienna deliver rich roasted tobacco, while Turquoise, Green, and Purple Wave provide cooling mint and fruit sensations.",
+    tags: ["TEREA", "IQOS", "ILUMA", "heated tobacco", "Dubai flavors"],
+    productSlugs: ["terea-indonesia-sticks", "terea-japan-sticks", "terea-italy-sticks", "iqos-iluma-prime-kit"],
+    content: [
+      "The arrival of IQOS ILUMA revolutionized heated tobacco across Dubai. By replacing internal heating blades with the innovative SMARTCORE INDUCTION SYSTEM, TEREA sticks deliver clean flavor without tobacco residue or cleaning hassle.",
+      "Here is your comprehensive flavor guide to the best TEREA varieties available in the UAE:",
+      "Classic Tobacco Profiles: Bronze (intense, warm cocoa and velvety tobacco notes), Sienna (rounded, balanced toasted tobacco), and Amber (classic balanced woody roast). These are ideal for traditional cigarette smokers switching over.",
+      "Cooling & Menthol Profiles: Turquoise Selection provides light, crisp menthol with delicate zest. For a deeper icy burst, Green Zing combines intense peppermint with citrus herbal complexity.",
+      "Aromatic Capsule & Fruit Flavors: Purple Wave delivers a dark berry aroma with refreshing menthol cooling. Indonesian TEREA variants like Black Green and Bright Wave introduce exotic spice and intense freshness.",
+      "All TEREA editions—including Indonesian, Japanese, and Italian releases—are stocked with guaranteed freshness at Vape Mart Dubai.",
+    ],
+  },
+  {
+    slug: "iqos-iluma-vs-juul-which-should-you-buy",
+    title: "IQOS Iluma vs. JUUL: Which Should You Buy Right Now",
+    excerpt:
+      "Torn between heated tobacco and traditional pod vaping? Compare the IQOS Iluma and JUUL across flavor variety, battery life, convenience, and cost to decide which device fits your lifestyle best.",
+    category: "Buying Guides",
+    date: "November 14, 2026",
+    readTime: "6 min read",
+    cover: "/images/blog_iqos_vs_juul.webp",
+    quickAnswer: "Choose IQOS ILUMA if you want authentic heated real tobacco with zero ash and smoke. Choose JUUL if you want ultra-compact size, rapid pocket recharging, and e-liquid fruit/mint flavor variety.",
+    tags: ["IQOS ILUMA", "JUUL", "device comparison", "heated tobacco vs vape", "UAE"],
+    productSlugs: ["iqos-iluma-one-kit", "juul-2-starter-kit", "terea-indonesia-sticks", "juul-slate-device"],
+    content: [
+      "Adult smokers in Dubai looking to leave traditional combustible cigarettes behind usually find themselves comparing two market leaders: the IQOS ILUMA heated tobacco device and the JUUL closed pod vape system.",
+      "How They Work: IQOS ILUMA heats real tobacco leaves sealed inside TEREA sticks to roughly 350°C using magnetic induction, creating an aerosol without combustion, ash, or smoke. JUUL vaporizes salt-nicotine e-liquid through a temperature-regulated heating coil.",
+      "Taste & Sensation: IQOS delivers the true taste and mouthfeel of real tobacco leaf, making it the closest possible analogue to smoking. JUUL provides a smoother throat hit with a wider palette of flavors including fruit, mint, and menthol.",
+      "Portability & Convenience: JUUL is ultra-compact and weighs under 15 grams, slipping easily into any pocket. IQOS ILUMA devices (Standard, Prime, or One) are sleek and ergonomic, offering up to 20 consecutive uses on a single charge.",
+      "Verdict: If you crave authentic tobacco aroma and natural ritual, IQOS ILUMA is unmatched. If you want maximum pocket discretion and clean vapor flavors, JUUL is the winner. Both devices are fully stocked in Dubai with same-day express shipping at Vape Mart.",
+    ],
+  },
+  {
     slug: "disposable-vs-pod-system-which-is-right-for-you",
     title: "Disposable vs Pod System: Which Is Right for You?",
     excerpt:
